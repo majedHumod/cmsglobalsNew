@@ -23,7 +23,7 @@
 @endsection
 
 @section('content')
-<div class="bg-white shadow-md rounded-lg overflow-hidden">
+<div class="bg-white shadow-sm rounded-xl border border-gray-200 overflow-hidden">
     <div class="p-6">
         <div class="mb-6">
             <h2 class="text-lg font-medium text-gray-900">قائمة الجداول الغذائية</h2>
