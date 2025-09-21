@@ -24,239 +24,196 @@
 @endsection
 
 @section('content')
-<!-- معلومات الوجبة الأساسية -->
-<div class="bg-white shadow-md rounded-lg overflow-hidden mb-6">
-    <div class="p-6">
-        <div class="flex items-center justify-between mb-6">
-            <div class="flex items-center">
-                <div class="flex-shrink-0 w-16 h-16 bg-indigo-100 rounded-xl flex items-center justify-center mr-4">
-                    <svg class="w-8 h-8 text-indigo-600" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"></path>
-                    </svg>
-                </div>
-                <div>
-                    <h1 class="text-3xl font-bold text-gray-900">{{ $mealPlan->name }}</h1>
-                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium {{ $mealPlan->is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
-                        {{ $mealPlan->is_active ? 'نشط' : 'غير نشط' }}
-                    </span>
-                </div>
+<!-- Main Content Container - Unified Layout -->
+<div class="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+    <article>
+        <!-- Meal Plan Image - Moved to top for better layout -->
+        @if($mealPlan->image)
+            <div class="w-full h-64 md:h-80 mb-8 rounded-lg overflow-hidden">
+                <img src="{{ Storage::url($mealPlan->image) }}" alt="{{ $mealPlan->name }}" class="w-full h-full object-cover" loading="lazy" decoding="async">
             </div>
-        </div>
-
-        @if($mealPlan->description)
-            <p class="text-gray-600 text-lg mb-6">{{ $mealPlan->description }}</p>
         @endif
 
-        <!-- معلومات سريعة -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-6">
-            <div class="bg-blue-50 p-4 rounded-lg text-center">
-                <div class="text-2xl font-bold text-blue-600">{{ $mealPlan->meal_type_name }}</div>
-                <div class="text-sm text-gray-600">نوع الوجبة</div>
+        <header class="mb-8">
+            <div class="flex justify-between items-start mb-4">
+                <h1 class="text-3xl md:text-4xl font-bold text-gray-900">{{ $mealPlan->name }}</h1>
             </div>
             
-            @if($mealPlan->calories)
-                <div class="bg-green-50 p-4 rounded-lg text-center">
-                    <div class="text-2xl font-bold text-green-600">{{ $mealPlan->calories }}</div>
-                    <div class="text-sm text-gray-600">سعرة حرارية</div>
-                </div>
-            @endif
-            
-            @if($mealPlan->total_time > 0)
-                <div class="bg-yellow-50 p-4 rounded-lg text-center">
-                    <div class="text-2xl font-bold text-yellow-600">{{ $mealPlan->total_time }}</div>
-                    <div class="text-sm text-gray-600">دقيقة</div>
-                </div>
-            @endif
-            
-            <div class="bg-purple-50 p-4 rounded-lg text-center">
-                <div class="text-2xl font-bold text-purple-600">{{ $mealPlan->servings }}</div>
-                <div class="text-sm text-gray-600">حصة</div>
+            <!-- Meal Type and Status Badges -->
+            <div class="flex items-center space-x-4 space-x-reverse mb-6">
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                    {{ $mealPlan->meal_type_name }}
+                </span>
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
+                    {{ $mealPlan->difficulty_name }}
+                </span>
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium {{ $mealPlan->is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
+                    {{ $mealPlan->is_active ? 'نشط' : 'غير نشط' }}
+                </span>
             </div>
-        </div>
+            
+            @if($mealPlan->description)
+                <p class="text-xl text-gray-600 leading-relaxed mb-6">{{ $mealPlan->description }}</p>
+            @endif
 
-        <!-- معلومات التغذية -->
-        @if($mealPlan->protein || $mealPlan->carbs || $mealPlan->fats)
-            <div class="mb-6">
-                <h2 class="text-2xl font-bold text-gray-900 mb-4">المعلومات الغذائية</h2>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    @if($mealPlan->protein)
-                        <div class="bg-red-50 p-4 rounded-lg text-center">
-                            <div class="text-2xl font-bold text-red-600">{{ $mealPlan->protein }}ج</div>
-                            <div class="text-sm text-gray-600">بروتين</div>
-                        </div>
-                    @endif
-                    
-                    @if($mealPlan->carbs)
-                        <div class="bg-orange-50 p-4 rounded-lg text-center">
-                            <div class="text-2xl font-bold text-orange-600">{{ $mealPlan->carbs }}ج</div>
-                            <div class="text-sm text-gray-600">كربوهيدرات</div>
-                        </div>
-                    @endif
-                    
-                    @if($mealPlan->fats)
-                        <div class="bg-yellow-50 p-4 rounded-lg text-center">
-                            <div class="text-2xl font-bold text-yellow-600">{{ $mealPlan->fats }}ج</div>
-                            <div class="text-sm text-gray-600">دهون</div>
-                        </div>
-                    @endif
-                </div>
-                
-                <!-- نسب المغذيات -->
-                @if($mealPlan->total_macros > 0)
-                    <div class="mt-4 bg-gray-50 p-4 rounded-lg">
-                        <h3 class="text-sm font-medium text-gray-900 mb-3">توزيع المغذيات الكبرى</h3>
-                        <div class="space-y-2">
-                            @if($mealPlan->protein)
-                                <div class="flex items-center justify-between">
-                                    <span class="text-sm text-gray-600">البروتين</span>
-                                    <div class="flex items-center">
-                                        <div class="w-32 bg-gray-200 rounded-full h-2 mr-2">
-                                            <div class="bg-red-500 h-2 rounded-full" style="width: {{ $mealPlan->macro_percentages['protein'] }}%"></div>
-                                        </div>
-                                        <span class="text-sm text-gray-500">{{ $mealPlan->macro_percentages['protein'] }}%</span>
-                                    </div>
-                                </div>
-                            @endif
-                            
-                            @if($mealPlan->carbs)
-                                <div class="flex items-center justify-between">
-                                    <span class="text-sm text-gray-600">الكربوهيدرات</span>
-                                    <div class="flex items-center">
-                                        <div class="w-32 bg-gray-200 rounded-full h-2 mr-2">
-                                            <div class="bg-orange-500 h-2 rounded-full" style="width: {{ $mealPlan->macro_percentages['carbs'] }}%"></div>
-                                        </div>
-                                        <span class="text-sm text-gray-500">{{ $mealPlan->macro_percentages['carbs'] }}%</span>
-                                    </div>
-                                </div>
-                            @endif
-                            
-                            @if($mealPlan->fats)
-                                <div class="flex items-center justify-between">
-                                    <span class="text-sm text-gray-600">الدهون</span>
-                                    <div class="flex items-center">
-                                        <div class="w-32 bg-gray-200 rounded-full h-2 mr-2">
-                                            <div class="bg-yellow-500 h-2 rounded-full" style="width: {{ $mealPlan->macro_percentages['fats'] }}%"></div>
-                                        </div>
-                                        <span class="text-sm text-gray-500">{{ $mealPlan->macro_percentages['fats'] }}%</span>
-                                    </div>
-                                </div>
-                            @endif
-                        </div>
+            <!-- Meal Plan Details Grid -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
+                @if($mealPlan->calories)
+                    <div class="bg-green-50 p-4 rounded-lg text-center">
+                        <div class="text-2xl font-bold text-green-600">{{ $mealPlan->calories }}</div>
+                        <div class="text-sm text-gray-600">سعرة حرارية</div>
                     </div>
                 @endif
-                        <dt class="text-sm font-medium text-gray-500">إجمالي المغذيات:</dt>
-                        <dd class="mt-1 text-sm text-gray-900">{{ $mealPlan->total_macros }}ج</dd>
+                
+                @if($mealPlan->total_time > 0)
+                    <div class="bg-blue-50 p-4 rounded-lg text-center">
+                        <div class="text-2xl font-bold text-blue-600">{{ $mealPlan->total_time }}</div>
+                        <div class="text-sm text-gray-600">دقيقة</div>
                     </div>
-                    <div>
-            </div>
-        @endif
-
-        <!-- تفاصيل إضافية -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <div class="flex items-center space-x-2">
-                <span class="font-medium text-gray-700">مستوى الصعوبة:</span>
-                <span class="bg-gray-100 px-2 py-1 rounded text-sm">{{ $mealPlan->difficulty_name }}</span>
-            </div>
-            
-            @if($mealPlan->prep_time)
-                <div class="flex items-center space-x-2">
-                    <span class="font-medium text-gray-700">وقت التحضير:</span>
-                    <span class="text-gray-600">{{ $mealPlan->prep_time }} دقيقة</span>
+                @endif
+                
+                <div class="bg-purple-50 p-4 rounded-lg text-center">
+                    <div class="text-2xl font-bold text-purple-600">{{ $mealPlan->servings }}</div>
+                    <div class="text-sm text-gray-600">حصة</div>
                 </div>
-            @endif
-            
-            @if($mealPlan->cook_time)
-                <div class="flex items-center space-x-2">
-                    <span class="font-medium text-gray-700">وقت الطبخ:</span>
-                    <span class="text-gray-600">{{ $mealPlan->cook_time }} دقيقة</span>
-                </div>
-            @endif
-        </div>
-
-        <!-- صورة الوجبة -->
-        @if($mealPlan->image)
-            <div class="mb-6">
-                <h2 class="text-2xl font-bold text-gray-900 mb-4">صورة الوجبة</h2>
-                <div class="bg-gray-50 p-4 rounded-lg">
-                    <img src="{{ Storage::url($mealPlan->image) }}" alt="{{ $mealPlan->name }}" class="w-full max-w-md mx-auto rounded-lg shadow-sm">
-                </div>
+                
+                @if($mealPlan->prep_time)
+                    <div class="bg-orange-50 p-4 rounded-lg text-center">
+                        <div class="text-2xl font-bold text-orange-600">{{ $mealPlan->prep_time }}</div>
+                        <div class="text-sm text-gray-600">وقت التحضير</div>
+                    </div>
+                @endif
             </div>
-        @endif
-    </div>
-</div>
 
-<!-- معلومات تفصيلية -->
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-    <!-- المكونات -->
-    <div class="bg-white shadow-md rounded-lg overflow-hidden">
-        <div class="px-4 py-5 sm:px-6 bg-gray-50">
-            <h3 class="text-lg font-medium text-gray-900">المكونات</h3>
-            <p class="mt-1 text-sm text-gray-500">قائمة بجميع المكونات المطلوبة</p>
-        </div>
-        <div class="border-t border-gray-200 px-4 py-5 sm:p-6">
-            <ul class="space-y-2">
-                @foreach(explode("\n", $mealPlan->ingredients) as $ingredient)
-                    @if(trim($ingredient))
-                        <li class="flex items-center">
-                            <svg class="w-4 h-4 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                            </svg>
-                            {{ trim($ingredient) }}
-                        </li>
+            <!-- Nutrition Information -->
+            @if($mealPlan->protein || $mealPlan->carbs || $mealPlan->fats)
+                <div class="mb-8">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-4">المعلومات الغذائية</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        @if($mealPlan->protein)
+                            <div class="bg-red-50 p-4 rounded-lg text-center">
+                                <div class="text-2xl font-bold text-red-600">{{ $mealPlan->protein }}ج</div>
+                                <div class="text-sm text-gray-600">بروتين</div>
+                            </div>
+                        @endif
+                        
+                        @if($mealPlan->carbs)
+                            <div class="bg-orange-50 p-4 rounded-lg text-center">
+                                <div class="text-2xl font-bold text-orange-600">{{ $mealPlan->carbs }}ج</div>
+                                <div class="text-sm text-gray-600">كربوهيدرات</div>
+                            </div>
+                        @endif
+                        
+                        @if($mealPlan->fats)
+                            <div class="bg-yellow-50 p-4 rounded-lg text-center">
+                                <div class="text-2xl font-bold text-yellow-600">{{ $mealPlan->fats }}ج</div>
+                                <div class="text-sm text-gray-600">دهون</div>
+                            </div>
+                        @endif
+                    </div>
+                    
+                    <!-- Macro Percentages -->
+                    @if($mealPlan->total_macros > 0)
+                        <div class="mt-6 bg-gray-50 p-4 rounded-lg">
+                            <h3 class="text-sm font-medium text-gray-900 mb-3">توزيع المغذيات الكبرى</h3>
+                            <div class="space-y-2">
+                                @if($mealPlan->protein)
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm text-gray-600">البروتين</span>
+                                        <div class="flex items-center">
+                                            <div class="w-32 bg-gray-200 rounded-full h-2 mr-2">
+                                                <div class="bg-red-500 h-2 rounded-full" style="width: {{ isset($mealPlan->macro_percentages['protein']) ? $mealPlan->macro_percentages['protein'] : round(($mealPlan->protein * 4 / $mealPlan->calories) * 100) }}%"></div>
+                                            </div>
+                                            <span class="text-sm font-medium">{{ isset($mealPlan->macro_percentages['protein']) ? $mealPlan->macro_percentages['protein'] : round(($mealPlan->protein * 4 / $mealPlan->calories) * 100) }}%</span>
+                                        </div>
+                                    </div>
+                                @endif
+                                
+                                @if($mealPlan->carbs)
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm text-gray-600">الكربوهيدرات</span>
+                                        <div class="flex items-center">
+                                            <div class="w-32 bg-gray-200 rounded-full h-2 mr-2">
+                                                <div class="bg-orange-500 h-2 rounded-full" style="width: {{ isset($mealPlan->macro_percentages['carbs']) ? $mealPlan->macro_percentages['carbs'] : round(($mealPlan->carbs * 4 / $mealPlan->calories) * 100) }}%"></div>
+                                            </div>
+                                            <span class="text-sm font-medium">{{ isset($mealPlan->macro_percentages['carbs']) ? $mealPlan->macro_percentages['carbs'] : round(($mealPlan->carbs * 4 / $mealPlan->calories) * 100) }}%</span>
+                                        </div>
+                                    </div>
+                                @endif
+                                
+                                @if($mealPlan->fats)
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm text-gray-600">الدهون</span>
+                                        <div class="flex items-center">
+                                            <div class="w-32 bg-gray-200 rounded-full h-2 mr-2">
+                                                <div class="bg-yellow-500 h-2 rounded-full" style="width: {{ isset($mealPlan->macro_percentages['fats']) ? $mealPlan->macro_percentages['fats'] : round(($mealPlan->fats * 9 / $mealPlan->calories) * 100) }}%"></div>
+                                            </div>
+                                            <span class="text-sm font-medium">{{ isset($mealPlan->macro_percentages['fats']) ? $mealPlan->macro_percentages['fats'] : round(($mealPlan->fats * 9 / $mealPlan->calories) * 100) }}%</span>
+                                        </div>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
                     @endif
-                @endforeach
-            </ul>
-        </div>
-    </div>
-    
-    <!-- معلومات الوجبة -->
-    <div class="bg-white shadow-md rounded-lg overflow-hidden">
-        <div class="px-4 py-5 sm:px-6 bg-gray-50">
-            <h3 class="text-lg font-medium text-gray-900">معلومات الوجبة</h3>
-            <p class="mt-1 text-sm text-gray-500">تفاصيل تقنية عن الوجبة</p>
-        </div>
-        <div class="border-t border-gray-200 px-4 py-5 sm:p-6">
-            <dl class="space-y-4">
-                <div class="flex justify-between">
-                    <dt class="text-sm font-medium text-gray-500">المؤلف:</dt>
-                    <dd class="text-sm text-gray-900">{{ $mealPlan->user->name }}</dd>
                 </div>
-                <div class="flex justify-between">
-                    <dt class="text-sm font-medium text-gray-500">تاريخ الإنشاء:</dt>
-                    <dd class="text-sm text-gray-900">{{ $mealPlan->created_at ? $mealPlan->created_at->format('d/m/Y H:i') : '—' }}</dd>
-                </div>
-                <div class="flex justify-between">
-                    <dt class="text-sm font-medium text-gray-500">آخر تحديث:</dt>
-                    <dd class="text-sm text-gray-900">{{ $mealPlan->updated_at ? $mealPlan->updated_at->format('d/m/Y H:i') : '—' }}</dd>
-                </div>
-                <div class="flex justify-between">
-                    <dt class="text-sm font-medium text-gray-500">يمكن تعديلها:</dt>
-                    <dd class="text-sm text-gray-900">{{ (auth()->user()->hasRole('admin') || $mealPlan->user_id === auth()->id()) ? '✅ نعم' : '❌ لا' }}</dd>
-                </div>
-            </dl>
-        </div>
-    </div>
-</div>
+            @endif
+        </header>
 
-<!-- طريقة التحضير -->
-@if($mealPlan->instructions)
-    <div class="bg-white shadow-md rounded-lg overflow-hidden">
-        <div class="px-4 py-5 sm:px-6 bg-gray-50">
-            <h3 class="text-lg font-medium text-gray-900">طريقة التحضير</h3>
-            <p class="mt-1 text-sm text-gray-500">خطوات تحضير الوجبة بالتفصيل</p>
-        </div>
-        <div class="border-t border-gray-200 px-4 py-5 sm:p-6">
-            <div class="prose max-w-none text-right">
-                {!! nl2br(e($mealPlan->instructions)) !!}
+        <!-- Ingredients and Instructions Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <!-- المكونات -->
+            <div class="bg-gray-50 p-6 rounded-lg">
+                <h2 class="text-xl font-bold text-gray-900 mb-4">المكونات</h2>
+                <ul class="space-y-3">
+                    @foreach(explode("\n", $mealPlan->ingredients) as $ingredient)
+                        @if(trim($ingredient))
+                            <li class="flex items-center">
+                                <svg class="w-5 h-5 text-green-500 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                </svg>
+                                <span class="text-gray-700">{{ trim($ingredient) }}</span>
+                            </li>
+                        @endif
+                    @endforeach
+                </ul>
+            </div>
+            
+            <!-- معلومات الوجبة -->
+            <div class="bg-gray-50 p-6 rounded-lg">
+                <h2 class="text-xl font-bold text-gray-900 mb-4">معلومات الوجبة</h2>
+                <dl class="space-y-4">
+                    <div class="flex justify-between">
+                        <dt class="text-sm font-medium text-gray-500">المؤلف:</dt>
+                        <dd class="text-sm text-gray-900 font-medium">{{ $mealPlan->user->name }}</dd>
+                    </div>
+                    <div class="flex justify-between">
+                        <dt class="text-sm font-medium text-gray-500">تاريخ الإنشاء:</dt>
+                        <dd class="text-sm text-gray-900">{{ $mealPlan->created_at ? $mealPlan->created_at->format('d/m/Y H:i') : '—' }}</dd>
+                    </div>
+                    <div class="flex justify-between">
+                        <dt class="text-sm font-medium text-gray-500">آخر تحديث:</dt>
+                        <dd class="text-sm text-gray-900">{{ $mealPlan->updated_at ? $mealPlan->updated_at->format('d/m/Y H:i') : '—' }}</dd>
+                    </div>
+                    <div class="flex justify-between">
+                        <dt class="text-sm font-medium text-gray-500">يمكن تعديلها:</dt>
+                        <dd class="text-sm text-gray-900">{{ (auth()->user()->hasRole('admin') || $mealPlan->user_id === auth()->id()) ? '✅ نعم' : '❌ لا' }}</dd>
+                    </div>
+                </dl>
             </div>
         </div>
-    </div>
-@else
-    <!-- لا توجد تعليمات -->
-    <div class="bg-white shadow-md rounded-lg overflow-hidden">
-        <div class="p-6">
-            <div class="text-center py-8">
-                <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-gray-100 mb-4">
+
+        <!-- طريقة التحضير -->
+        @if($mealPlan->instructions)
+            <div class="bg-gray-50 p-6 rounded-lg">
+                <h2 class="text-xl font-bold text-gray-900 mb-4">طريقة التحضير</h2>
+                <div class="prose max-w-none text-right text-gray-700 leading-relaxed">
+                    {!! nl2br(e($mealPlan->instructions)) !!}
+                </div>
+            </div>
+        @else
+            <!-- لا توجد تعليمات -->
+            <div class="bg-gray-50 p-6 rounded-lg text-center">
+                <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-gray-200 mb-4">
                     <svg class="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
@@ -273,7 +230,7 @@
                     </a>
                 @endif
             </div>
-        </div>
-    </div>
-@endif
+        @endif
+    </article>
+</div>
 @endsection
