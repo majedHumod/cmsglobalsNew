@@ -1,0 +1,26 @@
+name: Deploy to cPanel
+on:
+  push:
+    branches:
+      - main  # تأكد أن هذا هو اسم الفرع الرئيسي لديك
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: FTP Deploy
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          # المسار غالباً يكون public_html أو مسار المجلد الفرعي
+          server-dir: ./public_html/app.etoscoach.com 
+          # لاستثناء ملفات لا تريد رفعها للسيرفر
+          exclude: |
+            **/.git*
+            **/node_modules/**
+            **/vendor/**
+            .env
