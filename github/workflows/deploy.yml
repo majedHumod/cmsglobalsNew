@@ -1,9 +1,6 @@
 name: Deploy to cPanel
 
-on:
-  push:
-    branches:
-      - main
+on: [push]  # هذه الطريقة المختصرة لا تقبل الخطأ في التنسيق
 
 jobs:
   deploy:
@@ -18,12 +15,4 @@ jobs:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          server-dir: app.etoscoach.com/
-          exclude: |
-            **/.git*
-            **/node_modules/**
-            **/vendor/**
-            .env
-
-
-
+          server-dir: public_html/
