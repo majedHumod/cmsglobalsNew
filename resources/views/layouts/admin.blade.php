@@ -37,8 +37,18 @@
     <div class="min-h-screen flex">
         <!-- Sidebar -->
         <div class="w-64 bg-white shadow-lg">
-            <div class="flex items-center justify-center h-16 border-b border-gray-200">
-                <h1 class="text-xl font-bold text-gray-800">لوحة التحكم</h1>
+            <div class="flex items-center justify-center h-16 border-b border-gray-200 px-3">
+                @php
+                    $sidebarLogo = \App\Models\SiteSetting::get('site_logo');
+                    $sidebarSiteName = \App\Models\SiteSetting::get('site_name', config('app.name'));
+                @endphp
+                @if($sidebarLogo)
+                    <a href="{{ route('dashboard') }}" class="flex items-center justify-center w-full py-1">
+                        <img src="{{ \Illuminate\Support\Facades\Storage::url($sidebarLogo) }}" alt="{{ $sidebarSiteName }}" class="h-9 w-auto max-w-[11rem] object-contain">
+                    </a>
+                @else
+                    <a href="{{ route('dashboard') }}" class="text-lg font-bold text-gray-800 truncate text-center">{{ $sidebarSiteName }}</a>
+                @endif
             </div>
             
             <nav class="mt-8">
@@ -120,6 +130,13 @@
                         </svg>
                         إدارة العضويات
                     </a>
+
+                    <a href="{{ route('admin.user-memberships.index') }}" class="flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100 {{ request()->routeIs('admin.user-memberships.*') ? 'bg-indigo-100 text-indigo-700 border-r-4 border-indigo-500' : '' }}">
+                        <svg class="w-5 h-5 ml-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
+                        </svg>
+                        اشتراكات الأعضاء
+                    </a>
                     @endrole
 
                     <!-- FAQs -->
@@ -155,6 +172,14 @@
                         </svg>
                         حجوزات الجلسات
                     </a>
+                    
+                    <!-- Nutrition Discounts -->
+                    <a href="{{ route('nutrition-discounts.index') }}" class="flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100 {{ request()->routeIs('nutrition-discounts.*') ? 'bg-indigo-100 text-indigo-700 border-r-4 border-indigo-500' : '' }}">
+                        <svg class="w-5 h-5 ml-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                        </svg>
+                        خصومات المراكز الغذائية
+                    </a>
                     @endrole
 
                     <!-- Landing Pages -->
@@ -186,6 +211,16 @@
                         إعدادات الموقع
                     </a>
                     @endrole
+
+                    <!-- Billing -->
+                    @role('admin')
+                    <a href="{{ route('tenant.billing') }}" class="flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100 {{ request()->routeIs('tenant.billing') ? 'bg-indigo-100 text-indigo-700 border-r-4 border-indigo-500' : '' }}">
+                        <svg class="w-5 h-5 ml-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h10M5 7h14M6 19h12"></path>
+                        </svg>
+                        الفوترة والاشتراك
+                    </a>
+                    @endrole
                 </div>
             </nav>
         </div>
@@ -195,9 +230,19 @@
             <!-- Header -->
             <header class="bg-white shadow-sm border-b border-gray-200">
                 <div class="px-6 py-4">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <h1 class="text-2xl font-bold text-gray-900 text-right">@yield('header')</h1>
+                    <div class="flex items-center justify-between gap-4 flex-wrap">
+                        <div class="flex items-center gap-4 min-w-0 flex-1">
+                            @php
+                                $headerLogo = \App\Models\SiteSetting::get('site_logo');
+                                $headerSiteName = \App\Models\SiteSetting::get('site_name', config('app.name'));
+                            @endphp
+                            @if($headerLogo)
+                                <a href="{{ route('dashboard') }}" class="flex-shrink-0" title="{{ $headerSiteName }}">
+                                    <img src="{{ \Illuminate\Support\Facades\Storage::url($headerLogo) }}" alt="{{ $headerSiteName }}" class="h-10 w-auto max-h-10 max-w-[140px] object-contain">
+                                </a>
+                            @endif
+                            <div class="min-w-0">
+                            <h1 class="text-2xl font-bold text-gray-900 text-right truncate">@yield('header')</h1>
                             @hasSection('breadcrumbs')
                                 <nav class="flex mt-2" aria-label="Breadcrumb">
                                     <ol class="inline-flex items-center space-x-1 md:space-x-3">
@@ -210,9 +255,10 @@
                                     </ol>
                                 </nav>
                             @endif
+                            </div>
                         </div>
                         @hasSection('header_actions')
-                            <div>
+                            <div class="flex-shrink-0">
                                 @yield('header_actions')
                             </div>
                         @endif

@@ -57,6 +57,14 @@
                             <div class="flex items-start justify-between mb-4">
                                 <h3 class="text-lg font-semibold text-gray-900 line-clamp-2">{{ $article->title }}</h3>
                                 <div class="flex space-x-1 ml-2">
+                                    @if($article->is_published)
+                                        <a href="{{ route('articles.public.show', $article) }}" class="text-green-600 hover:text-green-800 p-1" title="استعراض">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                            </svg>
+                                        </a>
+                                    @endif
                                     <a href="{{ route('articles.edit', $article) }}" class="text-indigo-600 hover:text-indigo-900 p-1" title="تعديل">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
@@ -90,18 +98,34 @@
                                     {{ $article->created_at->format('d/m/Y') }}
                                 </span>
                             </div>
-                            
-                            <div class="flex space-x-2">
-                                <a href="{{ route('articles.edit', $article) }}" class="flex-1 text-center bg-indigo-600 hover:bg-indigo-700 text-white text-sm py-2 px-3 rounded-md transition-colors">
-                                    تعديل
-                                </a>
-                                <form action="{{ route('articles.destroy', $article) }}" method="POST" class="flex-1">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white text-sm py-2 px-3 rounded-md transition-colors" onclick="return confirm('هل أنت متأكد من حذف هذا المقال؟')">
-                                        حذف
-                                    </button>
-                                </form>
+
+                            <div class="mt-2 space-y-3">
+                                <div>
+                                    @if($article->is_published)
+                                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">منشور</span>
+                                    @else
+                                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">مسودة</span>
+                                    @endif
+                                </div>
+
+                                @if($article->is_published)
+                                    <a
+                                        href="{{ route('articles.public.show', $article) }}"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        class="inline-flex w-full items-center justify-center rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm font-medium text-green-700 transition hover:bg-green-100"
+                                    >
+                                        <svg class="ml-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                        </svg>
+                                        عرض في الموقع
+                                    </a>
+                                @else
+                                    <div class="rounded-md border border-yellow-200 bg-yellow-50 px-3 py-2 text-center text-sm text-yellow-700">
+                                        يجب نشر المقالة أولاً قبل عرضها في الموقع.
+                                    </div>
+                                @endif
                             </div>
                         </div>
                     </div>

@@ -195,6 +195,8 @@ class SiteSettingController extends Controller
             'testimonials_description' => 'nullable|string|max:500',
             'testimonials_count' => 'nullable|integer|min:1|max:10',
             'testimonials_enabled' => 'nullable|boolean',
+            'articles_enabled' => 'nullable|boolean',
+            'articles_count' => 'nullable|integer|min:1|max:12',
         ]);
 
         if ($validator->fails()) {
@@ -212,6 +214,8 @@ class SiteSettingController extends Controller
         SiteSetting::set('testimonials_description', $request->testimonials_description, 'homepage', 'string', 'Testimonials section description');
         SiteSetting::set('testimonials_count', $request->testimonials_count, 'homepage', 'integer', 'Number of testimonials to display');
         SiteSetting::set('testimonials_enabled', $request->has('testimonials_enabled'), 'homepage', 'boolean', 'Enable testimonials section');
+        SiteSetting::set('articles_enabled', $request->has('articles_enabled'), 'homepage', 'boolean', 'Enable articles section');
+        SiteSetting::set('articles_count', $request->articles_count ?: 3, 'homepage', 'integer', 'Number of articles to display');
 
         // Clear related caches to ensure immediate effect
         \App\Models\TrainingSession::clearCache();

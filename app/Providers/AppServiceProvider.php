@@ -7,6 +7,9 @@ use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Cache;
+use App\Services\TenantCache;
+use Illuminate\Support\Facades\Blade;
+use App\Services\FeatureFlagService;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -26,13 +29,18 @@ class AppServiceProvider extends ServiceProvider
         // Set locale
         App::setLocale(Session::get('locale', config('app.locale')));
         
+        // Blade feature flag directive: @feature('flag') ... @endfeature
+        Blade::if('feature', function (string $flag) {
+            return FeatureFlagService::enabled($flag, false);
+        });
+        
         // Share menu pages with all views
         View::composer('*', function ($view) {
             try {
                 // Only load pages if we're in a tenant context and the pages table exists
                 if (class_exists(\App\Models\Page::class)) {
                     // Cache menu pages for better performance
-                    $allMenuPages = Cache::remember('menu_pages', 3600, function () {
+                    $allMenuPages = Cache::remember(TenantCache::key('menu_pages'), 3600, function () {
                         return \App\Models\Page::select([
                                 'id', 'title', 'slug', 'access_level', 
                                 'required_membership_types', 'menu_order'

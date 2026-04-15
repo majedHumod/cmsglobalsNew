@@ -219,6 +219,9 @@
                            <div class="mt-6" id="membership-types-section" style="{{ old('access_level', $page->access_level) == 'membership' ? 'display:block' : 'display:none' }}">
                                <label class="block text-sm font-medium text-gray-700 mb-2">أنواع العضويات المطلوبة</label>
                                <p class="text-xs text-gray-500 mb-3">حدد أنواع العضويات التي يمكنها الوصول لهذه الصفحة</p>
+                               @error('required_membership_types')
+                                   <p class="text-red-500 text-xs mb-2">{{ $message }}</p>
+                               @enderror
                                
                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                                    @php
@@ -455,19 +458,23 @@
             const membershipTypesSection = document.getElementById('membership-types-section');
             const membershipCheckboxes = document.querySelectorAll('input[name="required_membership_types[]"]');
             
+            function setMembershipGroupRequired(required) {
+                if (!membershipCheckboxes.length) return;
+                membershipCheckboxes.forEach(cb => cb.removeAttribute('required'));
+                if (required) {
+                    // اجعل أول عنصر فقط required ليعمل التحقق كمجموعة (واحد على الأقل)
+                    membershipCheckboxes[0].setAttribute('required', 'required');
+                }
+            }
+
             function updateMembershipSection() {
                 if (accessLevelSelect.value === 'membership') {
                     membershipTypesSection.style.display = 'block';
-                    // Make at least one checkbox required when membership is selected
-                    membershipCheckboxes.forEach(checkbox => {
-                        checkbox.setAttribute('required', 'required');
-                    });
+                    const anyChecked = Array.from(membershipCheckboxes).some(cb => cb.checked);
+                    setMembershipGroupRequired(!anyChecked);
                 } else {
                     membershipTypesSection.style.display = 'none';
-                    // Remove required attribute when membership is not selected
-                    membershipCheckboxes.forEach(checkbox => {
-                        checkbox.removeAttribute('required');
-                    });
+                    setMembershipGroupRequired(false);
                 }
             }
             
@@ -485,11 +492,7 @@
                 membershipCheckboxes.forEach(checkbox => {
                     checkbox.addEventListener('change', function() {
                         const anyChecked = Array.from(membershipCheckboxes).some(cb => cb.checked);
-                        if (anyChecked) {
-                            membershipCheckboxes.forEach(cb => cb.removeAttribute('required'));
-                        } else if (accessLevelSelect.value === 'membership') {
-                            membershipCheckboxes.forEach(cb => cb.setAttribute('required', 'required'));
-                        }
+                        setMembershipGroupRequired(accessLevelSelect.value === 'membership' && !anyChecked);
                     });
                 });
             }

@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
+use App\Services\TenantCache;
 
 class Faq extends Model
 {
@@ -53,7 +54,7 @@ class Faq extends Model
      */
     public static function getActive()
     {
-        return Cache::remember('active_faqs', 7200, function () {
+        return Cache::remember(TenantCache::key('active_faqs'), 7200, function () {
             return self::active()
                 ->ordered()
                 ->select(['id', 'question', 'answer', 'category', 'sort_order'])
@@ -66,7 +67,7 @@ class Faq extends Model
      */
     public static function getGroupedByCategory()
     {
-        return Cache::remember('faqs_by_category', 7200, function () {
+        return Cache::remember(TenantCache::key('faqs_by_category'), 7200, function () {
             return self::active()
                 ->ordered()
                 ->select(['id', 'question', 'answer', 'category', 'sort_order'])
@@ -80,7 +81,7 @@ class Faq extends Model
      */
     public static function clearCache()
     {
-        Cache::forget('active_faqs');
-        Cache::forget('faqs_by_category');
+        Cache::forget(TenantCache::key('active_faqs'));
+        Cache::forget(TenantCache::key('faqs_by_category'));
     }
 }

@@ -34,7 +34,8 @@ return new class extends Migration
 
         Schema::create('workout_schedules', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('workout_id')->constrained()->onDelete('cascade'); // ربط بالتمرين
+            // نستخدم عموداً عادياً لتفادي مشاكل الترتيب مع ميجريشن workouts
+            $table->unsignedBigInteger('workout_id'); // ربط بالتمرين (FK يضاف لاحقاً)
             $table->integer('week_number'); // رقم الأسبوع
             $table->integer('session_number'); // رقم الجلسة داخل الأسبوع
             $table->text('notes')->nullable(); // ملاحظات إضافية

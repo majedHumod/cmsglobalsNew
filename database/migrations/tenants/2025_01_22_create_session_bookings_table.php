@@ -37,7 +37,8 @@ return new class extends Migration
 
         Schema::create('session_bookings', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('training_session_id')->constrained()->onDelete('cascade'); // ربط بالجلسة
+            // تجنّب FK مباشر بسبب ترتيب الميجريشن، سيضاف لاحقاً إن لزم
+            $table->unsignedBigInteger('training_session_id'); // ربط بالجلسة
             $table->foreignId('user_id')->constrained()->onDelete('cascade'); // المستخدم الذي حجز
             $table->date('booking_date'); // تاريخ الحجز
             $table->time('booking_time'); // وقت الحجز

@@ -58,40 +58,60 @@ return new class extends Migration
         $table->index(['permission_group_id', 'is_active', 'sort_order'], 'perm_cat_group_idx');
         });
 
-        // إضافة حقول جديدة لجدول الصلاحيات الموجود
-        Schema::table('permissions', function (Blueprint $table) {
-            $table->foreignId('permission_category_id')->nullable()->constrained()->onDelete('set null');
-            $table->text('description')->nullable(); // وصف الصلاحية
-            $table->enum('level', ['basic', 'intermediate', 'advanced', 'critical'])->default('basic'); // مستوى الصلاحية
-            $table->json('conditions')->nullable(); // شروط الصلاحية
-            $table->timestamp('expires_at')->nullable(); // تاريخ انتهاء الصلاحية
-            $table->boolean('is_system')->default(false); // صلاحية نظام (لا يمكن حذفها)
-            $table->integer('sort_order')->default(0); // ترتيب العرض
-            $table->boolean('is_active')->default(true); // حالة النشاط
-            
-            $table->index(['permission_category_id', 'is_active']);
-            $table->index(['level', 'is_active']);
-        });
+        // إضافة حقول جديدة لجدول الصلاحيات الموجود (شرطياً إذا كان الجدول موجوداً)
+        if (Schema::hasTable('permissions')) {
+            Schema::table('permissions', function (Blueprint $table) {
+                if (!Schema::hasColumn('permissions', 'permission_category_id')) {
+                    $table->foreignId('permission_category_id')->nullable()->constrained()->onDelete('set null');
+                }
+                if (!Schema::hasColumn('permissions', 'description')) {
+                    $table->text('description')->nullable();
+                }
+                if (!Schema::hasColumn('permissions', 'level')) {
+                    $table->enum('level', ['basic', 'intermediate', 'advanced', 'critical'])->default('basic');
+                }
+                if (!Schema::hasColumn('permissions', 'conditions')) {
+                    $table->json('conditions')->nullable();
+                }
+                if (!Schema::hasColumn('permissions', 'expires_at')) {
+                    $table->timestamp('expires_at')->nullable();
+                }
+                if (!Schema::hasColumn('permissions', 'is_system')) {
+                    $table->boolean('is_system')->default(false);
+                }
+                if (!Schema::hasColumn('permissions', 'sort_order')) {
+                    $table->integer('sort_order')->default(0);
+                }
+                if (!Schema::hasColumn('permissions', 'is_active')) {
+                    $table->boolean('is_active')->default(true);
+                }
+                $table->index(['permission_category_id', 'is_active']);
+                $table->index(['level', 'is_active']);
+            });
+        }
 
-        // تجاوزات صلاحيات المستخدمين
-        Schema::create('user_permission_overrides', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->foreignId('permission_id')->constrained()->onDelete('cascade');
-            $table->enum('type', ['grant', 'deny']); // منح أو منع
-            $table->text('reason')->nullable(); // سبب التجاوز
-            $table->timestamp('expires_at')->nullable(); // تاريخ انتهاء التجاوز
-            $table->foreignId('granted_by')->nullable()->constrained('users')->onDelete('set null'); // من منح التجاوز
-            $table->boolean('is_active')->default(true); // حالة النشاط
-            $table->timestamps();
-            
-            $table->unique(['user_id', 'permission_id']);
-            $table->index(['user_id', 'is_active']);
-            $table->index(['expires_at', 'is_active']);
-        });
+        // تجاوزات صلاحيات المستخدمين (يتطلب permissions & users)
+        if (Schema::hasTable('permissions') && Schema::hasTable('users')) {
+            Schema::create('user_permission_overrides', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('user_id')->constrained()->onDelete('cascade');
+                $table->foreignId('permission_id')->constrained()->onDelete('cascade');
+                $table->enum('type', ['grant', 'deny']); // منح أو منع
+                $table->text('reason')->nullable(); // سبب التجاوز
+                $table->timestamp('expires_at')->nullable(); // تاريخ انتهاء التجاوز
+                $table->foreignId('granted_by')->nullable()->constrained('users')->onDelete('set null'); // من منح التجاوز
+                $table->boolean('is_active')->default(true); // حالة النشاط
+                $table->timestamps();
+                
+                $table->unique(['user_id', 'permission_id']);
+                $table->index(['user_id', 'is_active']);
+                $table->index(['expires_at', 'is_active']);
+            });
+        }
 
-        // هرمية الأدوار
-        Schema::create('role_hierarchies', function (Blueprint $table) {
+        // هرمية الأدوار (يتطلب جدول roles من spatie)
+        if (Schema::hasTable('roles')) {
+            Schema::create('role_hierarchies', function (Blueprint $table) {
             $table->id();
             $table->foreignId('parent_role_id')->constrained('roles')->onDelete('cascade');
             $table->foreignId('child_role_id')->constrained('roles')->onDelete('cascade');
@@ -100,10 +120,12 @@ return new class extends Migration
             
             $table->unique(['parent_role_id', 'child_role_id']);
             $table->index(['parent_role_id', 'level']);
-        });
+            });
+        }
 
-        // تبعيات الصلاحيات
-        Schema::create('permission_dependencies', function (Blueprint $table) {
+        // تبعيات الصلاحيات (يتطلب جدول permissions)
+        if (Schema::hasTable('permissions')) {
+            Schema::create('permission_dependencies', function (Blueprint $table) {
             $table->id();
             $table->foreignId('permission_id')->constrained()->onDelete('cascade'); // الصلاحية الأساسية
             $table->foreignId('depends_on_permission_id')->constrained('permissions')->onDelete('cascade'); // الصلاحية المطلوبة
@@ -113,7 +135,8 @@ return new class extends Migration
             
             $table->unique(['permission_id', 'depends_on_permission_id'], 'perm_deps_perm_dep_unique');
             $table->index(['permission_id', 'dependency_type']);
-        });
+            });
+        }
 
 
         // سجل تغييرات الصلاحيات
@@ -136,8 +159,9 @@ return new class extends Migration
             $table->index(['user_id', 'created_at']);
         });
 
-        // إضافة حقول جديدة لجدول الأدوار الموجود
-        Schema::table('roles', function (Blueprint $table) {
+        // إضافة حقول جديدة لجدول الأدوار الموجود (شرطياً)
+        if (Schema::hasTable('roles')) {
+            Schema::table('roles', function (Blueprint $table) {
             $table->text('description')->nullable(); // وصف الدور
             $table->enum('level', ['basic', 'intermediate', 'advanced', 'critical'])->default('basic'); // مستوى الدور
             $table->string('color', 7)->default('#6366f1'); // لون الدور
@@ -151,7 +175,8 @@ return new class extends Migration
             
             $table->index(['level', 'is_active']);
             $table->index(['is_assignable', 'is_active']);
-        });
+            });
+        }
     }
 
     /**

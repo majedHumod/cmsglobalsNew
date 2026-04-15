@@ -141,7 +141,7 @@ class AdvancedPermissionService
      */
     public function getUserPermissions(User $user): Collection
     {
-        $cacheKey = "user_permissions_{$user->id}";
+        $cacheKey = \App\Services\TenantCache::key("user_permissions_{$user->id}");
         
         return Cache::remember($cacheKey, 3600, function () use ($user) {
             // الصلاحيات العادية من الأدوار
@@ -195,7 +195,7 @@ class AdvancedPermissionService
      */
     public function getPermissionsByGroups(): Collection
     {
-        return Cache::remember('permissions_by_groups', 3600, function () {
+        return Cache::remember(\App\Services\TenantCache::key('permissions_by_groups'), 3600, function () {
             try {
                 return PermissionGroup::with([
                     'categories.permissions' => function ($query) {
@@ -221,7 +221,7 @@ class AdvancedPermissionService
             $group = PermissionGroup::create($data);
             
             // مسح الكاش
-            Cache::forget('permissions_by_groups');
+            Cache::forget(\App\Services\TenantCache::key('permissions_by_groups'));
             
             return $group;
         } catch (\Exception $e) {
@@ -239,7 +239,7 @@ class AdvancedPermissionService
             $category = PermissionCategory::create($data);
             
             // مسح الكاش
-            Cache::forget('permissions_by_groups');
+            Cache::forget(\App\Services\TenantCache::key('permissions_by_groups'));
             
             return $category;
         } catch (\Exception $e) {
@@ -256,7 +256,7 @@ class AdvancedPermissionService
         $permission = Permission::create($data);
         
         // مسح الكاش
-        Cache::forget('permissions_by_groups');
+        Cache::forget(\App\Services\TenantCache::key('permissions_by_groups'));
         $this->clearAllUserPermissionCaches();
         
         return $permission;
@@ -325,7 +325,7 @@ class AdvancedPermissionService
      */
     public function getPermissionStatistics(): array
     {
-        return Cache::remember('permission_statistics', 1800, function () {
+        return Cache::remember(\App\Services\TenantCache::key('permission_statistics'), 1800, function () {
             try {
                 return [
                     'total_permissions' => Permission::count(),
@@ -407,7 +407,7 @@ class AdvancedPermissionService
      */
     private function clearUserPermissionCache(User $user): void
     {
-        Cache::forget("user_permissions_{$user->id}");
+        Cache::forget(\App\Services\TenantCache::key("user_permissions_{$user->id}"));
     }
 
     /**
@@ -418,7 +418,7 @@ class AdvancedPermissionService
         try {
             $userIds = User::pluck('id');
             foreach ($userIds as $userId) {
-                Cache::forget("user_permissions_{$userId}");
+                Cache::forget(\App\Services\TenantCache::key("user_permissions_{$userId}"));
             }
         } catch (\Exception $e) {
             // تجاهل الخطأ إذا لم يكن الجدول موجوداً

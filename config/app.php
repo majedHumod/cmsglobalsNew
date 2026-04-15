@@ -14,6 +14,7 @@ return [
     */
 
     'name' => env('APP_NAME', 'CMS Global'),
+    'domain' => env('APP_DOMAIN', 'cmsglobals.test'),
 
     /*
     |--------------------------------------------------------------------------

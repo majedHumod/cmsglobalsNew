@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
+use App\Services\TenantCache;
 
 class LandingPage extends Model
 {
@@ -38,7 +39,7 @@ class LandingPage extends Model
      */
     public static function getActive()
     {
-        return Cache::remember('active_landing_page', 3600, function () {
+        return Cache::remember(TenantCache::key('active_landing_page'), 3600, function () {
             return self::where('is_active', true)->latest()->first();
         });
     }
@@ -48,7 +49,8 @@ class LandingPage extends Model
      */
     public static function clearCache()
     {
-        Cache::forget('active_landing_page');
+        Cache::forget(TenantCache::key('active_landing_page'));
+        Cache::forget(TenantCache::key('active_landing_page_full'));
     }
 
     /**

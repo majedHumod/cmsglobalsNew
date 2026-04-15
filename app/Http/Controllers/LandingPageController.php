@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
+use App\Services\TenantCache;
 
 class LandingPageController extends Controller
 {
@@ -21,7 +22,7 @@ class LandingPageController extends Controller
     public function show()
     {
         // Use cached landing page with optimized queries
-        $landingPage = Cache::remember('active_landing_page_full', 1800, function () {
+        $landingPage = Cache::remember(TenantCache::key('active_landing_page_full'), 1800, function () {
             return LandingPage::getActive();
         });
         

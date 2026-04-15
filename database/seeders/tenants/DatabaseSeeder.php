@@ -14,11 +14,13 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // seed data here
-        DB::table('users')->insert([
-            'name' => 'Tenant Admin',
-            'email' => 'admin@tenant.com',
-            'password' => bcrypt('password'),
-        ]);
+        \App\Models\User::firstOrCreate(
+            ['email' => 'admin@tenant.com'],
+            [
+                'name' => 'Tenant Admin',
+                'password' => bcrypt('password'),
+            ]
+        );
     }
 }
 

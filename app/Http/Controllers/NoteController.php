@@ -7,15 +7,15 @@ use Illuminate\Http\Request;
 
 class NoteController extends Controller
 {
-  /* public function __construct()
-    {
-        $this->middleware(['auth', 'role:user']);
-    }
-*/
     public function index()
     {
-       
-       $notes = Note::with('user')->latest()->get();
+        $notesQuery = Note::with('user')->latest();
+
+        if (! auth()->user()->hasRole('admin')) {
+            $notesQuery->where('user_id', auth()->id());
+        }
+
+        $notes = $notesQuery->get();
         return view('notes.index', compact('notes'));
     }
 
@@ -40,11 +40,19 @@ class NoteController extends Controller
 
     public function edit(Note $note)
     {
+        if (! auth()->user()->hasRole('admin') && $note->user_id !== auth()->id()) {
+            abort(403, 'غير مصرح لك بتعديل هذه الملاحظة.');
+        }
+
         return view('notes.edit', compact('note'));
     }
 
     public function update(Request $request, Note $note)
     {
+        if (! auth()->user()->hasRole('admin') && $note->user_id !== auth()->id()) {
+            abort(403, 'غير مصرح لك بتعديل هذه الملاحظة.');
+        }
+
         $validated = $request->validate([
             'title' => 'required|max:255',
             'content' => 'required'
@@ -57,6 +65,10 @@ class NoteController extends Controller
 
     public function destroy(Note $note)
     {
+        if (! auth()->user()->hasRole('admin') && $note->user_id !== auth()->id()) {
+            abort(403, 'غير مصرح لك بحذف هذه الملاحظة.');
+        }
+
         $note->delete();
         return redirect()->route('notes.index')->with('success', 'Note deleted successfully.');
     }

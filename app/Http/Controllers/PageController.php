@@ -82,13 +82,11 @@ class PageController extends Controller
             $validated['is_premium'] = $request->has('is_premium') ? 1 : 0;
             
             // تخزين required_membership_types كنص JSON
-            if ($request->has('required_membership_types')) {
-                $validated['required_membership_types'] = json_encode(array_map('intval', $request->required_membership_types));
-            } else if ($validated['access_level'] === 'membership') {
+            $selectedMembershipTypes = array_values(array_filter(array_map('intval', $request->input('required_membership_types', []))));
+            if ($validated['access_level'] === 'membership' && count($selectedMembershipTypes) === 0) {
                 return back()->withInput()->withErrors(['required_membership_types' => 'يجب اختيار نوع عضوية واحد على الأقل عند اختيار مستوى الوصول "أعضاء العضويات المدفوعة"']);
-            } else {
-                $validated['required_membership_types'] = json_encode([]);
             }
+            $validated['required_membership_types'] = json_encode($selectedMembershipTypes);
            
             // تعيين تاريخ النشر إذا كانت الصفحة منشورة
             if ($validated['is_published'] && !$validated['published_at']) {
@@ -201,13 +199,11 @@ class PageController extends Controller
             $validated['is_premium'] = $request->has('is_premium') ? 1 : 0;
 
             // تخزين required_membership_types كنص JSON
-            if ($request->has('required_membership_types')) {
-                $validated['required_membership_types'] = json_encode(array_map('intval', $request->required_membership_types));
-            } else if ($validated['access_level'] === 'membership') {
+            $selectedMembershipTypes = array_values(array_filter(array_map('intval', $request->input('required_membership_types', []))));
+            if ($validated['access_level'] === 'membership' && count($selectedMembershipTypes) === 0) {
                 return back()->withInput()->withErrors(['required_membership_types' => 'يجب اختيار نوع عضوية واحد على الأقل عند اختيار مستوى الوصول "أعضاء العضويات المدفوعة"']);
-            } else {
-                $validated['required_membership_types'] = json_encode([]);
             }
+            $validated['required_membership_types'] = json_encode($selectedMembershipTypes);
            
             // تعيين تاريخ النشر إذا كانت الصفحة منشورة لأول مرة
             if ($validated['is_published'] && !$page->is_published && !$validated['published_at']) {

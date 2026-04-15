@@ -276,6 +276,59 @@
             </div>
         </div>
     </section>
+
+    @php
+        $articlesEnabled = \App\Models\SiteSetting::get('articles_enabled', true);
+        $homepageArticlesCount = (int) \App\Models\SiteSetting::get('articles_count', 3);
+        $homepageArticles = collect();
+        if ($articlesEnabled) {
+            try {
+                $homepageArticles = \App\Models\Article::published()
+                    ->latest('published_at')
+                    ->latest()
+                    ->take(max(1, $homepageArticlesCount))
+                    ->get();
+            } catch (\Throwable $e) {
+                $homepageArticles = collect();
+            }
+        }
+    @endphp
+
+    @if($articlesEnabled)
+    <section class="bg-white py-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-10">
+                <h2 class="text-3xl font-bold text-gray-900">أحدث المقالات</h2>
+                <p class="mt-4 text-xl text-gray-600">اطلع على مقالاتنا وآخر التحديثات.</p>
+            </div>
+
+            @if($homepageArticles->isEmpty())
+                <div class="text-center text-gray-500">لا توجد مقالات منشورة حالياً.</div>
+            @else
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    @foreach($homepageArticles as $article)
+                        <article class="rounded-lg border border-gray-200 bg-white shadow-sm overflow-hidden">
+                            @if($article->image)
+                                <img src="{{ Storage::url($article->image) }}" alt="{{ $article->title }}" class="h-44 w-full object-cover">
+                            @endif
+                            <div class="p-5">
+                                <h3 class="text-lg font-semibold text-gray-900 mb-2">{{ $article->title }}</h3>
+                                <p class="text-sm text-gray-600 mb-4">{{ \Illuminate\Support\Str::limit(strip_tags($article->content), 120) }}</p>
+                                <a href="{{ route('articles.public.show', $article) }}" class="text-indigo-600 font-medium hover:text-indigo-800">اقرأ المزيد</a>
+                            </div>
+                        </article>
+                    @endforeach
+                </div>
+            @endif
+
+            <div class="text-center mt-8">
+                <a href="{{ route('articles.public.index') }}" class="inline-flex items-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
+                    عرض كافة المقالات
+                </a>
+            </div>
+        </div>
+    </section>
+    @endif
     
     <!-- Navigation Links -->
     <section class="bg-gray-50 py-12">

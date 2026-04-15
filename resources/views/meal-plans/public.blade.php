@@ -241,7 +241,7 @@
                 </nav>
 
                 <!-- Page Content Container -->
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 md:p-8">
                     <article>
                         <header class="mb-8">
                             <div class="flex justify-between items-center mb-4">
@@ -309,61 +309,46 @@
                         @else
                             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                 @foreach($mealPlans as $mealPlan)
-                                    <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+                                    <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow flex flex-col h-full min-h-[420px]">
                                         @if($mealPlan->image)
                                             <img src="{{ Storage::url($mealPlan->image) }}" alt="{{ $mealPlan->name }}" class="w-full h-48 object-cover" loading="lazy" decoding="async">
                                         @else
-                                            <div class="w-full h-48 bg-gray-200 flex items-center justify-center">
-                                                <svg class="h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                            <div class="w-full h-48 bg-gray-100 flex items-center justify-center">
+                                                <svg class="h-12 w-12 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7l6 6-6 6M21 7l-6 6 6 6" />
                                                 </svg>
                                             </div>
                                         @endif
                                         
-                                        <div class="p-4">
+                                        <div class="p-6 flex-1 flex flex-col text-right">
                                             <h3 class="text-lg font-semibold text-gray-900 mb-2">{{ $mealPlan->name }}</h3>
-                                            
-                                            <div class="flex items-center space-x-4 text-sm text-gray-500 mb-2">
-                                                <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs">{{ $mealPlan->meal_type_name }}</span>
-                                                <span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs">{{ $mealPlan->difficulty_name }}</span>
+
+                                            <div class="flex items-center justify-start gap-2 text-xs mb-3">
+                                                <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full">{{ $mealPlan->meal_type_name }}</span>
+                                                <span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">{{ $mealPlan->difficulty_name }}</span>
                                             </div>
-                                            
+
                                             @if($mealPlan->description)
-                                                <p class="text-gray-600 text-sm mb-3">{{ Str::limit($mealPlan->description, 100) }}</p>
+                                                <p class="text-gray-600 text-sm mb-4">{{ Str::limit($mealPlan->description, 100) }}</p>
                                             @endif
-                                            
-                                            <div class="mt-4">
-                                                <a href="{{ route('meal-plans.show-public', $mealPlan) }}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-indigo-600 bg-indigo-50 hover:bg-indigo-100 transition-colors duration-200">
-                                                    عرض التفاصيل
-                                                    <svg class="mr-2 -ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
-                                                    </svg>
-                                                </a>
-                                            </div>
-                                            
-                                                <h3 class="text-lg font-medium text-gray-900">
-                                                    <a href="{{ route('meal-plans.show-public', $mealPlan) }}" class="hover:text-indigo-600 transition-colors duration-200">
-                                                        {{ $mealPlan->name }}
-                                                    </a>
-                                                </h3>
+
+                                            <ul class="space-y-1 text-sm text-gray-700 mb-4">
                                                 @if($mealPlan->calories)
-                                                    <span>{{ $mealPlan->calories }} سعرة</span>
+                                                    <li class="flex items-center justify-between"><span class="text-gray-500">السعرات</span><span class="font-medium">{{ $mealPlan->calories }} سعرة حرارية</span></li>
                                                 @endif
                                                 @if($mealPlan->protein)
-                                                    <span>{{ $mealPlan->protein }}ج بروتين</span>
+                                                    <li class="flex items-center justify-between"><span class="text-gray-500">البروتين</span><span class="font-medium">{{ $mealPlan->protein }} ج</span></li>
                                                 @endif
                                                 @if($mealPlan->total_time > 0)
-                                                    <span>{{ $mealPlan->total_time }} دقيقة</span>
+                                                    <li class="flex items-center justify-between"><span class="text-gray-500">الوقت الكلي</span><span class="font-medium">{{ $mealPlan->total_time }} دقيقة</span></li>
                                                 @endif
-                                                <span>{{ $mealPlan->servings }} حصة</span>
-                                            </div>
-                                            
-                                            <p class="text-xs text-gray-400 mb-3">
-                                                بواسطة: {{ $mealPlan->user->name }}
-                                            </p>
-                                            
-                                            <a href="{{ route('meal-plans.show', $mealPlan) }}" class="block w-full text-center bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md transition-colors">
-                                                عرض الوصفة
+                                                <li class="flex items-center justify-between"><span class="text-gray-500">الحصص</span><span class="font-medium">{{ $mealPlan->servings }} حصة</span></li>
+                                            </ul>
+
+                                            <p class="text-xs text-gray-400 mb-4">بواسطة: {{ $mealPlan->user->name }}</p>
+
+                                            <a href="{{ route('meal-plans.show-public', $mealPlan) }}" class="mt-auto block w-full text-center bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors">
+                                                إضافة إلى السلة
                                             </a>
                                         </div>
                                     </div>
@@ -372,7 +357,7 @@
 
                             <!-- Pagination -->
                             @if(method_exists($mealPlans, 'links'))
-                                <div class="mt-8">
+                                <div class="mt-8 flex justify-center">
                                     {{ $mealPlans->links() }}
                                 </div>
                             @endif
@@ -381,7 +366,7 @@
                 </div>
             </div>
         </main>
-        
+
         <!-- Footer -->
         @include('layouts.footer')
     </div>

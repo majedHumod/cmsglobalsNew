@@ -1,13 +1,13 @@
 @extends('layouts.admin')
 
-@section('title', 'لوحة التحكم')
+@section('title', 'الصفحة الرئيسية للوحة التحكم')
 
-@section('header', 'لوحة التحكم')
+@section('header', 'الصفحة الرئيسية للوحة التحكم')
 
 @section('header_actions')
-<div class="flex items-center space-x-2">
+<div class="flex items-center space-x-2 space-x-reverse">
     <a href="{{ route('pages.create') }}" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-        <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <svg class="-ml-1 ml-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
         </svg>
         إنشاء صفحة جديدة
@@ -15,143 +15,122 @@
 </div>
 @endsection
 
+@php
+    $bookingStatusLabels = [
+        'pending' => 'في الانتظار',
+        'confirmed' => 'مؤكد',
+        'completed' => 'مكتمل',
+        'cancelled' => 'ملغي',
+    ];
+    $paymentStatusLabels = [
+        'pending' => 'في الانتظار',
+        'paid' => 'مدفوع',
+        'failed' => 'فشل',
+        'refunded' => 'مسترد',
+    ];
+@endphp
+
 @section('content')
 <!-- Stats Cards -->
 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-    <div class="dashboard-card bg-white shadow rounded-lg p-4 sm:p-6 xl:p-8 border-l-4 border-indigo-500">
+    <div class="dashboard-card bg-white shadow rounded-lg p-4 sm:p-6 xl:p-8 border-r-4 border-indigo-500">
         <div class="flex items-center">
             <div class="flex-shrink-0">
-                <span class="text-2xl sm:text-3xl leading-none font-bold text-indigo-600">{{ \App\Models\Page::count() }}</span>
-                <h3 class="text-base font-normal text-gray-500">الصفحات</h3>
+                <span class="text-2xl sm:text-3xl leading-none font-bold text-indigo-600">{{ $stats['users'] }}</span>
+                <h3 class="text-base font-normal text-gray-500">المستخدمون</h3>
             </div>
-            <div class="ml-5 w-0 flex items-center justify-end flex-1">
-                <svg class="w-12 h-12 text-gray-300" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                    <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd"></path>
-                </svg>
-            </div>
-        </div>
-    </div>
-    
-    <div class="dashboard-card bg-white shadow rounded-lg p-4 sm:p-6 xl:p-8 border-l-4 border-green-500">
-        <div class="flex items-center">
-            <div class="flex-shrink-0">
-                <span class="text-2xl sm:text-3xl leading-none font-bold text-green-600">{{ \App\Models\Note::count() }}</span>
-                <h3 class="text-base font-normal text-gray-500">الملاحظات</h3>
-            </div>
-            <div class="ml-5 w-0 flex items-center justify-end flex-1">
-                <svg class="w-12 h-12 text-gray-300" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"></path>
-                    <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"></path>
-                </svg>
-            </div>
-        </div>
-    </div>
-    
-    <div class="dashboard-card bg-white shadow rounded-lg p-4 sm:p-6 xl:p-8 border-l-4 border-yellow-500">
-        <div class="flex items-center">
-            <div class="flex-shrink-0">
-                <span class="text-2xl sm:text-3xl leading-none font-bold text-yellow-600">{{ \App\Models\MealPlan::count() }}</span>
-                <h3 class="text-base font-normal text-gray-500">الجداول الغذائية</h3>
-            </div>
-            <div class="ml-5 w-0 flex items-center justify-end flex-1">
-                <svg class="w-12 h-12 text-gray-300" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"></path>
-                </svg>
-            </div>
-        </div>
-    </div>
-    
-    <div class="dashboard-card bg-white shadow rounded-lg p-4 sm:p-6 xl:p-8 border-l-4 border-purple-500">
-        <div class="flex items-center">
-            <div class="flex-shrink-0">
-                <span class="text-2xl sm:text-3xl leading-none font-bold text-purple-600">{{ \App\Models\User::count() }}</span>
-                <h3 class="text-base font-normal text-gray-500">المستخدمين</h3>
-            </div>
-            <div class="ml-5 w-0 flex items-center justify-end flex-1">
+            <div class="mr-5 w-0 flex items-center justify-end flex-1">
                 <svg class="w-12 h-12 text-gray-300" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                     <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"></path>
                 </svg>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Recent Activity & Quick Access -->
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-    <!-- Recent Activity -->
-    <div class="bg-white shadow rounded-lg p-4 sm:p-6 xl:p-8">
-        <div class="mb-4 flex items-center justify-between">
-            <div>
-                <h3 class="text-xl font-bold text-gray-900 mb-2">النشاط الأخير</h3>
-                <span class="text-base font-normal text-gray-500">آخر النشاطات في النظام</span>
-            </div>
+    <div class="dashboard-card bg-white shadow rounded-lg p-4 sm:p-6 xl:p-8 border-r-4 border-green-500">
+        <div class="flex items-center">
             <div class="flex-shrink-0">
-                <a href="#" class="text-sm font-medium text-indigo-600 hover:bg-gray-100 rounded-lg p-2">عرض الكل</a>
+                <span class="text-2xl sm:text-3xl leading-none font-bold text-green-600">{{ $stats['session_bookings'] }}</span>
+                <h3 class="text-base font-normal text-gray-500">حجوزات الجلسات</h3>
+            </div>
+            <div class="mr-5 w-0 flex items-center justify-end flex-1">
+                <svg class="w-12 h-12 text-gray-300" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"></path>
+                </svg>
             </div>
         </div>
-        <div class="flex flex-col mt-8">
+    </div>
+
+    <div class="dashboard-card bg-white shadow rounded-lg p-4 sm:p-6 xl:p-8 border-r-4 border-yellow-500">
+        <div class="flex items-center">
+            <div class="flex-shrink-0">
+                <span class="text-2xl sm:text-3xl leading-none font-bold text-yellow-600">{{ $stats['meal_plans'] }}</span>
+                <h3 class="text-base font-normal text-gray-500">الخطط الغذائية</h3>
+            </div>
+            <div class="mr-5 w-0 flex items-center justify-end flex-1">
+                <svg class="w-12 h-12 text-gray-300" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"></path>
+                </svg>
+            </div>
+        </div>
+    </div>
+
+    <div class="dashboard-card bg-white shadow rounded-lg p-4 sm:p-6 xl:p-8 border-r-4 border-purple-500">
+        <div class="flex items-center">
+            <div class="flex-shrink-0">
+                <span class="text-2xl sm:text-3xl leading-none font-bold text-purple-600">{{ $stats['active_memberships'] }}</span>
+                <h3 class="text-base font-normal text-gray-500">اشتراكات عضوية نشطة</h3>
+            </div>
+            <div class="mr-5 w-0 flex items-center justify-end flex-1">
+                <svg class="w-12 h-12 text-gray-300" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"></path>
+                </svg>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent subscriptions & Quick Access -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+    @role('admin')
+    <div class="bg-white shadow rounded-lg p-4 sm:p-6 xl:p-8">
+        <div class="mb-4 flex items-center justify-between gap-2 flex-wrap">
+            <div>
+                <h3 class="text-xl font-bold text-gray-900 mb-2">آخر اشتراكات العضوية</h3>
+                <span class="text-base font-normal text-gray-500">أحدث تسجيلات الاشتراك في الموقع</span>
+            </div>
+            <a href="{{ route('admin.user-memberships.index') }}" class="text-sm font-medium text-indigo-600 hover:text-indigo-800 rounded-lg p-2 whitespace-nowrap">عرض الكل</a>
+        </div>
+        <div class="flex flex-col mt-6">
             <div class="overflow-x-auto rounded-lg">
                 <div class="align-middle inline-block min-w-full">
                     <div class="shadow overflow-hidden sm:rounded-lg">
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50">
                                 <tr>
-                                    <th scope="col" class="p-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        النشاط
-                                    </th>
-                                    <th scope="col" class="p-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        المستخدم
-                                    </th>
-                                    <th scope="col" class="p-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        التاريخ
-                                    </th>
+                                    <th scope="col" class="p-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">المشترك</th>
+                                    <th scope="col" class="p-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">نوع العضوية</th>
+                                    <th scope="col" class="p-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">التسجيل</th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white">
-                                <tr>
-                                    <td class="p-4 whitespace-nowrap text-sm font-normal text-gray-900">
-                                        تم إنشاء <span class="font-semibold">صفحة جديدة</span>
-                                    </td>
-                                    <td class="p-4 whitespace-nowrap text-sm font-normal text-gray-500">
-                                        أحمد محمد
-                                    </td>
-                                    <td class="p-4 whitespace-nowrap text-sm font-normal text-gray-500">
-                                        منذ 10 دقائق
-                                    </td>
-                                </tr>
-                                <tr class="bg-gray-50">
-                                    <td class="p-4 whitespace-nowrap text-sm font-normal text-gray-900">
-                                        تم تعديل <span class="font-semibold">جدول غذائي</span>
-                                    </td>
-                                    <td class="p-4 whitespace-nowrap text-sm font-normal text-gray-500">
-                                        سارة أحمد
-                                    </td>
-                                    <td class="p-4 whitespace-nowrap text-sm font-normal text-gray-500">
-                                        منذ ساعة
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td class="p-4 whitespace-nowrap text-sm font-normal text-gray-900">
-                                        تم تسجيل <span class="font-semibold">مستخدم جديد</span>
-                                    </td>
-                                    <td class="p-4 whitespace-nowrap text-sm font-normal text-gray-500">
-                                        محمد علي
-                                    </td>
-                                    <td class="p-4 whitespace-nowrap text-sm font-normal text-gray-500">
-                                        منذ 3 ساعات
-                                    </td>
-                                </tr>
-                                <tr class="bg-gray-50">
-                                    <td class="p-4 whitespace-nowrap text-sm font-normal text-gray-900">
-                                        تم حذف <span class="font-semibold">ملاحظة</span>
-                                    </td>
-                                    <td class="p-4 whitespace-nowrap text-sm font-normal text-gray-500">
-                                        خالد عمر
-                                    </td>
-                                    <td class="p-4 whitespace-nowrap text-sm font-normal text-gray-500">
-                                        منذ 5 ساعات
-                                    </td>
-                                </tr>
+                                @forelse($recentMemberships as $m)
+                                    <tr class="{{ $loop->even ? 'bg-gray-50' : '' }}">
+                                        <td class="p-4 whitespace-nowrap text-sm font-normal text-gray-900">
+                                            {{ $m->user->name ?? '—' }}
+                                        </td>
+                                        <td class="p-4 whitespace-nowrap text-sm text-gray-700">
+                                            {{ $m->membershipType->name ?? '—' }}
+                                        </td>
+                                        <td class="p-4 whitespace-nowrap text-sm text-gray-500">
+                                            {{ $m->created_at?->diffForHumans() ?? '—' }}
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="3" class="p-4 text-center text-sm text-gray-500">لا توجد اشتراكات حديثة</td>
+                                    </tr>
+                                @endforelse
                             </tbody>
                         </table>
                     </div>
@@ -159,203 +138,125 @@
             </div>
         </div>
     </div>
-    
-    <!-- Quick Access -->
-    <div class="bg-white shadow rounded-lg p-4 sm:p-6 xl:p-8">
+    @endrole
+
+    <div class="bg-white shadow rounded-lg p-4 sm:p-6 xl:p-8 {{ auth()->user()->hasRole('admin') ? '' : 'lg:col-span-2' }}">
         <h3 class="text-xl font-bold text-gray-900 mb-2">الوصول السريع</h3>
-        <span class="text-base font-normal text-gray-500">اختصارات للوظائف الأكثر استخداماً</span>
-        
-        <div class="grid grid-cols-2 gap-4 mt-8">
-            <a href="{{ route('pages.create') }}" class="dashboard-card p-4 bg-indigo-50 rounded-lg shadow-sm flex flex-col items-center justify-center hover:bg-indigo-100">
+        <span class="text-base font-normal text-gray-500">أهم وظائف الإدارة</span>
+
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-8">
+            @hasanyrole('admin|page_manager')
+            <a href="{{ route('pages.index') }}" class="dashboard-card p-4 bg-indigo-50 rounded-lg shadow-sm flex flex-col items-center justify-center hover:bg-indigo-100 text-center min-h-[100px]">
                 <svg class="w-8 h-8 text-indigo-600 mb-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                     <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd"></path>
                 </svg>
-                <span class="text-sm font-medium text-gray-900">إنشاء صفحة</span>
+                <span class="text-sm font-medium text-gray-900">إدارة الصفحات</span>
             </a>
-            
-            <a href="{{ route('notes.create') }}" class="dashboard-card p-4 bg-green-50 rounded-lg shadow-sm flex flex-col items-center justify-center hover:bg-green-100">
-                <svg class="w-8 h-8 text-green-600 mb-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z"></path>
-                    <path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd"></path>
-                </svg>
-                <span class="text-sm font-medium text-gray-900">إضافة ملاحظة</span>
-            </a>
-            
-            <a href="{{ route('meal-plans.create') }}" class="dashboard-card p-4 bg-yellow-50 rounded-lg shadow-sm flex flex-col items-center justify-center hover:bg-yellow-100">
+            @endhasanyrole
+
+            @hasanyrole('admin|user')
+            <a href="{{ route('meal-plans.index') }}" class="dashboard-card p-4 bg-yellow-50 rounded-lg shadow-sm flex flex-col items-center justify-center hover:bg-yellow-100 text-center min-h-[100px]">
                 <svg class="w-8 h-8 text-yellow-600 mb-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                     <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"></path>
                 </svg>
-                <span class="text-sm font-medium text-gray-900">إضافة وجبة</span>
+                <span class="text-sm font-medium text-gray-900">الخطط الغذائية</span>
             </a>
-            
+            @endhasanyrole
+
             @role('admin')
-            <a href="{{ route('admin.permissions.index') }}" class="dashboard-card p-4 bg-purple-50 rounded-lg shadow-sm flex flex-col items-center justify-center hover:bg-purple-100">
-                <svg class="w-8 h-8 text-purple-600 mb-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                    <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"></path>
+            <a href="{{ route('admin.training-sessions.index') }}" class="dashboard-card p-4 bg-blue-50 rounded-lg shadow-sm flex flex-col items-center justify-center hover:bg-blue-100 text-center min-h-[100px]">
+                <svg class="w-8 h-8 text-blue-600 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                 </svg>
-                <span class="text-sm font-medium text-gray-900">إدارة الصلاحيات</span>
+                <span class="text-sm font-medium text-gray-900">جلسات التدريب</span>
+            </a>
+
+            <a href="{{ route('admin.session-bookings.index') }}" class="dashboard-card p-4 bg-teal-50 rounded-lg shadow-sm flex flex-col items-center justify-center hover:bg-teal-100 text-center min-h-[100px]">
+                <svg class="w-8 h-8 text-teal-600 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3a4 4 0 118 0v4m-4 8a2 2 0 100-4 2 2 0 000 4zm0 0v4a2 2 0 002 2h6a2 2 0 002-2v-4"></path>
+                </svg>
+                <span class="text-sm font-medium text-gray-900">حجوزات الجلسات</span>
+            </a>
+
+            <a href="{{ route('membership-types.index') }}" class="dashboard-card p-4 bg-green-50 rounded-lg shadow-sm flex flex-col items-center justify-center hover:bg-green-100 text-center min-h-[100px]">
+                <svg class="w-8 h-8 text-green-600 mb-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"></path>
+                </svg>
+                <span class="text-sm font-medium text-gray-900">إدارة العضويات</span>
+            </a>
+
+            <a href="{{ route('admin.settings.index') }}" class="dashboard-card p-4 bg-gray-50 rounded-lg shadow-sm flex flex-col items-center justify-center hover:bg-gray-100 text-center min-h-[100px]">
+                <svg class="w-8 h-8 text-gray-700 mb-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"></path>
+                </svg>
+                <span class="text-sm font-medium text-gray-900">إعدادات الموقع</span>
             </a>
             @endrole
-        </div>
-        
-        <!-- System Status -->
-        <div class="mt-8">
-            <h4 class="text-base font-medium text-gray-900 mb-4">حالة النظام</h4>
-            <div class="flex flex-col space-y-3">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center">
-                        <div class="w-2.5 h-2.5 rounded-full bg-green-500 mr-2"></div>
-                        <span class="text-sm font-medium text-gray-900">قاعدة البيانات</span>
-                    </div>
-                    <span class="text-sm text-gray-500">متصل</span>
-                </div>
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center">
-                        <div class="w-2.5 h-2.5 rounded-full bg-green-500 mr-2"></div>
-                        <span class="text-sm font-medium text-gray-900">خدمة التخزين</span>
-                    </div>
-                    <span class="text-sm text-gray-500">متصل</span>
-                </div>
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center">
-                        <div class="w-2.5 h-2.5 rounded-full bg-yellow-500 mr-2"></div>
-                        <span class="text-sm font-medium text-gray-900">خدمة الإشعارات</span>
-                    </div>
-                    <span class="text-sm text-gray-500">بطيء</span>
-                </div>
-            </div>
+
+            @hasanyrole('admin|user')
+            @if(! auth()->user()->hasRole('admin'))
+            <a href="{{ route('notes.index') }}" class="dashboard-card p-4 bg-green-50 rounded-lg shadow-sm flex flex-col items-center justify-center hover:bg-green-100 text-center min-h-[100px]">
+                <svg class="w-8 h-8 text-green-600 mb-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"></path>
+                    <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"></path>
+                </svg>
+                <span class="text-sm font-medium text-gray-900">الملاحظات</span>
+            </a>
+            @endif
+            @endhasanyrole
         </div>
     </div>
 </div>
 
-<!-- Recent Content -->
+@role('admin')
+<!-- Booked sessions -->
 <div class="bg-white shadow rounded-lg p-4 sm:p-6 xl:p-8">
-    <div class="mb-4 flex items-center justify-between">
+    <div class="mb-4 flex items-center justify-between gap-2 flex-wrap">
         <div>
-            <h3 class="text-xl font-bold text-gray-900 mb-2">المحتوى الأخير</h3>
-            <span class="text-base font-normal text-gray-500">آخر المحتويات التي تم إنشاؤها أو تعديلها</span>
+            <h3 class="text-xl font-bold text-gray-900 mb-2">الجلسات المحجوزة</h3>
+            <span class="text-base font-normal text-gray-500">آخر الحجوزات المسجّلة في النظام</span>
         </div>
-        <div class="flex-shrink-0">
-            <a href="#" class="text-sm font-medium text-indigo-600 hover:bg-gray-100 rounded-lg p-2">عرض الكل</a>
-        </div>
+        <a href="{{ route('admin.session-bookings.index') }}" class="text-sm font-medium text-indigo-600 hover:text-indigo-800 rounded-lg p-2 whitespace-nowrap">عرض الكل</a>
     </div>
-    
-    <div class="flex flex-col mt-8">
+
+    <div class="flex flex-col mt-6">
         <div class="overflow-x-auto rounded-lg">
             <div class="align-middle inline-block min-w-full">
                 <div class="shadow overflow-hidden sm:rounded-lg">
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
                             <tr>
-                                <th scope="col" class="p-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    العنوان
-                                </th>
-                                <th scope="col" class="p-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    النوع
-                                </th>
-                                <th scope="col" class="p-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    المؤلف
-                                </th>
-                                <th scope="col" class="p-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    التاريخ
-                                </th>
-                                <th scope="col" class="p-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    الحالة
-                                </th>
+                                <th scope="col" class="p-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الجلسة</th>
+                                <th scope="col" class="p-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">المحجوز</th>
+                                <th scope="col" class="p-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الموعد</th>
+                                <th scope="col" class="p-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الحالة</th>
+                                <th scope="col" class="p-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الدفع</th>
                             </tr>
                         </thead>
                         <tbody class="bg-white">
-                            @php
-                                try {
-                                    $pages = \App\Models\Page::latest()->take(3)->get();
-                                } catch (\Exception $e) {
-                                    $pages = collect([]);
-                                }
-                                
-                                try {
-                                    $notes = \App\Models\Note::latest()->take(2)->get();
-                                } catch (\Exception $e) {
-                                    $notes = collect([]);
-                                }
-                                
-                                try {
-                                    $mealPlans = \App\Models\MealPlan::latest()->take(2)->get();
-                                } catch (\Exception $e) {
-                                    $mealPlans = collect([]);
-                                }
-                                
-                                $combinedContent = collect();
-                                
-                                // Add pages with error handling
-                                foreach ($pages as $item) {
-                                    $combinedContent->push([
-                                        'title' => $item->title,
-                                        'type' => 'صفحة',
-                                        'author' => $item->user->name ?? 'غير معروف',
-                                        'date' => $item->created_at,
-                                        'status' => $item->is_published ? 'منشور' : 'مسودة',
-                                        'status_color' => $item->is_published ? 'green' : 'yellow',
-                                        'url' => route('pages.edit', $item)
-                                    ]);
-                                }
-                                
-                                // Add notes with error handling
-                                foreach ($notes as $item) {
-                                    $combinedContent->push([
-                                        'title' => $item->title,
-                                        'type' => 'ملاحظة',
-                                        'author' => $item->user->name ?? 'غير معروف',
-                                        'date' => $item->created_at,
-                                        'status' => 'نشط',
-                                        'status_color' => 'blue',
-                                        'url' => route('notes.edit', $item)
-                                    ]);
-                                }
-                                
-                                // Add meal plans with error handling
-                                foreach ($mealPlans as $item) {
-                                    $combinedContent->push([
-                                        'title' => $item->name,
-                                        'type' => 'وجبة',
-                                        'author' => $item->user->name ?? 'غير معروف',
-                                        'date' => $item->created_at,
-                                        'status' => $item->is_active ? 'نشط' : 'غير نشط',
-                                        'status_color' => $item->is_active ? 'green' : 'red',
-                                        'url' => route('meal-plans.edit', $item)
-                                    ]);
-                                }
-                                
-                                // Sort by date if available
-                                $combinedContent = $combinedContent->sortByDesc(function ($item) {
-                                    return $item['date'] ?? now();
-                                })->take(5);
-                            @endphp
-                            
-                            @forelse($combinedContent as $item)
+                            @forelse($recentBookings as $b)
                                 <tr class="{{ $loop->even ? 'bg-gray-50' : '' }}">
-                                    <td class="p-4 whitespace-nowrap text-sm font-medium">
-                                        <a href="{{ $item['url'] }}" class="text-indigo-600 hover:text-indigo-900">{{ $item['title'] }}</a>
+                                    <td class="p-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                        <a href="{{ route('admin.session-bookings.edit', $b) }}" class="text-indigo-600 hover:text-indigo-900">
+                                            {{ $b->trainingSession->title ?? 'جلسة' }}
+                                        </a>
                                     </td>
-                                    <td class="p-4 whitespace-nowrap text-sm text-gray-900">
-                                        {{ $item['type'] }}
+                                    <td class="p-4 whitespace-nowrap text-sm text-gray-700">
+                                        {{ $b->user->name ?? '—' }}
                                     </td>
                                     <td class="p-4 whitespace-nowrap text-sm text-gray-500">
-                                        {{ $item['author'] }}
+                                        {{ $b->formatted_booking_datetime }}
                                     </td>
                                     <td class="p-4 whitespace-nowrap text-sm text-gray-500">
-                                        {{ isset($item['date']) && $item['date'] ? $item['date']->diffForHumans() : 'غير معروف' }}
+                                        {{ $bookingStatusLabels[$b->status] ?? $b->status }}
                                     </td>
-                                    <td class="p-4 whitespace-nowrap">
-                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-{{ $item['status_color'] }}-100 text-{{ $item['status_color'] }}-800">
-                                            {{ $item['status'] }}
-                                        </span>
+                                    <td class="p-4 whitespace-nowrap text-sm text-gray-500">
+                                        {{ $paymentStatusLabels[$b->payment_status] ?? $b->payment_status }}
                                     </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="5" class="p-4 text-center text-gray-500">
-                                        لا يوجد محتوى حديث
-                                    </td>
+                                    <td colspan="5" class="p-4 text-center text-sm text-gray-500">لا توجد حجوزات حديثة</td>
                                 </tr>
                             @endforelse
                         </tbody>
@@ -365,4 +266,5 @@
         </div>
     </div>
 </div>
+@endrole
 @endsection

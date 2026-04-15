@@ -390,6 +390,35 @@
                             </div>
                         </div>
                     </div>
+
+                    <div class="border-t border-gray-200 pt-6">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">إعدادات قسم المقالات</h3>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="articles_count" class="block text-sm font-medium text-gray-700 text-right">عدد المقالات المعروضة</label>
+                                <select name="articles_count" id="articles_count" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                    <option value="2" {{ \App\Models\SiteSetting::get('articles_count', 3) == 2 ? 'selected' : '' }}>2 مقالات</option>
+                                    <option value="3" {{ \App\Models\SiteSetting::get('articles_count', 3) == 3 ? 'selected' : '' }}>3 مقالات</option>
+                                    <option value="4" {{ \App\Models\SiteSetting::get('articles_count', 3) == 4 ? 'selected' : '' }}>4 مقالات</option>
+                                    <option value="6" {{ \App\Models\SiteSetting::get('articles_count', 3) == 6 ? 'selected' : '' }}>6 مقالات</option>
+                                </select>
+                                <p class="mt-1 text-sm text-gray-500 text-right">عدد المقالات التي تظهر في الصفحة الرئيسية.</p>
+                            </div>
+                        </div>
+
+                        <div class="mt-6">
+                            <div class="flex items-start">
+                                <div class="flex items-center h-5">
+                                    <input type="checkbox" name="articles_enabled" id="articles_enabled" value="1" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded" {{ \App\Models\SiteSetting::get('articles_enabled', true) ? 'checked' : '' }}>
+                                </div>
+                                <div class="mr-3 text-sm">
+                                    <label for="articles_enabled" class="font-medium text-gray-700">تفعيل قسم المقالات</label>
+                                    <p class="text-gray-500">إظهار أو إخفاء المقالات في الصفحة الرئيسية.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     
                     <div class="flex justify-start">
                         <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">

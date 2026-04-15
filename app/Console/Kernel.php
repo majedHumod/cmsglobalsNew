@@ -12,7 +12,9 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        // $schedule->command('inspire')->hourly();
+        // Reset demo tenant daily at 3 AM
+        $schedule->command('tenants:reset-demo')->dailyAt('03:00');
+        $schedule->command('billing:reconcile-paylink --limit=20')->everyMinute()->withoutOverlapping();
     }
 
     /**

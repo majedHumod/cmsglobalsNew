@@ -14,6 +14,9 @@ use App\Http\Controllers\FaqController;
 use App\Http\Controllers\TestimonialController;
 use App\Http\Controllers\TrainingSessionController;
 use App\Http\Controllers\SessionBookingController;
+use App\Http\Controllers\NutritionDiscountController;
+use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\UserMembershipListController;
 
 // Landing Page Route
 Route::get('/', function() {
@@ -43,6 +46,11 @@ Route::get('/training-sessions', function() {
 
 Route::get('/training-sessions/{trainingSession}', [TrainingSessionController::class, 'show'])->name('training-sessions.show');
 
+// Public Nutrition Discounts Route
+Route::get('/nutrition-discounts', [NutritionDiscountController::class, 'frontend'])->name('nutrition-discounts.frontend');
+Route::get('/articles-public', [ArticleController::class, 'publicIndex'])->name('articles.public.index');
+Route::get('/articles-public/{article}', [ArticleController::class, 'publicShow'])->name('articles.public.show');
+
 // Booking routes (require authentication)
 Route::middleware('auth')->group(function () {
     Route::post('/training-sessions/{trainingSession}/book', [TrainingSessionController::class, 'book'])->name('training-sessions.book');
@@ -52,9 +60,11 @@ Route::middleware('auth')->group(function () {
 
 Route::middleware([
     'auth:sanctum',config('jetstream.auth_session'),'verified','tenants'])->group(function () {
-    Route::get('/dashboard', function () {
-        return view('admin.dashboard');
-    })->name('dashboard');
+    Route::get('/dashboard', DashboardController::class)->name('dashboard');
+
+    Route::middleware(['auth', 'role:admin'])->prefix('admin/user-memberships')->name('admin.user-memberships.')->group(function () {
+        Route::get('/', [UserMembershipListController::class, 'index'])->name('index');
+    });
 
     // Notes routes with admin role middleware
     Route::middleware(['auth', 'role:user|admin'])->group(function () {
@@ -63,7 +73,7 @@ Route::middleware([
 
     // Articles routes - admin only
     Route::middleware(['auth', 'role:admin'])->group(function () {
-        Route::resource('/articles', ArticleController::class);
+        Route::resource('/articles', ArticleController::class)->except('show');
     });
 
     // Meal Plans routes - accessible to both admin and user
@@ -164,6 +174,12 @@ Route::middleware([
         Route::patch('/{sessionBooking}/update-status', [SessionBookingController::class, 'updateStatus'])->name('update-status');
     });
 
+    // Nutrition Discounts routes - admin only
+    Route::middleware(['auth', 'role:admin'])->group(function () {
+        Route::resource('/nutrition-discounts', NutritionDiscountController::class);
+        Route::patch('/nutrition-discounts/{nutritionDiscount}/toggle-status', [NutritionDiscountController::class, 'toggleStatus'])->name('nutrition-discounts.toggle-status');
+    });
+
     // Workouts routes - accessible to admin, coach, and client with different permissions
     Route::middleware(['auth', 'role:admin|coach|client'])->group(function () {
         Route::resource('/workouts', \App\Http\Controllers\WorkoutController::class);
@@ -187,4 +203,34 @@ Route::get('/lang/{locale}', function ($locale) {
         App::setLocale($locale);
     }
     return redirect()->back();
+});
+
+// ------------------------------
+// Billing (system-level) endpoints
+// ------------------------------
+use App\Http\Controllers\Billing\PlanController;
+use App\Http\Controllers\Billing\CheckoutController;
+use App\Http\Controllers\Billing\PaylinkCallbackController;
+use App\Http\Controllers\Billing\PaylinkWebhookController;
+use App\Http\Controllers\Billing\SubscribePageController;
+
+// Public endpoints to read plans and start checkout (initial stub)
+Route::get('/plans', [PlanController::class, 'index'])->name('billing.plans');
+Route::post('/checkout/session', [CheckoutController::class, 'create'])->name('billing.checkout.session');
+
+// Paylink payment callbacks
+Route::get('/billing/paylink/callback', PaylinkCallbackController::class)->name('billing.paylink.callback');
+Route::post('/webhooks/paylink', PaylinkWebhookController::class)->name('billing.webhooks.paylink');
+
+// Subscribe landing/form
+Route::get('/subscribe', [SubscribePageController::class, 'index'])->name('subscribe');
+
+// ------------------------------
+// Tenant Admin - Billing page (read-only for now)
+// ------------------------------
+Route::middleware([
+    'auth:sanctum', config('jetstream.auth_session'), 'verified', 'tenants', 'role:admin'
+])->group(function () {
+    Route::get('/admin/billing', [\App\Http\Controllers\Tenant\BillingController::class, 'index'])
+        ->name('tenant.billing');
 });

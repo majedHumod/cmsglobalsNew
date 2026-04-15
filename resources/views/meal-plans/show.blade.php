@@ -1,29 +1,67 @@
-@extends('layouts.admin')
+@extends('layouts.app')
 
-@section('title', 'تفاصيل الوجبة')
-
-@section('header', 'تفاصيل الوجبة: ' . $mealPlan->name)
-
-@section('header_actions')
-<div class="flex space-x-2">
-    @if(auth()->user()->hasRole('admin') || $mealPlan->user_id === auth()->id())
-        <a href="{{ route('meal-plans.edit', $mealPlan) }}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700">
-            <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-            </svg>
-            تعديل
-        </a>
-    @endif
-    <a href="{{ route('meal-plans.index') }}" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
-        <svg class="-ml-1 mr-2 h-5 w-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-        </svg>
-        العودة للقائمة
-    </a>
-</div>
-@endsection
+@section('title', 'تفاصيل الوجبة: ' . $mealPlan->name)
 
 @section('content')
+<!-- Page Header -->
+<div class="bg-white shadow-sm">
+    <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">تفاصيل الوجبة: {{ $mealPlan->name }}</h1>
+                <nav class="flex mt-2" aria-label="Breadcrumb">
+                    <ol class="inline-flex items-center space-x-1 md:space-x-3 space-x-reverse">
+                        <li class="inline-flex items-center">
+                            <a href="{{ route('home') }}" class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-indigo-600">
+                                <svg class="w-4 h-4 ml-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path>
+                                </svg>
+                                الرئيسية
+                            </a>
+                        </li>
+                        <li>
+                            <div class="flex items-center">
+                                <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                    <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                </svg>
+                                <a href="{{ route('meal-plans.public') }}" class="ml-1 md:ml-2 text-sm font-medium text-gray-700 hover:text-indigo-600">الجداول الغذائية</a>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="flex items-center">
+                                <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                    <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                </svg>
+                                <span class="ml-1 md:ml-2 text-sm font-medium text-gray-500">{{ $mealPlan->name }}</span>
+                            </div>
+                        </li>
+                    </ol>
+                </nav>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="flex space-x-2 space-x-reverse">
+                @if(auth()->user() && (auth()->user()->hasRole('admin') || $mealPlan->user_id === auth()->id()))
+                    <a href="{{ route('meal-plans.edit', $mealPlan) }}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700">
+                        <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                        </svg>
+                        تعديل
+                    </a>
+                @endif
+                <a href="{{ route('meal-plans.public') }}" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                    <svg class="-ml-1 mr-2 h-5 w-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                    </svg>
+                    العودة للقائمة
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
 <!-- Main Content Container - Unified Layout -->
 <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
     <article>
@@ -115,7 +153,7 @@
                     <!-- Macro Percentages -->
                     @if($mealPlan->total_macros > 0)
                         <div class="mt-6 bg-gray-50 p-4 rounded-lg">
-                            <h3 class="text-sm font-medium text-gray-900 mb-3">توزيع المغذيات الكبرى</h3>
+                            <h3 class="text-sm font-medium text-gray-900 mb-3">توزيع المغذيات الكبرىببب</h3>
                             <div class="space-y-2">
                                 @if($mealPlan->protein)
                                     <div class="flex items-center justify-between">
@@ -187,7 +225,7 @@
                         <dd class="text-sm text-gray-900 font-medium">{{ $mealPlan->user->name }}</dd>
                     </div>
                     <div class="flex justify-between">
-                        <dt class="text-sm font-medium text-gray-500">تاريخ الإنشاء:</dt>
+                        <dt class="text-sm font-medium text-gray-500">تاريخ الإنشاء:55</dt>
                         <dd class="text-sm text-gray-900">{{ $mealPlan->created_at ? $mealPlan->created_at->format('d/m/Y H:i') : '—' }}</dd>
                     </div>
                     <div class="flex justify-between">
@@ -233,4 +271,10 @@
         @endif
     </article>
 </div>
+</div>
+
+<!-- Footer -->
+@include('layouts.footer')
+
 @endsection
+

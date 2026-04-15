@@ -104,8 +104,21 @@
                     </div>
                 </div>
             </div>
+
+            <div class="border-t border-gray-200 pt-6">
+                <h3 class="text-lg font-medium text-gray-900">إعدادات النشر</h3>
+                <div class="mt-4 flex items-center">
+                    <input type="hidden" name="is_published" value="0">
+                    <input type="checkbox" name="is_published" id="is_published" value="1" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" {{ old('is_published') ? 'checked' : '' }}>
+                    <label for="is_published" class="mr-2 block text-sm text-gray-700">نشر المقال مباشرة</label>
+                </div>
+                <p class="mt-1 text-xs text-gray-500">عند إلغاء هذا الخيار سيتم حفظ المقال كمسودة.</p>
+            </div>
             
             <div class="flex justify-end space-x-3">
+                <button type="button" id="preview-article-btn" class="inline-flex items-center px-4 py-2 border border-indigo-300 text-sm font-medium rounded-md text-indigo-700 bg-indigo-50 hover:bg-indigo-100">
+                    استعراض المقال
+                </button>
                 <a href="{{ route('articles.index') }}" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
                     إلغاء
                 </a>
@@ -119,4 +132,62 @@
         </form>
     </div>
 </div>
+
+<div id="article-preview-modal" class="hidden fixed inset-0 z-50 overflow-y-auto">
+    <div class="flex min-h-screen items-start justify-center bg-black/50 px-4 py-8">
+        <div class="w-full max-w-3xl rounded-lg bg-white shadow-xl">
+            <div class="flex items-center justify-between border-b px-4 py-3">
+                <h3 class="text-lg font-semibold text-gray-900">استعراض المقال</h3>
+                <button type="button" id="close-preview-modal" class="text-gray-500 hover:text-gray-700">✕</button>
+            </div>
+            <div class="p-6">
+                <h2 id="preview-title" class="mb-4 text-2xl font-bold text-gray-900"></h2>
+                <div id="preview-image-wrap" class="mb-4 hidden">
+                    <img id="preview-image" src="" alt="معاينة صورة المقال" class="h-64 w-full rounded object-cover">
+                </div>
+                <p id="preview-content" class="whitespace-pre-line text-gray-700"></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const previewBtn = document.getElementById('preview-article-btn');
+    const closeBtn = document.getElementById('close-preview-modal');
+    const modal = document.getElementById('article-preview-modal');
+    const titleInput = document.getElementById('title');
+    const contentInput = document.getElementById('content');
+    const imageInput = document.getElementById('image');
+    const previewTitle = document.getElementById('preview-title');
+    const previewContent = document.getElementById('preview-content');
+    const previewImageWrap = document.getElementById('preview-image-wrap');
+    const previewImage = document.getElementById('preview-image');
+
+    function closeModal() {
+        modal.classList.add('hidden');
+    }
+
+    previewBtn?.addEventListener('click', function () {
+        previewTitle.textContent = titleInput.value || 'بدون عنوان';
+        previewContent.textContent = contentInput.value || 'لا يوجد محتوى للمعاينة';
+
+        const file = imageInput.files && imageInput.files[0];
+        if (file) {
+            previewImage.src = URL.createObjectURL(file);
+            previewImageWrap.classList.remove('hidden');
+        } else {
+            previewImageWrap.classList.add('hidden');
+            previewImage.src = '';
+        }
+
+        modal.classList.remove('hidden');
+    });
+
+    closeBtn?.addEventListener('click', closeModal);
+    modal?.addEventListener('click', function (e) {
+        if (e.target === modal) closeModal();
+    });
+});
+</script>
 @endsection

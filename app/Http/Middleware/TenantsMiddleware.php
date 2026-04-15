@@ -18,9 +18,12 @@ class TenantsMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-   $host = $request->getHost();
-   $tenant = Tenant::on('system')->where('domain', $host)->firstOrFail();
-    TenantService::switchToTenant($tenant);
+        $host = $request->getHost();
+        // ابحث عن المستأجر المطابق للنطاق الحالي. إذا لم يوجد، مرّر الطلب بدون تبديل الاتصال.
+        $tenant = Tenant::on('system')->where('domain', $host)->first();
+        if ($tenant) {
+            TenantService::switchToTenant($tenant);
+        }
    //$tenant = Tenant::where ('domain',$host)->first();
 //    DB::purge('system');
 //    config(['database.connections.tenant.database' => $tenant->db_name]);

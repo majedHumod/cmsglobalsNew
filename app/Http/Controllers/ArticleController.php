@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Article;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ArticleController extends Controller
 {
@@ -18,6 +19,35 @@ class ArticleController extends Controller
         return view('articles.index', compact('articles'));
     }
 
+    public function publicIndex()
+    {
+        $articles = Article::published()
+            ->with('user')
+            ->latest('published_at')
+            ->latest()
+            ->paginate(9);
+
+        return view('articles.public.index', compact('articles'));
+    }
+
+    public function publicShow(Article $article)
+    {
+        if (! $article->is_published) {
+            abort(404);
+        }
+
+        $article->loadMissing('user');
+
+        $relatedArticles = Article::published()
+            ->where('id', '!=', $article->id)
+            ->with('user')
+            ->latest('published_at')
+            ->take(3)
+            ->get();
+
+        return view('articles.public.show', compact('article', 'relatedArticles'));
+    }
+
     public function create()
     {
         return view('articles.create');
@@ -28,7 +58,8 @@ class ArticleController extends Controller
         $validated = $request->validate([
             'title' => 'required|max:255',
             'content' => 'required',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'is_published' => 'nullable|boolean',
         ]);
 
         if ($request->hasFile('image')) {
@@ -38,6 +69,8 @@ class ArticleController extends Controller
 
         $article = new Article($validated);
         $article->user_id = auth()->id();
+        $article->is_published = $request->boolean('is_published');
+        $article->published_at = $article->is_published ? now() : null;
         $article->save();
 
         return redirect()->route('articles.index')->with('success', 'Article created successfully.');
@@ -53,7 +86,8 @@ class ArticleController extends Controller
         $validated = $request->validate([
             'title' => 'required|max:255',
             'content' => 'required',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'is_published' => 'nullable|boolean',
         ]);
 
         if ($request->hasFile('image')) {
@@ -63,6 +97,14 @@ class ArticleController extends Controller
             }
             $imagePath = $request->file('image')->store('articles', 'public');
             $validated['image'] = $imagePath;
+        }
+
+        $validated['is_published'] = $request->boolean('is_published');
+        if ($validated['is_published'] && ! $article->published_at) {
+            $validated['published_at'] = now();
+        }
+        if (! $validated['is_published']) {
+            $validated['published_at'] = null;
         }
 
         $article->update($validated);

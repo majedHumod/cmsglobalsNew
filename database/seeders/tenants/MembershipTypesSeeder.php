@@ -13,9 +13,10 @@ class MembershipTypesSeeder extends Seeder
     public function run(): void
     {
         // عضوية الأدمن المحمية
-        MembershipType::create([
-            'name' => 'مدير النظام',
+        MembershipType::firstOrCreate([
             'slug' => 'admin',
+        ],[
+            'name' => 'مدير النظام',
             'description' => 'عضوية مدير النظام مع صلاحيات كاملة',
             'price' => 0,
             'duration_days' => 36500, // 100 سنة
@@ -33,9 +34,10 @@ class MembershipTypesSeeder extends Seeder
         ]);
 
         // عضوية مجانية أساسية
-        MembershipType::create([
-            'name' => 'عضوية مجانية',
+        MembershipType::firstOrCreate([
             'slug' => 'free',
+        ],[
+            'name' => 'عضوية مجانية',
             'description' => 'عضوية مجانية مع إمكانيات أساسية',
             'price' => 0,
             'duration_days' => 365,
@@ -51,9 +53,10 @@ class MembershipTypesSeeder extends Seeder
         ]);
 
         // عضوية شهرية مدفوعة
-        MembershipType::create([
-            'name' => 'عضوية شهرية',
+        MembershipType::firstOrCreate([
             'slug' => 'monthly',
+        ],[
+            'name' => 'عضوية شهرية',
             'description' => 'عضوية شهرية مع مميزات إضافية',
             'price' => 29.99,
             'duration_days' => 30,
@@ -70,9 +73,10 @@ class MembershipTypesSeeder extends Seeder
         ]);
 
         // عضوية سنوية مدفوعة
-        MembershipType::create([
-            'name' => 'عضوية سنوية',
+        MembershipType::firstOrCreate([
             'slug' => 'yearly',
+        ],[
+            'name' => 'عضوية سنوية',
             'description' => 'عضوية سنوية مع خصم كبير',
             'price' => 299.99,
             'duration_days' => 365,
@@ -90,9 +94,10 @@ class MembershipTypesSeeder extends Seeder
         ]);
 
         // عضوية VIP
-        MembershipType::create([
-            'name' => 'عضوية VIP',
+        MembershipType::firstOrCreate([
             'slug' => 'vip',
+        ],[
+            'name' => 'عضوية VIP',
             'description' => 'عضوية VIP مع جميع المميزات',
             'price' => 99.99,
             'duration_days' => 30,

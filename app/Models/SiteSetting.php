@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
+use App\Services\TenantCache;
 
 class SiteSetting extends Model
 {
@@ -34,7 +35,7 @@ class SiteSetting extends Model
      */
     public static function get($key, $default = null)
     {
-        $cacheKey = 'setting_' . $key;
+        $cacheKey = TenantCache::key('setting_' . $key);
         
         return Cache::remember($cacheKey, 7200, function () use ($key, $default) {
             $setting = self::where('key', $key)->first();
@@ -92,7 +93,7 @@ class SiteSetting extends Model
         );
         
         // Clear the cache for this setting
-        Cache::forget('setting_' . $key);
+        Cache::forget(TenantCache::key('setting_' . $key));
         
         return $setting;
     }
@@ -105,7 +106,7 @@ class SiteSetting extends Model
      */
     public static function getGroup($group)
     {
-        $cacheKey = 'settings_group_' . $group;
+        $cacheKey = TenantCache::key('settings_group_' . $group);
 
         try {
             return Cache::remember($cacheKey, 7200, function () use ($group) {
@@ -148,12 +149,12 @@ class SiteSetting extends Model
      */
     public static function clearGroupCache($group)
     {
-        Cache::forget('settings_group_' . $group);
+        Cache::forget(TenantCache::key('settings_group_' . $group));
         
         // Also clear individual setting caches in this group
         $settings = self::where('group', $group)->get();
         foreach ($settings as $setting) {
-            Cache::forget('setting_' . $setting->key);
+            Cache::forget(TenantCache::key('setting_' . $setting->key));
         }
     }
 
@@ -166,12 +167,12 @@ class SiteSetting extends Model
     {
         $settings = self::all();
         foreach ($settings as $setting) {
-            Cache::forget('setting_' . $setting->key);
+            Cache::forget(TenantCache::key('setting_' . $setting->key));
         }
         
         $groups = self::distinct('group')->pluck('group');
         foreach ($groups as $group) {
-            Cache::forget('settings_group_' . $group);
+            Cache::forget(TenantCache::key('settings_group_' . $group));
         }
     }
 }

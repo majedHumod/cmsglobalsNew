@@ -5,7 +5,9 @@ namespace App\Providers;
 use App\Models\SiteSetting;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\View;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Schema;
+use App\Services\TenantCache;
 
 class SiteSettingsServiceProvider extends ServiceProvider
 {
@@ -66,7 +68,9 @@ class SiteSettingsServiceProvider extends ServiceProvider
                 'testimonials_title' => 'ماذا يقول عملاؤنا',
                 'testimonials_description' => 'اكتشف تجارب عملائنا الحقيقية وكيف ساعدتهم خدماتنا في تحقيق أهدافهم وتحسين حياتهم بطرق مذهلة ومؤثرة.',
                 'testimonials_count' => 3,
-                'testimonials_enabled' => true
+                'testimonials_enabled' => true,
+                'articles_enabled' => true,
+                'articles_count' => 3,
             ]
         ];
 
@@ -75,19 +79,19 @@ class SiteSettingsServiceProvider extends ServiceProvider
         try {
             if (Schema::hasTable('site_settings')) {
                 // Get settings from database with caching
-                $generalSettings = Cache::remember('site_settings_general', 7200, function () {
+                $generalSettings = Cache::remember(TenantCache::key('site_settings_general'), 7200, function () {
                     return SiteSetting::getGroup('general')->toArray();
                 });
-                $contactSettings = Cache::remember('site_settings_contact', 7200, function () {
+                $contactSettings = Cache::remember(TenantCache::key('site_settings_contact'), 7200, function () {
                     return SiteSetting::getGroup('contact')->toArray();
                 });
-                $socialSettings = Cache::remember('site_settings_social', 7200, function () {
+                $socialSettings = Cache::remember(TenantCache::key('site_settings_social'), 7200, function () {
                     return SiteSetting::getGroup('social')->toArray();
                 });
-                $appSettings = Cache::remember('site_settings_app', 7200, function () {
+                $appSettings = Cache::remember(TenantCache::key('site_settings_app'), 7200, function () {
                     return SiteSetting::getGroup('app')->toArray();
                 });
-                $homepageSettings = Cache::remember('site_settings_homepage', 7200, function () {
+                $homepageSettings = Cache::remember(TenantCache::key('site_settings_homepage'), 7200, function () {
                     return SiteSetting::getGroup('homepage')->toArray();
                 });
                 

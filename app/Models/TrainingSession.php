@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
+use App\Services\TenantCache;
 
 class TrainingSession extends Model
 {
@@ -73,7 +74,7 @@ class TrainingSession extends Model
      */
     public static function getHomepageSessions()
     {
-        return Cache::remember('homepage_training_sessions', 7200, function () {
+        return Cache::remember(TenantCache::key('homepage_training_sessions'), 7200, function () {
             try {
                 $count = \App\Models\SiteSetting::get('training_sessions_count', 4);
                 return self::visible()
@@ -105,9 +106,9 @@ class TrainingSession extends Model
      */
     public static function clearCache()
     {
-        Cache::forget('homepage_training_sessions');
+        Cache::forget(TenantCache::key('homepage_training_sessions'));
         // Also clear the site settings cache to ensure fresh data
-        Cache::forget('settings_group_homepage');
+        Cache::forget(TenantCache::key('settings_group_homepage'));
     }
 
     /**

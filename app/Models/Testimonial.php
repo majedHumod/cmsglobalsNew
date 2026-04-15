@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
+use App\Services\TenantCache;
 
 class Testimonial extends Model
 {
@@ -53,7 +54,7 @@ class Testimonial extends Model
      */
     public static function getVisibleTestimonials()
     {
-        return Cache::remember('visible_testimonials', 7200, function () {
+        return Cache::remember(TenantCache::key('visible_testimonials'), 7200, function () {
             return self::visible()
                 ->ordered()
                 ->select(['id', 'name', 'story_content', 'image', 'sort_order'])
@@ -66,9 +67,9 @@ class Testimonial extends Model
      */
     public static function clearCache()
     {
-        Cache::forget('visible_testimonials');
+        Cache::forget(TenantCache::key('visible_testimonials'));
         // Also clear the site settings cache to ensure fresh data
-        Cache::forget('settings_group_homepage');
+        Cache::forget(TenantCache::key('settings_group_homepage'));
     }
 
     /**

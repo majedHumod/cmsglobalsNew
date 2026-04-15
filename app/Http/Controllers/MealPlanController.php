@@ -142,10 +142,25 @@ class MealPlanController extends Controller
 
     public function publicIndex()
     {
-        $mealPlans = MealPlan::where('is_active', true)
+        $mealPlans = MealPlan::query()
+            ->where('is_active', true)
             ->with('user')
-            ->latest()
-            ->paginate(12);
+            ->when(request('meal_type'), function ($q, $type) {
+                $q->where('meal_type', $type);
+            })
+            ->when(request('difficulty'), function ($q, $difficulty) {
+                $q->where('difficulty', $difficulty);
+            })
+            ->when(request('search'), function ($q, $search) {
+                $q->where(function ($sub) use ($search) {
+                    $sub->where('name', 'like', "%{$search}%")
+                        ->orWhere('description', 'like', "%{$search}%")
+                        ->orWhere('ingredients', 'like', "%{$search}%");
+                });
+            })
+            ->orderBy('created_at', 'desc')
+            ->paginate(12)
+            ->withQueryString();
 
         return view('meal-plans.public', compact('mealPlans'));
     }
