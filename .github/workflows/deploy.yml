@@ -16,4 +16,4 @@ jobs:
           port: 21
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          server-dir: public_html/app.etoscoach.com/
+          server-dir: app.etoscoach.com/
