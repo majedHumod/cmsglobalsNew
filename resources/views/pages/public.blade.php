@@ -4,11 +4,11 @@
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
                 {{ __('صفحات الموقع') }}
             </h2>
-            @hasanyrole('admin|page_manager')
-                <a href="{{ route('pages.index') }}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
+            @can('view pages')
+                <a href="{{ route('pages.index') }}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-orange-500 hover:bg-orange-600">
                     إدارة الصفحات
                 </a>
-            @endhasanyrole
+            @endcan
         </div>
     </x-slot>
 
@@ -50,7 +50,7 @@
                                     @endif
                                 </div>
                                 
-                                <a href="{{ route('pages.show', $page->slug) }}" class="block w-full text-center bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md transition-colors">
+                                <a href="{{ route('pages.show', $page->slug) }}" class="block w-full text-center bg-orange-500 hover:bg-orange-600 text-white font-medium py-2 px-4 rounded-md transition-colors">
                                     قراءة المزيد
                                 </a>
                             </div>

@@ -15,48 +15,9 @@
         <link rel="icon" href="{{ Storage::url($siteFavicon) }}" type="image/x-icon">
     @endif
 
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=tajawal:400,500,700&display=swap" rel="stylesheet" />
-
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    
-    <!-- Custom Colors -->
-    @php
-        $primaryColor = \App\Models\SiteSetting::get('primary_color', '#6366f1');
-        $secondaryColor = \App\Models\SiteSetting::get('secondary_color', '#10b981');
-    @endphp
-    <style>
-        :root {
-            --primary-color: {{ $primaryColor }};
-            --secondary-color: {{ $secondaryColor }};
-        }
-        
-        .bg-primary {
-            background-color: var(--primary-color);
-        }
-        
-        .text-primary {
-            color: var(--primary-color);
-        }
-        
-        .border-primary {
-            border-color: var(--primary-color);
-        }
-        
-        .bg-secondary {
-            background-color: var(--secondary-color);
-        }
-        
-        .text-secondary {
-            color: var(--secondary-color);
-        }
-        
-        .border-secondary {
-            border-color: var(--secondary-color);
-        }
-    </style>
+    @include('partials.brand-tokens')
 </head>
 <body class="font-sans antialiased pt-16" dir="rtl">
     <div class="min-h-screen bg-gray-100">
@@ -72,7 +33,7 @@
                         @endphp
                         @if($siteLogo)
                             <a href="{{ route('home') }}" class="flex-shrink-0 flex items-center">
-                                <img class="h-8 w-auto" src="{{ Storage::url($siteLogo) }}" alt="{{ $siteName }}">
+                                <img class="h-8 w-auto" src="{{ Storage::url($siteLogo) }}" alt="{{ $siteName }}" title="{{ $siteName }}">
                             </a>
                         @else
                             <a href="{{ route('home') }}" class="flex-shrink-0 flex items-center">
@@ -95,22 +56,7 @@
                                     ->get();
 
                                 $user = auth()->user();
-                                $menuPages = $allMenuPages->filter(function($page) use ($user) {
-                                    if ($page->access_level === 'public') return true;
-                                    if (!$user) return false;
-                                    if ($page->access_level === 'authenticated') return true;
-                                    if ($page->access_level === 'user' && $user->hasRole('user')) return true;
-                                    if ($page->access_level === 'page_manager' && $user->hasRole('page_manager')) return true;
-                                    if ($page->access_level === 'admin' && $user->hasRole('admin')) return true;
-                                    if ($page->access_level === 'membership' && $user->membership_type_id) {
-                                        $requiredTypes = $page->required_membership_types;
-                                        if (is_string($requiredTypes)) {
-                                            $requiredTypes = json_decode($requiredTypes, true) ?: [];
-                                        }
-                                        return in_array($user->membership_type_id, $requiredTypes);
-                                    }
-                                    return false;
-                                });
+                                $menuPages = $allMenuPages->filter(fn ($page) => $page->canAccess($user));
                             } catch (\Exception $e) {
                                 $menuPages = collect([]);
                             }
@@ -261,6 +207,14 @@
                         <header class="mb-8">
                             <div class="flex justify-between items-start mb-4">
                                 <h1 class="text-3xl md:text-4xl font-bold text-gray-900">{{ $mealPlan->name }}</h1>
+                                @if($mealPlan->name_en)
+                                    <p class="text-lg text-gray-500 mt-1">{{ $mealPlan->name_en }}</p>
+                                @endif
+                                @if($mealPlan->nutrition_is_estimated)
+                                    <div class="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                                        {{ $mealPlan->nutrition_disclaimer }}
+                                    </div>
+                                @endif
                                 @auth
                                     @if(auth()->user()->hasRole('admin') || $mealPlan->user_id === auth()->id())
                                         <a href="{{ route('meal-plans.edit', $mealPlan) }}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">

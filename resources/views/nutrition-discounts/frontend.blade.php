@@ -11,29 +11,16 @@
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             @foreach($discounts as $discount)
                 <div class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition duration-300 transform hover:-translate-y-1">
-                    @if($discount->image)
-                        <div class="relative">
-                            <img src="{{ $discount->image_url }}" alt="{{ $discount->name }}" 
-                                 class="w-full h-64 object-cover">
-                            <div class="absolute top-4 right-4">
-                                <span class="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
-                                    {{ $discount->discount_percentage }}% OFF
-                                </span>
-                            </div>
+                    <div class="relative">
+                        <img src="{{ $discount->has_custom_image ? $discount->image_url : \App\Models\NutritionDiscount::defaultImageDataUri() }}"
+                             alt="{{ $discount->name }}"
+                             class="w-full h-64 object-cover bg-teal-800">
+                        <div class="absolute top-4 right-4">
+                            <span class="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                                {{ $discount->discount_percentage }}% OFF
+                            </span>
                         </div>
-                    @else
-                        <div class="w-full h-64 bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center relative">
-                            <div class="text-white text-center">
-                                <div class="text-6xl font-bold mb-2">{{ $discount->discount_percentage }}%</div>
-                                <div class="text-xl">OFF</div>
-                            </div>
-                            <div class="absolute top-4 right-4">
-                                <span class="bg-white text-gray-800 px-3 py-1 rounded-full text-sm font-semibold">
-                                    {{ $discount->discount_percentage }}% OFF
-                                </span>
-                            </div>
-                        </div>
-                    @endif
+                    </div>
                     
                     <div class="p-6">
                         <h3 class="text-2xl font-bold text-gray-900 mb-3">{{ $discount->name }}</h3>

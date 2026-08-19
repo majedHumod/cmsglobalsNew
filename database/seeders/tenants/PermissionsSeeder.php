@@ -41,6 +41,27 @@ class PermissionsSeeder extends Seeder
             'delete meal-plans',
             'view meal-plans',
             'publish meal-plans',
+
+            // صلاحيات التدريب والمتابعة
+            'create workouts',
+            'edit workouts',
+            'delete workouts',
+            'view workouts',
+            'create workout-schedules',
+            'edit workout-schedules',
+            'delete workout-schedules',
+            'view workout-schedules',
+            'create training-sessions',
+            'edit training-sessions',
+            'delete training-sessions',
+            'view training-sessions',
+            'manage session-bookings',
+            'view session-bookings',
+            'manage clients',
+            'view client-progress',
+            'create client-progress',
+            'edit client-progress',
+            'manage coach-availability',
             
             // صلاحيات المستخدمين
             'manage users',
@@ -53,6 +74,11 @@ class PermissionsSeeder extends Seeder
             'edit membership-types',
             'delete membership-types',
             'view membership-types',
+            'manage subscription-plans',
+            'create subscription-plans',
+            'edit subscription-plans',
+            'delete subscription-plans',
+            'view subscription-plans',
             
             // صلاحيات النظام المتقدمة
             'view advanced permissions',
@@ -81,6 +107,16 @@ class PermissionsSeeder extends Seeder
             'guard_name' => 'web'
         ]);
 
+        $clientRole = Role::firstOrCreate([
+            'name' => 'client',
+            'guard_name' => 'web'
+        ]);
+
+        $coachRole = Role::firstOrCreate([
+            'name' => 'coach',
+            'guard_name' => 'web'
+        ]);
+
         $pageManagerRole = Role::firstOrCreate([
             'name' => 'page_manager',
             'guard_name' => 'web'
@@ -89,7 +125,7 @@ class PermissionsSeeder extends Seeder
         // منح جميع الصلاحيات للأدمن
         $adminRole->syncPermissions(Permission::all());
 
-        // منح صلاحيات أساسية للمستخدم العادي
+        // منح صلاحيات أساسية للمستخدم العادي (عرض الصفحات العامة يمر عبر Page::canAccess وليس view pages)
         $userRole->syncPermissions([
             'view notes',
             'create notes',
@@ -97,7 +133,34 @@ class PermissionsSeeder extends Seeder
             'view meal-plans',
             'create meal-plans',
             'edit meal-plans',
-            'view pages'
+        ]);
+
+        $clientRole->syncPermissions($userRole->permissions);
+
+        $coachRole->syncPermissions([
+            'view meal-plans',
+            'create meal-plans',
+            'edit meal-plans',
+            'publish meal-plans',
+            'create workouts',
+            'edit workouts',
+            'delete workouts',
+            'view workouts',
+            'create workout-schedules',
+            'edit workout-schedules',
+            'delete workout-schedules',
+            'view workout-schedules',
+            'create training-sessions',
+            'edit training-sessions',
+            'delete training-sessions',
+            'view training-sessions',
+            'manage session-bookings',
+            'view session-bookings',
+            'manage clients',
+            'view client-progress',
+            'create client-progress',
+            'edit client-progress',
+            'manage coach-availability',
         ]);
 
         // منح صلاحيات إدارة الصفحات لمدير الصفحات

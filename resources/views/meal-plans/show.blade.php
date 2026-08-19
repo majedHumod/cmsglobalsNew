@@ -76,9 +76,12 @@
             <div class="flex justify-between items-start mb-4">
                 <h1 class="text-3xl md:text-4xl font-bold text-gray-900">{{ $mealPlan->name }}</h1>
             </div>
+            @if($mealPlan->name_en)
+                <p class="text-lg text-gray-500 mb-2">{{ $mealPlan->name_en }}</p>
+            @endif
             
             <!-- Meal Type and Status Badges -->
-            <div class="flex items-center space-x-4 space-x-reverse mb-6">
+            <div class="flex items-center space-x-4 space-x-reverse mb-6 flex-wrap gap-2">
                 <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
                     {{ $mealPlan->meal_type_name }}
                 </span>
@@ -88,7 +91,19 @@
                 <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium {{ $mealPlan->is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
                     {{ $mealPlan->is_active ? 'نشط' : 'غير نشط' }}
                 </span>
+                @if($mealPlan->nutrition_is_estimated)
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-amber-100 text-amber-800">قيم تقديرية</span>
+                @endif
             </div>
+
+            @if($mealPlan->nutrition_is_estimated)
+                <div class="mb-6 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                    {{ $mealPlan->nutrition_disclaimer }}
+                    @if($mealPlan->nutrition_source)
+                        <div class="text-xs mt-1 opacity-80">المصدر: {{ $mealPlan->nutrition_source }}</div>
+                    @endif
+                </div>
+            @endif
             
             @if($mealPlan->description)
                 <p class="text-xl text-gray-600 leading-relaxed mb-6">{{ $mealPlan->description }}</p>

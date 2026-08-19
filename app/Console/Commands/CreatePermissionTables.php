@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\Tenant;
+use App\Support\MigrationScope;
 use App\Services\TenantService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Schema;
@@ -60,7 +61,8 @@ class CreatePermissionTables extends Command
             if (!Schema::hasTable('permissions')) {
                 $this->info("📝 Creating base permission tables...");
                 Artisan::call('migrate', [
-                    '--path' => 'database/migrations/tenants/2025_03_07_015809_create_permission_tables.php',
+                    '--path' => MigrationScope::tenant('database/migrations/tenants/2025_03_07_015809_create_permission_tables.php'),
+                    '--database' => 'tenant',
                     '--force' => true,
                 ]);
                 $this->info(Artisan::output());
@@ -71,7 +73,8 @@ class CreatePermissionTables extends Command
             // إنشاء جداول الصلاحيات المتقدمة
             $this->info("📝 Creating advanced permission tables...");
             Artisan::call('migrate', [
-                '--path' => 'database/migrations/tenants/2025_01_19_create_advanced_permissions_tables.php',
+                '--path' => MigrationScope::tenant('database/migrations/tenants/2025_01_19_create_advanced_permissions_tables.php'),
+                '--database' => 'tenant',
                 '--force' => true,
             ]);
             $this->info(Artisan::output());
@@ -79,7 +82,8 @@ class CreatePermissionTables extends Command
             // إضافة الأعمدة المطلوبة لجدول الصلاحيات
             $this->info("📝 Adding required columns to permissions table...");
             Artisan::call('migrate', [
-                '--path' => 'database/migrations/tenants/2025_06_10_add_columns_to_permissions_table.php',
+                '--path' => MigrationScope::tenant('database/migrations/tenants/2025_06_10_add_columns_to_permissions_table.php'),
+                '--database' => 'tenant',
                 '--force' => true,
             ]);
             $this->info(Artisan::output());
@@ -88,6 +92,7 @@ class CreatePermissionTables extends Command
             $this->info("🌱 Seeding permissions...");
             Artisan::call('db:seed', [
                 '--class' => 'Database\\Seeders\\Tenants\\PermissionsSeeder',
+                '--database' => 'tenant',
                 '--force' => true,
             ]);
             $this->info(Artisan::output());

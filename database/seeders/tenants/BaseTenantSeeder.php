@@ -14,6 +14,7 @@ class BaseTenantSeeder extends Seeder
             DatabaseSeeder::class, // create a default tenant admin user
             SiteSettingsSeeder::class,
             MembershipTypesSeeder::class,
+            SubscriptionPlansSeeder::class,
             FaqsSeeder::class,
             PermissionsSeeder::class,
             DefaultTenantContentSeeder::class,
@@ -24,9 +25,11 @@ class BaseTenantSeeder extends Seeder
             if (\Schema::hasTable('users') && \Schema::hasTable('roles') && \Schema::hasTable('model_has_roles')) {
                 $firstUser = \App\Models\User::first();
                 if ($firstUser && method_exists($firstUser, 'assignRole')) {
-                    // Assign admin if not already
                     if (!$firstUser->hasRole('admin')) {
                         $firstUser->assignRole('admin');
+                    }
+                    if (!$firstUser->hasRole('coach')) {
+                        $firstUser->assignRole('coach');
                     }
                 }
             }

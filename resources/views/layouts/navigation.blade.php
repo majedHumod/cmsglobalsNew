@@ -18,14 +18,14 @@
                     </x-nav-link>
 
                     <!-- Notes Link - Visible to both admin and user roles -->
-                    @hasanyrole('admin|user')
+                    @hasanyrole('admin|user|client')
                     <x-nav-link href="{{ route('notes.index') }}" :active="request()->routeIs('notes.*')">
                         {{ __('الملاحظات') }}
                     </x-nav-link>
                     @endhasanyrole
 
                     <!-- Meal Plans Link - Visible to both admin and user roles -->
-                    @hasanyrole('admin|user')
+                    @hasanyrole('admin|user|client')
                     <x-nav-link href="{{ route('meal-plans.index') }}" :active="request()->routeIs('meal-plans.*')">
                         {{ __('الجداول الغذائية') }}
                     </x-nav-link>
@@ -38,12 +38,12 @@
                     </x-nav-link>
                     @endrole
 
-                    <!-- Pages Management Link - Visible to admin and page_manager roles -->
-                    @hasanyrole('admin|page_manager')
+                    <!-- إدارة الصفحات: صلاحية view pages (Spatie) -->
+                    @can('view pages')
                     <x-nav-link href="{{ route('pages.index') }}" :active="request()->routeIs('pages.index', 'pages.create', 'pages.edit')">
                         {{ __('إدارة الصفحات') }}
                     </x-nav-link>
-                    @endhasanyrole
+                    @endcan
 
                     <!-- Membership Types Link - Visible only to admin role -->
                     @role('admin')
@@ -63,49 +63,7 @@
                             
                             // تصفية الصفحات بناءً على صلاحيات المستخدم
                             $user = auth()->user();
-                            $menuPages = $allMenuPages->filter(function($page) use ($user) {
-                                // الصفحات العامة متاحة للجميع
-                                if ($page->access_level === 'public') {
-                                    return true;
-                                }
-                                
-                                // إذا لم يكن المستخدم مسجل الدخول
-                                if (!$user) {
-                                    return false;
-                                }
-                                
-                                // المستخدمين المسجلين
-                                if ($page->access_level === 'authenticated') {
-                                    return true;
-                                }
-                                
-                                // المستخدمين العاديين
-                                if ($page->access_level === 'user' && $user->hasRole('user')) {
-                                    return true;
-                                }
-                                
-                                // مديري الصفحات
-                                if ($page->access_level === 'page_manager' && $user->hasRole('page_manager')) {
-                                    return true;
-                                }
-                                
-                                // المديرين
-                                if ($page->access_level === 'admin' && $user->hasRole('admin')) {
-                                    return true;
-                                }
-                                
-                                // العضويات المدفوعة
-                                if ($page->access_level === 'membership' && $user->membership_type_id) {
-                                    $requiredTypes = $page->required_membership_types;
-                                    if (is_string($requiredTypes)) {
-                                        $requiredTypes = json_decode($requiredTypes, true) ?: [];
-                                    }
-                                    
-                                    return in_array($user->membership_type_id, $requiredTypes);
-                                }
-                                
-                                return false;
-                            });
+                            $menuPages = $allMenuPages->filter(fn ($page) => $page->canAccess($user));
                         } catch (\Exception $e) {
                             $menuPages = collect();
                         }
@@ -252,14 +210,14 @@
             </x-responsive-nav-link>
 
             <!-- Responsive Notes Link - Visible to both admin and user roles -->
-            @hasanyrole('admin|user')
+            @hasanyrole('admin|user|client')
             <x-responsive-nav-link href="{{ route('notes.index') }}" :active="request()->routeIs('notes.*')">
                 {{ __('الملاحظات') }}
             </x-responsive-nav-link>
             @endhasanyrole
 
             <!-- Responsive Meal Plans Link - Visible to both admin and user roles -->
-            @hasanyrole('admin|user')
+            @hasanyrole('admin|user|client')
             <x-responsive-nav-link href="{{ route('meal-plans.index') }}" :active="request()->routeIs('meal-plans.*')">
                 {{ __('الجداول الغذائية') }}
             </x-responsive-nav-link>
@@ -272,12 +230,11 @@
             </x-responsive-nav-link>
             @endrole
 
-            <!-- Responsive Pages Management Link - Visible to admin and page_manager roles -->
-            @hasanyrole('admin|page_manager')
+            @can('view pages')
             <x-responsive-nav-link href="{{ route('pages.index') }}" :active="request()->routeIs('pages.index', 'pages.create', 'pages.edit')">
                 {{ __('إدارة الصفحات') }}
             </x-responsive-nav-link>
-            @endhasanyrole
+            @endcan
 
             <!-- Responsive Membership Types Link - Visible only to admin role -->
             @role('admin')

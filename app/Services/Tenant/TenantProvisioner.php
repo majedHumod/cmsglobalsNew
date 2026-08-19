@@ -9,6 +9,7 @@ use App\Models\Billing\Subscription;
 use App\Models\Billing\Plan;
 use App\Models\Tenant;
 use App\Models\TenantDatabasePool;
+use App\Support\MigrationScope;
 use App\Services\TenantService;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
@@ -102,7 +103,7 @@ class TenantProvisioner
 
             // Even "ready" pooled databases can lag behind new tenant migrations.
             Artisan::call('migrate', [
-                '--path' => 'database/migrations/tenants/',
+                '--path' => MigrationScope::tenant(),
                 '--database' => 'tenant',
                 '--force' => true,
             ]);
@@ -131,9 +132,14 @@ class TenantProvisioner
                     'password' => Hash::make(Str::random(40)),
                 ]);
             }
-            // assign admin role if available
+            // assign admin + coach so owner can use coach-scoped lists (availability, client assignment)
             if (method_exists($user, 'assignRole')) {
-                try { $user->assignRole('admin'); } catch (\Throwable $e) { /* ignore if roles not ready */ }
+                try {
+                    $user->assignRole('admin');
+                } catch (\Throwable $e) { /* ignore if roles not ready */ }
+                try {
+                    $user->assignRole('coach');
+                } catch (\Throwable $e) { /* ignore if roles not ready */ }
             }
 
             // Always ensure starter public content exists for the tenant.

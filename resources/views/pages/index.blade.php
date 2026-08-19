@@ -1,144 +1,179 @@
 @extends('layouts.admin')
 
 @section('title', 'إدارة الصفحات')
-
 @section('header', 'إدارة الصفحات')
 
 @section('header_actions')
-<div class="flex space-x-2">
-    <a href="{{ route('pages.create') }}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
-        <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-        </svg>
-        إضافة صفحة جديدة
-    </a>
+@can('create', \App\Models\Page::class)
+    <x-admin.button :href="route('pages.create')" variant="primary">إضافة صفحة جديدة</x-admin.button>
+@endcan
+@endsection
+
+@section('subheader')
+<div class="flex w-full flex-wrap items-end justify-between gap-3">
+    <div class="flex items-center overflow-x-auto">
+        <a href="{{ route('pages.index', ['tab' => 'all']) }}" class="admin-tab {{ ($tab ?? 'all') === 'all' ? 'is-active' : '' }}">الكل</a>
+        <a href="{{ route('pages.index', ['tab' => 'published']) }}" class="admin-tab {{ ($tab ?? '') === 'published' ? 'is-active' : '' }}">منشور</a>
+        <a href="{{ route('pages.index', ['tab' => 'draft']) }}" class="admin-tab {{ ($tab ?? '') === 'draft' ? 'is-active' : '' }}">مسودة</a>
+        @if(auth()->user()->hasRole('admin'))
+            <a href="{{ route('pages.index', ['tab' => 'mine']) }}" class="admin-tab {{ ($tab ?? '') === 'mine' ? 'is-active' : '' }}">صفحاتي</a>
+        @endif
+        <a href="{{ route('pages.index', ['tab' => 'stats']) }}" class="admin-tab {{ ($tab ?? '') === 'stats' ? 'is-active' : '' }}">الإحصائيات</a>
+    </div>
+    <span class="text-xs text-tremor-content">
+        @if(($tab ?? 'all') !== 'stats' && method_exists($pages, 'total'))
+            {{ $pages->total() }} صفحة
+        @else
+            {{ $stats['total'] ?? $pages->count() }} صفحة
+        @endif
+    </span>
 </div>
 @endsection
 
 @section('content')
-<div class="bg-white shadow-md rounded-lg overflow-hidden">
-    <div class="p-6">
-        <div class="mb-6">
-            <h2 class="text-lg font-medium text-gray-900">قائمة الصفحات</h2>
-            <p class="mt-1 text-sm text-gray-500">إدارة وتنظيم صفحات الموقع من هنا.</p>
-            @if(auth()->user()->hasRole('admin'))
-                <p class="mt-1 text-xs text-blue-600">عرض جميع الصفحات كمدير</p>
-            @endif
-        </div>
+@php $tab = $tab ?? 'all'; @endphp
 
+<div class="space-y-4">
+    <div class="grid grid-cols-2 xl:grid-cols-4 gap-3">
+        <div class="admin-kpi">
+            <div class="admin-kpi-label">إجمالي الصفحات</div>
+            <div class="admin-kpi-value">{{ number_format($stats['total'] ?? 0) }}</div>
+        </div>
+        <div class="admin-kpi">
+            <div class="admin-kpi-label">منشورة</div>
+            <div class="admin-kpi-value">{{ number_format($stats['published'] ?? 0) }}</div>
+            <div class="admin-kpi-meta up">جاهزة للعرض</div>
+        </div>
+        <div class="admin-kpi">
+            <div class="admin-kpi-label">مسودات</div>
+            <div class="admin-kpi-value">{{ number_format($stats['draft'] ?? 0) }}</div>
+        </div>
+        <div class="admin-kpi">
+            <div class="admin-kpi-label">في القائمة</div>
+            <div class="admin-kpi-value">{{ number_format($stats['in_menu'] ?? 0) }}</div>
+        </div>
+    </div>
+
+    @if($tab === 'stats')
+        <section class="admin-card overflow-hidden">
+            <div class="border-b border-tremor-border px-5 py-4">
+                <h3 class="text-sm font-semibold text-tremor-content-strong">آخر الصفحات</h3>
+            </div>
+            <div class="divide-y divide-tremor-border">
+                @forelse($pages as $page)
+                    <div class="flex items-center justify-between gap-3 px-5 py-3.5">
+                        <div class="min-w-0 flex items-center gap-3">
+                            <span class="h-2 w-2 rounded-full {{ $page->is_published ? 'bg-emerald-500' : 'bg-tremor-content-subtle' }} shrink-0"></span>
+                            <div class="min-w-0">
+                                <div class="truncate text-sm font-medium text-tremor-content-strong">{{ $page->title }}</div>
+                                <div class="text-xs text-tremor-content-subtle">{{ $page->user->name ?? '—' }} · {{ $page->access_level_text }}</div>
+                            </div>
+                        </div>
+                        <span class="text-xs text-tremor-content-subtle shrink-0">{{ $page->updated_at?->diffForHumans() ?? '—' }}</span>
+                    </div>
+                @empty
+                    <div class="px-5 py-8 text-center text-sm text-tremor-content">لا يوجد نشاط بعد.</div>
+                @endforelse
+            </div>
+        </section>
+    @else
         @if($pages->isEmpty())
-            <div class="text-center py-12">
-                <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-gray-100 mb-4">
-                    <svg class="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div class="admin-card px-6 py-16 text-center">
+                <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-tremor-background-muted">
+                    <svg class="h-7 w-7 text-tremor-content-subtle" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
                 </div>
-                <h3 class="text-lg font-medium text-gray-900 mb-2">لا توجد صفحات</h3>
-                <p class="text-sm text-gray-500 mb-6">ابدأ بإنشاء صفحة جديدة لموقعك.</p>
-                <a href="{{ route('pages.create') }}" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                    </svg>
-                    إضافة صفحة جديدة
-                </a>
+                <h3 class="text-sm font-semibold text-tremor-content-strong">لا توجد صفحات</h3>
+                <p class="mt-1 text-sm text-tremor-content">ابدأ بإنشاء صفحة جديدة لموقعك.</p>
+                @can('create', \App\Models\Page::class)
+                <div class="mt-4">
+                    <x-admin.button :href="route('pages.create')" variant="primary">إضافة صفحة جديدة</x-admin.button>
+                </div>
+                @endcan
             </div>
         @else
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">العنوان</th>
-                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الحالة</th>
-                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الوصول</th>
-                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">المؤلف</th>
-                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">تاريخ النشر</th>
-                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الإجراءات</th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                        @foreach($pages as $page)
-                            <tr>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="flex items-center">
-                                        <div>
-                                            <div class="text-sm font-medium text-gray-900">{{ $page->title }}</div>
-                                            <div class="text-sm text-gray-500">{{ $page->slug }}</div>
-                                            @if($page->excerpt)
-                                                <div class="text-xs text-gray-400 mt-1">{{ Str::limit($page->excerpt, 50) }}</div>
+            <div class="admin-card overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full">
+                        <thead>
+                            <tr class="border-b border-tremor-border text-tremor-label text-tremor-content-subtle">
+                                <th class="px-4 py-3 text-right font-medium">العنوان</th>
+                                <th class="px-4 py-3 text-right font-medium">الحالة</th>
+                                <th class="px-4 py-3 text-right font-medium">الوصول</th>
+                                <th class="px-4 py-3 text-right font-medium">المؤلف</th>
+                                <th class="px-4 py-3 text-right font-medium">تاريخ النشر</th>
+                                <th class="px-4 py-3 text-right font-medium">الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-tremor-border">
+                            @foreach($pages as $page)
+                                <tr class="hover:bg-tremor-background-muted/80">
+                                    <td class="px-4 py-3">
+                                        <div class="text-sm font-semibold text-tremor-content-strong">{{ $page->title }}</div>
+                                        <div class="text-xs text-tremor-content-subtle">{{ $page->slug }}</div>
+                                        @if($page->excerpt)
+                                            <div class="mt-0.5 text-xs text-tremor-content">{{ Str::limit($page->excerpt, 50) }}</div>
+                                        @endif
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <div class="flex flex-col gap-1 items-start">
+                                            <span class="admin-pill {{ $page->is_published ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-gray-100 text-gray-700 border-gray-200' }}">
+                                                {{ $page->is_published ? 'منشور' : 'مسودة' }}
+                                            </span>
+                                            @if($page->show_in_menu)
+                                                <span class="admin-pill bg-orange-50 text-orange-700 border-orange-200">في القائمة</span>
+                                            @endif
+                                            @if($page->is_premium)
+                                                <span class="admin-pill bg-amber-50 text-amber-800 border-amber-200">مدفوع</span>
                                             @endif
                                         </div>
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="flex flex-col space-y-1">
-                                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full {{ $page->is_published ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
-                                            {{ $page->is_published ? 'منشور' : 'مسودة' }}
-                                        </span>
-                                        @if($page->show_in_menu)
-                                            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-                                                في القائمة
-                                            </span>
-                                        @endif
-                                        @if($page->is_premium)
-                                            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                                                💎 مدفوع
-                                            </span>
-                                        @endif
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="flex items-center">
-                                        <span class="text-lg mr-1">{{ $page->access_level_icon }}</span>
-                                        <span class="text-sm text-gray-900">{{ $page->access_level_text }}</span>
+                                    </td>
+                                    <td class="px-4 py-3 text-sm text-tremor-content-emphasis">
+                                        <div class="flex items-center gap-1">
+                                            <span>{{ $page->access_level_icon }}</span>
+                                            <span>{{ $page->access_level_text }}</span>
+                                        </div>
                                         @if($page->access_level === 'membership')
-                                            <span class="ml-1 text-xs text-gray-500">
-                                                @php
-                                                    $membershipCount = 0;
-                                                    if ($page->required_membership_types) {
-                                                        $membershipTypes = is_array($page->required_membership_types) ? 
-                                                            $page->required_membership_types : 
-                                                            json_decode($page->required_membership_types, true);
-                                                        $membershipCount = is_array($membershipTypes) ? count($membershipTypes) : 0;
-                                                    }
-                                                @endphp
-                                                ({{ $membershipCount }} عضوية)
-                                            </span>
+                                            @php
+                                                $membershipTypes = is_array($page->required_membership_types)
+                                                    ? $page->required_membership_types
+                                                    : (json_decode($page->required_membership_types ?? '[]', true) ?: []);
+                                            @endphp
+                                            <div class="text-xs text-tremor-content-subtle mt-0.5">{{ count($membershipTypes) }} عضوية</div>
                                         @endif
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                    {{ $page->user->name }}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    @if($page->published_at)
-                                        {{ $page->published_at->format('d/m/Y H:i') }}
-                                    @else
-                                        -
-                                    @endif
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                    <div class="flex space-x-2">
-                                        @if($page->is_published)
-                                            <a href="{{ route('pages.show', $page->slug) }}" class="text-blue-600 hover:text-blue-900" target="_blank">عرض</a>
-                                        @endif
-                                        @if(auth()->user()->hasRole('admin') || $page->user_id === auth()->id())
-                                            <a href="{{ route('pages.edit', $page) }}" class="text-indigo-600 hover:text-indigo-900">تعديل</a>
-                                            <form action="{{ route('pages.destroy', $page) }}" method="POST" class="inline">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="text-red-600 hover:text-red-900" onclick="return confirm('هل أنت متأكد من حذف هذه الصفحة؟')">
-                                                    حذف
-                                                </button>
-                                            </form>
-                                        @endif
-                                    </div>
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+                                    </td>
+                                    <td class="px-4 py-3 text-sm text-tremor-content">{{ $page->user->name ?? '—' }}</td>
+                                    <td class="px-4 py-3 text-sm text-tremor-content-subtle whitespace-nowrap">
+                                        {{ $page->published_at ? $page->published_at->format('d/m/Y H:i') : '—' }}
+                                    </td>
+                                    <td class="px-4 py-3 text-sm">
+                                        <x-admin.actions>
+                                            @if($page->is_published)
+                                                <x-admin.action :href="route('pages.show', $page->slug)" target="_blank">عرض</x-admin.action>
+                                            @endif
+                                            @can('update', $page)
+                                                <x-admin.action :href="route('pages.edit', $page)">تعديل</x-admin.action>
+                                            @endcan
+                                            @can('delete', $page)
+                                                <form action="{{ route('pages.destroy', $page) }}" method="POST">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <x-admin.action type="submit" tone="danger" confirm="هل أنت متأكد من حذف هذه الصفحة؟">حذف</x-admin.action>
+                                                </form>
+                                            @endcan
+                                        </x-admin.actions>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+                <div class="border-t border-tremor-border px-4 py-3">
+                    {{ $pages->links() }}
+                </div>
             </div>
         @endif
-    </div>
+    @endif
 </div>
 @endsection

@@ -6,7 +6,7 @@
 
         <x-validation-errors class="mb-4" />
 
-        <form method="POST" action="{{ route('register') }}">
+        <form method="POST" action="{{ route('register') }}" class="space-y-5">
             @csrf
 
             <div>
@@ -14,44 +14,61 @@
                 <x-input id="name" class="block mt-1 w-full" type="text" name="name" :value="old('name')" required autofocus autocomplete="name" />
             </div>
 
-            <div class="mt-4">
+            <div>
                 <x-label for="email" value="البريد الإلكتروني" />
                 <x-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autocomplete="username" />
             </div>
 
-            <div class="mt-4">
+            <div>
+                <x-label for="gender" value="الجنس" />
+                <select
+                    id="gender"
+                    name="gender"
+                    required
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                >
+                    <option value="" disabled {{ old('gender') ? '' : 'selected' }}>اختر الجنس</option>
+                    <option value="male" {{ old('gender') === 'male' ? 'selected' : '' }}>رجال</option>
+                    <option value="female" {{ old('gender') === 'female' ? 'selected' : '' }}>نساء</option>
+                </select>
+            </div>
+
+            <div>
                 <x-label for="password" value="كلمة المرور" />
                 <x-input id="password" class="block mt-1 w-full" type="password" name="password" required autocomplete="new-password" />
             </div>
 
-            <div class="mt-4">
+            <div>
                 <x-label for="password_confirmation" value="تأكيد كلمة المرور" />
                 <x-input id="password_confirmation" class="block mt-1 w-full" type="password" name="password_confirmation" required autocomplete="new-password" />
             </div>
 
             @if (Laravel\Jetstream\Jetstream::hasTermsAndPrivacyPolicyFeature())
-                <div class="mt-4">
-                    <x-label for="terms">
-                        <div class="flex items-center">
-                            <x-checkbox name="terms" id="terms" required />
-
-                            <div class="ms-2">
-                                أوافق على <a target="_blank" href="{{ route('terms.show') }}" class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">شروط الخدمة</a> و <a target="_blank" href="{{ route('policy.show') }}" class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">سياسة الخصوصية</a>
-                            </div>
-                        </div>
-                    </x-label>
+                <div>
+                    <label for="terms" class="inline-flex items-start gap-2">
+                        <x-checkbox name="terms" id="terms" required class="mt-1" />
+                        <span class="text-sm text-gray-600 text-right">
+                            أوافق على
+                            <a target="_blank" href="{{ route('terms.show') }}" class="link-brand font-medium focus:outline-none focus:underline">شروط الخدمة</a>
+                            و
+                            <a target="_blank" href="{{ route('policy.show') }}" class="link-brand font-medium focus:outline-none focus:underline">سياسة الخصوصية</a>
+                        </span>
+                    </label>
                 </div>
             @endif
 
-            <div class="flex items-center justify-end mt-4">
-                <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 text-right" href="{{ route('login') }}">
-                    لديك حساب بالفعل؟
-                </a>
-
-                <x-button class="mr-4">
+            <div>
+                <x-button class="btn-brand w-full justify-center border-transparent hover:opacity-95">
                     إنشاء حساب
                 </x-button>
             </div>
+
+            <p class="text-center text-sm text-gray-600">
+                لديك حساب بالفعل؟
+                <a href="{{ route('login') }}" class="link-brand font-medium focus:outline-none focus:underline">
+                    تسجيل الدخول
+                </a>
+            </p>
         </form>
     </x-authentication-card>
 </x-guest-layout>

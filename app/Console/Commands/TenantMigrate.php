@@ -3,6 +3,9 @@
 namespace App\Console\Commands;
 
 use App\Models\Tenant;
+use App\Services\Tenant\TenantAuditService;
+use App\Services\Tenant\TenantDefaultContentService;
+use App\Support\MigrationScope;
 use App\Services\TenantService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Artisan;
@@ -26,20 +29,21 @@ class TenantMigrate extends Command
     /**
      * Execute the console command.
      */
-    public function handle()
+    public function handle(TenantAuditService $auditService, TenantDefaultContentService $defaultContentService)
     {
         $tenantDomain = $this->argument('tenant_domain');
-        $path = $this->option('path');
         $rollback = $this->option('rollback');
         
         try {
+            $migrationPath = MigrationScope::tenant($this->option('path'));
+
             // البحث عن المستأجر في قاعدة البيانات الرئيسية
-            $tenant = Tenant::on('system')->where('domain', $tenantDomain)->first();
+            $tenant = Tenant::where('domain', $tenantDomain)->first();
             
             if (!$tenant) {
                 $this->error("❌ Tenant with domain '{$tenantDomain}' not found!");
                 $this->info("💡 Available tenants:");
-                $tenants = Tenant::on('system')->get(['domain', 'name']);
+                $tenants = Tenant::query()->get(['domain', 'name']);
                 foreach ($tenants as $t) {
                     $this->line("   - {$t->domain} ({$t->name})");
                 }
@@ -48,14 +52,20 @@ class TenantMigrate extends Command
             
             $this->info("🏢 Found tenant: {$tenant->name} (Domain: {$tenant->domain})");
             $this->info("💾 Database: {$tenant->db_name}");
+
+            $audit = $auditService->auditTenant($tenant);
+            if ($audit['database_status'] !== 'present') {
+                $this->error("❌ Tenant database is missing for '{$tenant->domain}'.");
+                $this->line("Recommended action: {$audit['recommended_action']}");
+                $this->line("Note: {$audit['status_note']}");
+
+                return self::FAILURE;
+            }
             
             // التبديل إلى قاعدة بيانات المستأجر
             TenantService::switchToTenant($tenant);
             
             $this->info("🔄 Switched to tenant database");
-            
-            // تحديد المسار
-            $migrationPath = $path ?: 'database/migrations/tenants/';
             
             if ($rollback) {
                 $this->info("🔄 Rolling back migrations...");
@@ -71,10 +81,27 @@ class TenantMigrate extends Command
                     '--path' => $migrationPath,
                     '--force' => true,
                 ]);
+                $migrationOutput = Artisan::output();
+
+                $seedResult = $defaultContentService->seedDefaultPublicContent();
+                if (trim($migrationOutput) !== '') {
+                    $this->line($migrationOutput);
+                }
+                if (trim($seedResult['output']) !== '') {
+                    $this->line($seedResult['output']);
+                }
+
+                if ($seedResult['has_active_landing_page']) {
+                    $this->info('✅ Default landing page is available for this tenant.');
+                } else {
+                    $this->warn('⚠️ Tenant migration completed, but no active landing page exists after seeding.');
+                }
             }
             
             // طباعة نتائج الأمر
-            $this->line(Artisan::output());
+            if ($rollback) {
+                $this->line(Artisan::output());
+            }
             
             $this->info("✅ Migration completed successfully!");
             

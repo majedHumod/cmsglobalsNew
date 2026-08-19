@@ -10,7 +10,7 @@ This project runs tenant provisioning on shared hosting by assigning each new su
 2. Run system migrations:
 
 ```bash
-php artisan migrate --path=database/migrations/system --force
+php artisan system:migrate
 ```
 
 3. Clear cached bootstrap and runtime caches:
@@ -57,6 +57,32 @@ When a new customer subscribes:
 3. A new record is created in `system.tenants`.
 4. The selected pool database is marked as `allocated`.
 5. Default tenant content is created for new tenants if the database is not already prepared.
+
+## Safe migration rules
+
+Never run `php artisan migrate` without an explicit scope in this project.
+
+Use only these commands:
+
+```bash
+php artisan system:migrate
+php artisan tenants:audit --sync-system
+php artisan tenant:migrate coach-domain.example
+php artisan tenant:migrate-all
+```
+
+Recommended order before any batch tenant operation:
+
+```bash
+php artisan tenants:audit --sync-system --only-issues
+php artisan tenant:migrate-all
+```
+
+Migration file placement rules:
+
+- `database/migrations/system` for platform tables in `cmsglobals_restored`
+- `database/migrations/tenants` for coach-owned tables inside each tenant database
+- no application table migrations in the root `database/migrations` directory
 
 ## Queue worker
 

@@ -8,111 +8,73 @@ use Illuminate\Database\Seeder;
 class MembershipTypesSeeder extends Seeder
 {
     /**
-     * Run the database seeds.
+     * Access paths only — commercial price/duration/features belong on SubscriptionPlan.
      */
     public function run(): void
     {
-        // عضوية الأدمن المحمية
         MembershipType::firstOrCreate([
             'slug' => 'admin',
-        ],[
+        ], [
             'name' => 'مدير النظام',
-            'description' => 'عضوية مدير النظام مع صلاحيات كاملة',
+            'description' => 'مسار إداري بصلاحيات كاملة لإدارة النظام',
             'price' => 0,
-            'duration_days' => 36500, // 100 سنة
-            'features' => [
-                'صلاحيات كاملة للنظام',
-                'إدارة جميع المحتويات',
-                'إدارة المستخدمين',
-                'إدارة أنواع العضويات',
-                'الوصول لجميع التقارير',
-                'إعدادات النظام'
-            ],
+            'duration_days' => 36500,
+            'features' => null,
             'is_active' => true,
-            'is_protected' => true, // محمي من التعديل والحذف
-            'sort_order' => 0
+            'is_protected' => true,
+            'sort_order' => 0,
         ]);
 
-        // عضوية مجانية أساسية
         MembershipType::firstOrCreate([
             'slug' => 'free',
-        ],[
+        ], [
             'name' => 'عضوية مجانية',
-            'description' => 'عضوية مجانية مع إمكانيات أساسية',
+            'description' => 'مسار أساسي للوصول للمحتوى المجاني',
             'price' => 0,
-            'duration_days' => 365,
-            'features' => [
-                'الوصول للمحتوى المجاني',
-                'إنشاء الملاحظات الشخصية',
-                'تصفح الوجبات العامة',
-                'عرض الصفحات العامة'
-            ],
+            'duration_days' => 30,
+            'features' => null,
             'is_active' => true,
             'is_protected' => false,
-            'sort_order' => 1
+            'sort_order' => 1,
         ]);
 
-        // عضوية شهرية مدفوعة
         MembershipType::firstOrCreate([
             'slug' => 'monthly',
-        ],[
+        ], [
             'name' => 'عضوية شهرية',
-            'description' => 'عضوية شهرية مع مميزات إضافية',
-            'price' => 29.99,
+            'description' => 'مسار مدفوع للمحتوى الشهري والمزايا الإضافية',
+            'price' => 0,
             'duration_days' => 30,
-            'features' => [
-                'جميع مميزات العضوية المجانية',
-                'الوصول للمحتوى المدفوع',
-                'إنشاء وجبات غذائية مخصصة',
-                'تحميل الصور',
-                'دعم فني أولوي'
-            ],
+            'features' => null,
             'is_active' => true,
             'is_protected' => false,
-            'sort_order' => 2
+            'sort_order' => 2,
         ]);
 
-        // عضوية سنوية مدفوعة
         MembershipType::firstOrCreate([
             'slug' => 'yearly',
-        ],[
+        ], [
             'name' => 'عضوية سنوية',
-            'description' => 'عضوية سنوية مع خصم كبير',
-            'price' => 299.99,
-            'duration_days' => 365,
-            'features' => [
-                'جميع مميزات العضوية الشهرية',
-                'خصم 17% على السعر الشهري',
-                'استشارات غذائية مجانية',
-                'تقارير تفصيلية',
-                'أولوية في الدعم الفني',
-                'محتوى حصري للأعضاء السنويين'
-            ],
+            'description' => 'مسار سنوي بمحتوى ومزايا أوسع',
+            'price' => 0,
+            'duration_days' => 30,
+            'features' => null,
             'is_active' => true,
             'is_protected' => false,
-            'sort_order' => 3
+            'sort_order' => 3,
         ]);
 
-        // عضوية VIP
         MembershipType::firstOrCreate([
             'slug' => 'vip',
-        ],[
+        ], [
             'name' => 'عضوية VIP',
-            'description' => 'عضوية VIP مع جميع المميزات',
-            'price' => 99.99,
+            'description' => 'مسار VIP للمحتوى الحصري والمتابعة المتقدمة',
+            'price' => 0,
             'duration_days' => 30,
-            'features' => [
-                'جميع مميزات العضويات السابقة',
-                'محتوى حصري VIP',
-                'استشارات شخصية مباشرة',
-                'تخصيص كامل للواجهة',
-                'تقارير متقدمة',
-                'دعم فني 24/7',
-                'وصول مبكر للمميزات الجديدة'
-            ],
+            'features' => null,
             'is_active' => true,
             'is_protected' => false,
-            'sort_order' => 4
+            'sort_order' => 4,
         ]);
     }
 }

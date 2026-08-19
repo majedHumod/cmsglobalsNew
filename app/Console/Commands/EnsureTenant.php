@@ -8,7 +8,7 @@ use Illuminate\Support\Str;
 
 class EnsureTenant extends Command
 {
-    protected $signature = 'tenants:ensure {--domain=} {--db=} {--name=Demo Tenant} {--slug=demo} {--status=active}';
+    protected $signature = 'tenants:ensure {--domain=} {--db=} {--name=Demo Tenant} {--slug=demo} {--status=active} {--join-code=}';
 
     protected $description = 'Ensure a tenant row exists in system.tenants with provided domain and db name (no migrations).';
 
@@ -19,15 +19,17 @@ class EnsureTenant extends Command
         $name = $this->option('name') ?? 'Demo Tenant';
         $slug = $this->option('slug') ?? 'demo';
         $status = $this->option('status') ?? 'active';
+        $joinCode = $this->option('join-code');
 
-        if (!$domain || !$db) {
+        if (! $domain || ! $db) {
             $this->error('Please provide --domain and --db options.');
+
             return Command::FAILURE;
         }
 
         $t = Tenant::on('system')->where('domain', $domain)->first();
-        if (!$t) {
-            $t = new Tenant();
+        if (! $t) {
+            $t = new Tenant;
             $t->setConnection('system');
             $t->name = $name;
             $t->slug = $slug ?: Str::slug($name);
@@ -36,6 +38,7 @@ class EnsureTenant extends Command
             $t->email = 'demo@demo.com';
             $t->status = $status;
             $t->db_name = $db;
+            $t->join_code = $this->resolveJoinCode($joinCode, $t->slug, $t->subdomain);
             $t->save();
             $this->info("✅ Created tenant: {$domain} -> {$db}");
         } else {
@@ -44,6 +47,9 @@ class EnsureTenant extends Command
             $t->slug = $slug ?: ($t->slug ?? 'demo');
             $t->db_name = $db;
             $t->status = $status ?: ($t->status ?? 'active');
+            if ($joinCode || empty($t->join_code)) {
+                $t->join_code = $this->resolveJoinCode($joinCode, $t->slug, $t->subdomain, (int) $t->id);
+            }
             $t->save();
             $this->info("✅ Updated tenant: {$domain} -> {$db}");
         }
@@ -51,10 +57,30 @@ class EnsureTenant extends Command
         $this->line(json_encode([
             'domain' => $t->domain,
             'db_name' => $t->db_name,
+            'join_code' => $t->join_code,
             'status' => $t->status,
         ], JSON_UNESCAPED_UNICODE));
 
         return Command::SUCCESS;
     }
-}
 
+    private function resolveJoinCode(?string $explicit, ?string $slug, ?string $subdomain, ?int $exceptId = null): string
+    {
+        $source = $explicit ?: ($slug ?: $subdomain ?: 'ORG');
+        $code = Str::upper(preg_replace('/[^A-Za-z0-9]/', '', (string) $source) ?: 'ORG');
+        $base = $code;
+        $suffix = 1;
+
+        while (
+            Tenant::on('system')
+                ->whereRaw('UPPER(join_code) = ?', [$code])
+                ->when($exceptId, fn ($q) => $q->where('id', '!=', $exceptId))
+                ->exists()
+        ) {
+            $code = $base.$suffix;
+            $suffix++;
+        }
+
+        return Str::limit($code, 16, '');
+    }
+}

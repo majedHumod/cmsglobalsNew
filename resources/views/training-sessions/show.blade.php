@@ -15,48 +15,9 @@
         <link rel="icon" href="{{ Storage::url($siteFavicon) }}" type="image/x-icon">
     @endif
 
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=tajawal:400,500,700&display=swap" rel="stylesheet" />
-
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    
-    <!-- Custom Colors -->
-    @php
-        $primaryColor = \App\Models\SiteSetting::get('primary_color', '#6366f1');
-        $secondaryColor = \App\Models\SiteSetting::get('secondary_color', '#10b981');
-    @endphp
-    <style>
-        :root {
-            --primary-color: {{ $primaryColor }};
-            --secondary-color: {{ $secondaryColor }};
-        }
-        
-        .bg-primary {
-            background-color: var(--primary-color);
-        }
-        
-        .text-primary {
-            color: var(--primary-color);
-        }
-        
-        .border-primary {
-            border-color: var(--primary-color);
-        }
-        
-        .bg-secondary {
-            background-color: var(--secondary-color);
-        }
-        
-        .text-secondary {
-            color: var(--secondary-color);
-        }
-        
-        .border-secondary {
-            border-color: var(--secondary-color);
-        }
-    </style>
+    @include('partials.brand-tokens')
 </head>
 <body class="font-sans antialiased pt-16" dir="rtl">
     <div class="min-h-screen bg-gray-100">
@@ -122,6 +83,16 @@
                                     <span class="text-2xl font-bold text-green-600">{{ $trainingSession->formatted_price }}</span>
                                 </div>
                             </div>
+                            @if($trainingSession->video_meeting_url)
+                                <div class="mb-6">
+                                    <a href="{{ $trainingSession->video_meeting_url }}" target="_blank" class="inline-flex items-center px-4 py-2 rounded-md bg-indigo-50 text-indigo-700 hover:bg-indigo-100">
+                                        <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14m-6 3h4a2 2 0 002-2V9a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2z"></path>
+                                        </svg>
+                                        رابط الجلسة المرئية
+                                    </a>
+                                </div>
+                            @endif
                         </header>
 
                         <div class="prose prose-lg max-w-none text-right mb-8" dir="rtl">

@@ -52,9 +52,17 @@
                 <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
                     <!-- اسم الوجبة -->
                     <div>
-                        <label for="name" class="block text-sm font-medium text-gray-700">اسم الوجبة *</label>
+                        <label for="name" class="block text-sm font-medium text-gray-700">اسم الوجبة (عربي) *</label>
                         <input type="text" name="name" id="name" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" value="{{ old('name') }}" required placeholder="مثال: سلطة الخضار المشكلة">
                         @error('name')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div>
+                        <label for="name_en" class="block text-sm font-medium text-gray-700">اسم الوجبة (English)</label>
+                        <input type="text" name="name_en" id="name_en" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" value="{{ old('name_en') }}" placeholder="e.g. Mixed vegetable salad">
+                        @error('name_en')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
                     </div>
@@ -126,6 +134,16 @@
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
                     </div>
+                </div>
+
+                <div class="mt-4 rounded-md bg-amber-50 border border-amber-200 p-3">
+                    <label class="inline-flex items-start gap-2 text-sm text-amber-900">
+                        <input type="checkbox" name="nutrition_is_estimated" value="1" class="mt-1 rounded border-amber-300" {{ old('nutrition_is_estimated') ? 'checked' : '' }}>
+                        <span>
+                            القيم الغذائية تقديرية
+                            <span class="block text-xs text-amber-700 mt-1">{{ config('meal_library.nutrition_disclaimer_ar') }}</span>
+                        </span>
+                    </label>
                 </div>
 
                 <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -209,6 +227,8 @@
                     </div>
                 </div>
             </div>
+
+            @include('partials.audience-fields', ['model' => new \App\Models\MealPlan()])
 
             <!-- إعدادات النشر -->
             <div class="py-6">

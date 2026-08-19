@@ -5,183 +5,127 @@
 @section('header', 'تعديل السؤال الشائع')
 
 @section('header_actions')
-<div class="flex space-x-2">
-    <a href="{{ route('admin.faqs.index') }}" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
-        <svg class="-ml-1 mr-2 h-5 w-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-        </svg>
-        العودة للقائمة
-    </a>
-</div>
+    <x-admin.button :href="route('admin.faqs.index')" variant="secondary">العودة للقائمة</x-admin.button>
 @endsection
 
 @section('content')
-<div class="bg-white shadow-md rounded-lg overflow-hidden">
-    <div class="p-6">
-        <form action="{{ route('admin.faqs.update', $faq) }}" method="POST" class="space-y-6">
-            @csrf
-            @method('PUT')
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- السؤال -->
-                <div class="md:col-span-2">
-                    <label for="question" class="block text-sm font-medium text-gray-700 mb-2">السؤال *</label>
-                    <input type="text" name="question" id="question" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" value="{{ old('question', $faq->question) }}" required>
-                    @error('question')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                    @enderror
-                </div>
-                
-                <!-- التصنيف -->
-                <div>
-                    <label for="category" class="block text-sm font-medium text-gray-700 mb-2">التصنيف *</label>
-                    <select name="category" id="category" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
-                        <option value="عام" {{ old('category', $faq->category) == 'عام' ? 'selected' : '' }}>عام</option>
-                        <option value="العضويات" {{ old('category', $faq->category) == 'العضويات' ? 'selected' : '' }}>العضويات</option>
-                        <option value="الدفع" {{ old('category', $faq->category) == 'الدفع' ? 'selected' : '' }}>الدفع</option>
-                        <option value="الحساب" {{ old('category', $faq->category) == 'الحساب' ? 'selected' : '' }}>الحساب</option>
-                        <option value="المحتوى" {{ old('category', $faq->category) == 'المحتوى' ? 'selected' : '' }}>المحتوى</option>
-                        <option value="الدعم الفني" {{ old('category', $faq->category) == 'الدعم الفني' ? 'selected' : '' }}>الدعم الفني</option>
-                    </select>
-                    @error('category')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                    @enderror
-                </div>
-                
-                <!-- ترتيب العرض -->
-                <div>
-                    <label for="sort_order" class="block text-sm font-medium text-gray-700 mb-2">ترتيب العرض</label>
-                    <input type="number" name="sort_order" id="sort_order" min="0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" value="{{ old('sort_order', $faq->sort_order) }}">
-                    @error('sort_order')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                    @enderror
-                </div>
+<x-admin.validation-errors title="تعذر تحديث السؤال:" />
+
+<x-admin.card>
+    <x-admin.section-heading
+        title="تعديل بيانات السؤال"
+        description="التغييرات تظهر للجمهور بعد الحفظ حسب حالة التفعيل."
+    />
+
+    <form action="{{ route('admin.faqs.update', $faq) }}" method="POST" class="space-y-6" id="faq-form">
+        @csrf
+        @method('PUT')
+
+        <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <div class="md:col-span-2">
+                <x-admin.label for="question" value="السؤال *" />
+                <x-admin.input type="text" name="question" id="question" :value="old('question', $faq->question)" required />
+                <x-admin.field-error name="question" />
             </div>
 
-            <!-- الإجابة -->
             <div>
-                <label for="answer" class="block text-sm font-medium text-gray-700 mb-2">الإجابة *</label>
-                
-                <!-- أدوات التنسيق -->
-                <div class="border border-gray-300 rounded-t-md bg-gray-50 p-2 flex flex-wrap gap-1" id="editor-toolbar">
-                    <button type="button" onclick="formatText('bold')" class="px-3 py-1 bg-white border border-gray-300 rounded hover:bg-gray-100" title="غامق">
-                        <strong>B</strong>
-                    </button>
-                    <button type="button" onclick="formatText('italic')" class="px-3 py-1 bg-white border border-gray-300 rounded hover:bg-gray-100" title="مائل">
-                        <em>I</em>
-                    </button>
-                    <button type="button" onclick="formatText('underline')" class="px-3 py-1 bg-white border border-gray-300 rounded hover:bg-gray-100" title="تسطير">
-                        <u>U</u>
-                    </button>
-                    <div class="border-l border-gray-300 mx-1"></div>
-                    <button type="button" onclick="formatText('insertUnorderedList')" class="px-3 py-1 bg-white border border-gray-300 rounded hover:bg-gray-100" title="قائمة نقطية">
-                        • قائمة
-                    </button>
-                    <button type="button" onclick="formatText('insertOrderedList')" class="px-3 py-1 bg-white border border-gray-300 rounded hover:bg-gray-100" title="قائمة مرقمة">
-                        1. قائمة
-                    </button>
-                    <div class="border-l border-gray-300 mx-1"></div>
-                    <button type="button" onclick="formatText('justifyRight')" class="px-3 py-1 bg-white border border-gray-300 rounded hover:bg-gray-100" title="محاذاة يمين">
-                        →
-                    </button>
-                    <button type="button" onclick="formatText('justifyCenter')" class="px-3 py-1 bg-white border border-gray-300 rounded hover:bg-gray-100" title="محاذاة وسط">
-                        ↔
-                    </button>
-                    <button type="button" onclick="formatText('justifyLeft')" class="px-3 py-1 bg-white border border-gray-300 rounded hover:bg-gray-100" title="محاذاة يسار">
-                        ←
-                    </button>
-                    <div class="border-l border-gray-300 mx-1"></div>
-                    <button type="button" onclick="insertLink()" class="px-3 py-1 bg-white border border-gray-300 rounded hover:bg-gray-100" title="إدراج رابط">
-                        🔗 رابط
-                    </button>
+                <x-admin.label for="category" value="التصنيف *" />
+                <x-admin.select name="category" id="category" required>
+                    @foreach(['عام', 'العضويات', 'الدفع', 'الحساب', 'المحتوى', 'الدعم الفني'] as $category)
+                        <option value="{{ $category }}" @selected(old('category', $faq->category) === $category)>{{ $category }}</option>
+                    @endforeach
+                </x-admin.select>
+                <x-admin.field-error name="category" />
+            </div>
+
+            <div>
+                <x-admin.label for="sort_order" value="ترتيب العرض" />
+                <x-admin.input type="number" name="sort_order" id="sort_order" min="0" :value="old('sort_order', $faq->sort_order)" />
+                <x-admin.field-error name="sort_order" />
+            </div>
+        </div>
+
+        <div>
+            <x-admin.label for="answer" value="الإجابة *" />
+
+            <div class="mt-1 flex flex-wrap gap-1 rounded-t-tremor-default border border-tremor-border bg-tremor-background-muted p-2" id="editor-toolbar">
+                <button type="button" onclick="formatText('bold')" class="rounded-tremor-small border border-tremor-border bg-white px-3 py-1 hover:bg-tremor-background-subtle" title="غامق"><strong>B</strong></button>
+                <button type="button" onclick="formatText('italic')" class="rounded-tremor-small border border-tremor-border bg-white px-3 py-1 hover:bg-tremor-background-subtle" title="مائل"><em>I</em></button>
+                <button type="button" onclick="formatText('underline')" class="rounded-tremor-small border border-tremor-border bg-white px-3 py-1 hover:bg-tremor-background-subtle" title="تسطير"><u>U</u></button>
+                <div class="mx-1 border-l border-tremor-border"></div>
+                <button type="button" onclick="formatText('insertUnorderedList')" class="rounded-tremor-small border border-tremor-border bg-white px-3 py-1 text-xs hover:bg-tremor-background-subtle">• قائمة</button>
+                <button type="button" onclick="formatText('insertOrderedList')" class="rounded-tremor-small border border-tremor-border bg-white px-3 py-1 text-xs hover:bg-tremor-background-subtle">1. قائمة</button>
+                <div class="mx-1 border-l border-tremor-border"></div>
+                <button type="button" onclick="formatText('justifyRight')" class="rounded-tremor-small border border-tremor-border bg-white px-3 py-1 hover:bg-tremor-background-subtle" title="محاذاة يمين">→</button>
+                <button type="button" onclick="formatText('justifyCenter')" class="rounded-tremor-small border border-tremor-border bg-white px-3 py-1 hover:bg-tremor-background-subtle" title="محاذاة وسط">↔</button>
+                <button type="button" onclick="formatText('justifyLeft')" class="rounded-tremor-small border border-tremor-border bg-white px-3 py-1 hover:bg-tremor-background-subtle" title="محاذاة يسار">←</button>
+                <div class="mx-1 border-l border-tremor-border"></div>
+                <button type="button" onclick="insertLink()" class="rounded-tremor-small border border-tremor-border bg-white px-3 py-1 text-xs hover:bg-tremor-background-subtle">رابط</button>
+            </div>
+
+            <div id="editor-container" class="rounded-b-tremor-default border-x border-b border-tremor-border">
+                <div id="editor" contenteditable="true" class="min-h-32 p-4 focus:outline-none focus:ring-2 focus:ring-tremor-brand" style="direction: rtl;">
+                    {!! old('answer', $faq->answer) !!}
                 </div>
-
-                <!-- منطقة المحرر -->
-                <div id="editor-container" class="border-l border-r border-b border-gray-300 rounded-b-md">
-                    <div id="editor" contenteditable="true" class="min-h-32 p-4 focus:outline-none focus:ring-2 focus:ring-indigo-500" style="direction: rtl;">
-                        {!! old('answer', $faq->answer) !!}
-                    </div>
-                    <textarea name="answer" id="answer-textarea" class="w-full min-h-32 p-4 border-0 focus:outline-none focus:ring-2 focus:ring-indigo-500" style="direction: rtl; display: none;" required>{!! old('answer', $faq->answer) !!}</textarea>
-                </div>
-                
-                @error('answer')
-                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                @enderror
+                <textarea name="answer" id="answer-textarea" class="hidden min-h-32 w-full border-0 p-4 focus:outline-none focus:ring-2 focus:ring-tremor-brand" style="direction: rtl;" required>{!! old('answer', $faq->answer) !!}</textarea>
             </div>
+            <x-admin.field-error name="answer" />
+        </div>
 
-            <!-- حالة النشر -->
-            <div class="flex items-center">
-                <input type="checkbox" name="is_active" id="is_active" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" {{ old('is_active', $faq->is_active) ? 'checked' : '' }}>
-                <label for="is_active" class="ml-2 block text-sm text-gray-700">تفعيل السؤال (جعله مرئي للجمهور)</label>
-            </div>
+        <label class="flex items-start gap-3">
+            <input
+                type="checkbox"
+                name="is_active"
+                id="is_active"
+                value="1"
+                class="mt-1 rounded border-tremor-border text-tremor-brand shadow-tremor-input focus:border-tremor-brand focus:ring-tremor-brand"
+                @checked(old('is_active', $faq->is_active))
+            >
+            <span class="text-sm text-tremor-content-emphasis">تفعيل السؤال (جعله مرئي للجمهور)</span>
+        </label>
 
-            <div class="flex items-center justify-between pt-6 border-t border-gray-200">
-                <a href="{{ route('admin.faqs.index') }}" class="text-gray-500 hover:text-gray-700">إلغاء</a>
-                <button type="submit" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                    تحديث السؤال
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
+        <x-admin.form-actions
+            :cancel-href="route('admin.faqs.index')"
+            submit-label="تحديث السؤال"
+        />
+    </form>
+</x-admin.card>
 
 <script>
     let isSourceMode = false;
     const editor = document.getElementById('editor');
     const textarea = document.getElementById('answer-textarea');
 
-    // تحديث المحتوى في الـ textarea عند التغيير
-    editor.addEventListener('input', function() {
+    editor.addEventListener('input', function () {
         if (!isSourceMode) {
             textarea.value = editor.innerHTML;
         }
     });
 
-    // دالة تنسيق النص
     function formatText(command, value = null) {
         if (isSourceMode) return;
-        
         document.execCommand(command, false, value);
         editor.focus();
         textarea.value = editor.innerHTML;
     }
 
-    // دالة إدراج رابط
     function insertLink() {
         if (isSourceMode) return;
-        
         const url = prompt('أدخل رابط URL:');
         if (url) {
             formatText('createLink', url);
         }
     }
 
-    // تحديث المحتوى قبل إرسال النموذج
-    document.querySelector('form').addEventListener('submit', function() {
+    document.getElementById('faq-form').addEventListener('submit', function () {
         textarea.value = editor.innerHTML;
-        // Make sure the textarea is not hidden when submitting
         textarea.classList.remove('hidden');
     });
 
-    // تحسين تجربة المستخدم
-    editor.addEventListener('paste', function(e) {
+    editor.addEventListener('paste', function (e) {
         e.preventDefault();
         const text = e.clipboardData.getData('text/plain');
         document.execCommand('insertText', false, text);
     });
-
-    // إضافة أنماط CSS للمحرر
-    const style = document.createElement('style');
-    style.textContent = `
-        #editor {
-            line-height: 1.6;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        #editor p { margin: 0.5em 0; }
-        #editor ul, #editor ol { margin: 0.5em 0; padding-right: 2em; }
-        #editor li { margin: 0.2em 0; }
-        #editor a { color: #3b82f6; text-decoration: underline; }
-    `;
-    document.head.appendChild(style);
 </script>
 @endsection

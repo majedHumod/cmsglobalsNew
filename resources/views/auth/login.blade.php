@@ -12,7 +12,7 @@
             </div>
         @endsession
 
-        <form method="POST" action="{{ route('login') }}">
+        <form method="POST" action="{{ route('login') }}" class="space-y-5">
             @csrf
 
             <div>
@@ -20,29 +20,42 @@
                 <x-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autofocus autocomplete="username" />
             </div>
 
-            <div class="mt-4">
-                <x-label for="password" value="كلمة المرور" />
+            <div>
+                <div class="flex items-center justify-between gap-3" dir="rtl">
+                    <x-label for="password" value="كلمة المرور" class="!inline-block" />
+                    @if (Route::has('password.request'))
+                        <a
+                            href="{{ route('password.request') }}"
+                            class="link-brand shrink-0 text-sm font-medium focus:outline-none focus:underline"
+                        >
+                            نسيت كلمة المرور؟
+                        </a>
+                    @endif
+                </div>
                 <x-input id="password" class="block mt-1 w-full" type="password" name="password" required autocomplete="current-password" />
             </div>
 
-            <div class="block mt-4">
-                <label for="remember_me" class="flex items-center">
+            <div>
+                <label for="remember_me" class="inline-flex items-center gap-2">
                     <x-checkbox id="remember_me" name="remember" />
-                    <span class="ms-2 text-sm text-gray-600">تذكرني</span>
+                    <span class="text-sm text-gray-600">تذكرني</span>
                 </label>
             </div>
 
-            <div class="flex items-center justify-end mt-4">
-                @if (Route::has('password.request'))
-                    <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 text-right" href="{{ route('password.request') }}">
-                        نسيت كلمة المرور؟
-                    </a>
-                @endif
-
-                <x-button class="mr-4">
+            <div>
+                <x-button class="btn-brand w-full justify-center border-transparent hover:opacity-95">
                     تسجيل الدخول
                 </x-button>
             </div>
+
+            @if (Route::has('register'))
+                <p class="text-center text-sm text-gray-600">
+                    ليس لديك حساب؟
+                    <a href="{{ route('register') }}" class="link-brand font-medium focus:outline-none focus:underline">
+                        إنشاء حساب
+                    </a>
+                </p>
+            @endif
         </form>
     </x-authentication-card>
 </x-guest-layout>

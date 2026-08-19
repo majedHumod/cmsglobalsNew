@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\Tenant;
+use App\Support\MigrationScope;
 use App\Services\TenantService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Artisan;
@@ -71,7 +72,7 @@ class CreateDemoTenant extends Command
             // 1) Workouts (to satisfy FKs in schedules)
             try {
                 Artisan::call('migrate', [
-                    '--path' => 'database/migrations/tenants/2025_01_20_create_workouts_table.php',
+                    '--path' => MigrationScope::tenant('database/migrations/tenants/2025_01_20_create_workouts_table.php'),
                     '--database' => 'tenant',
                     '--force' => true,
                 ]);
@@ -80,13 +81,13 @@ class CreateDemoTenant extends Command
             }
             // 2) Spatie base permissions first if needed
             Artisan::call('migrate', [
-                '--path' => 'database/migrations/tenants/2025_03_07_015809_create_permission_tables.php',
+                '--path' => MigrationScope::tenant('database/migrations/tenants/2025_03_07_015809_create_permission_tables.php'),
                 '--database' => 'tenant',
                 '--force' => true,
             ]);
             // Then run the rest
             Artisan::call('migrate', [
-                '--path' => 'database/migrations/tenants/',
+                '--path' => MigrationScope::tenant(),
                 '--database' => 'tenant',
                 '--force' => true,
             ]);
@@ -96,7 +97,7 @@ class CreateDemoTenant extends Command
             $this->warn("⚠️ Tenant migrations failed, attempting fresh migrate: {$e->getMessage()}");
             try {
                 Artisan::call('migrate:fresh', [
-                    '--path' => 'database/migrations/tenants/',
+                    '--path' => MigrationScope::tenant(),
                     '--database' => 'tenant',
                     '--force' => true,
                 ]);

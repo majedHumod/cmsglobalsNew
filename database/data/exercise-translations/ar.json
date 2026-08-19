@@ -1,0 +1,1285 @@
+{
+    "meta": {
+        "locale": "ar",
+        "version": 1,
+        "source": "repdb-overlay",
+        "generated_at": "2026-08-08T22:13:25+02:00",
+        "count": 400,
+        "notes": "Arabic overlay for RepDB exercises. Add new locales as sibling JSON files (e.g. fr.json)."
+    },
+    "labels": {
+        "body_part": {
+            "back": "الظهر",
+            "cardio": "كارديو",
+            "chest": "الصدر",
+            "core": "الجذع",
+            "full_body": "كامل الجسم",
+            "glutes": "المؤخرة",
+            "hips": "الوركان",
+            "lower_arms": "الساعدان",
+            "lower_legs": "الساقان",
+            "neck": "الرقبة",
+            "shoulders": "الأكتاف",
+            "upper_arms": "الذراعان",
+            "upper_legs": "الفخذان",
+            "waist": "الخصر"
+        },
+        "equipment": {
+            "ab_wheel": "عجلة البطن",
+            "air_bike": "دراجة هوائية مقاومة",
+            "assisted_pullup_machine": "جهاز العقلة المساعدة",
+            "band": "شريط",
+            "barbell": "باربل",
+            "battle_rope": "حبل المعركة",
+            "bench": "بنش",
+            "bicep_curl_machine": "bicep curl machine",
+            "bodyweight": "وزن الجسم",
+            "box": "صندوق",
+            "cable": "كيبل",
+            "chest_press_machine": "chest press machine",
+            "climbing_rope": "climbing rope",
+            "dip_machine": "جهاز الديبز",
+            "dip_station": "dip station",
+            "dumbbell": "دمبل",
+            "ez_bar": "بار EZ",
+            "flat_bench": "flat bench",
+            "glute_ham_developer": "glute ham developer",
+            "hack_squat": "hack squat",
+            "hip_abduction_machine": "hip abduction machine",
+            "hip_adduction_machine": "hip adduction machine",
+            "jump_rope": "jump rope",
+            "kettlebell": "كيتل بيل",
+            "landmine": "لاندماين",
+            "lat_pulldown_machine": "lat pulldown machine",
+            "leg_curl": "leg curl",
+            "leg_extension": "leg extension",
+            "leg_press": "leg press",
+            "loop_band": "loop band",
+            "machine": "جهاز",
+            "medicine_ball": "كرة طبية",
+            "none": "بدون معدات",
+            "pec_deck": "pec deck",
+            "plates": "plates",
+            "plyo_box": "plyo box",
+            "preacher_curl_machine": "preacher curl machine",
+            "pull_up_bar": "عقلة",
+            "resistance_band": "شريط مقاومة",
+            "rings": "rings",
+            "rope": "حبل",
+            "seated_calf_raise_machine": "seated calf raise machine",
+            "shoulder_press_machine": "shoulder press machine",
+            "slam_ball": "slam ball",
+            "sled": "زلاجة",
+            "smith_machine": "جهاز سميث",
+            "stability_ball": "كرة توازن",
+            "standing_calf_raise_machine": "standing calf raise machine",
+            "suspension": "تعليق",
+            "suspension_trainer": "suspension trainer",
+            "trap_bar": "تراب بار",
+            "trx": "تي آر إكس",
+            "wrist_roller": "wrist roller"
+        }
+    },
+    "exercises": {
+        "ab-wheel-rollout": {
+            "name": "دحرجة عجلة البطن"
+        },
+        "air-bike": {
+            "name": "دراجة الإير بايك"
+        },
+        "archer-pull-ups": {
+            "name": "آرتشر عقلات"
+        },
+        "archer-push-ups": {
+            "name": "آرتشر ضغطات أرضية"
+        },
+        "arnold-press": {
+            "name": "آرنولد برس"
+        },
+        "assisted-dips": {
+            "name": "ديبز بمساعدة الجهاز"
+        },
+        "assisted-pull-ups": {
+            "name": "عقلات بمساعدة"
+        },
+        "back-extension": {
+            "name": "Back فرد"
+        },
+        "ball-leg-curl": {
+            "name": "كرة توازن ثني الأرجل"
+        },
+        "ball-pike": {
+            "name": "Ball بايك"
+        },
+        "band-assisted-pull-ups": {
+            "name": "شريط بمساعدة عقلات"
+        },
+        "band-pull-apart": {
+            "name": "Band Pull Apart"
+        },
+        "banded-adductor-stretch": {
+            "name": "بشريط Adductor تمدد"
+        },
+        "banded-ankle-stretch": {
+            "name": "بشريط Ankle تمدد"
+        },
+        "banded-calf-stretch": {
+            "name": "بشريط Calf تمدد"
+        },
+        "banded-chest-stretch": {
+            "name": "بشريط Chest تمدد"
+        },
+        "banded-clamshell": {
+            "name": "Banded Clamshell"
+        },
+        "banded-figure-4-stretch": {
+            "name": "بشريط Figure-4 تمدد"
+        },
+        "banded-fire-hydrant": {
+            "name": "بشريط فاير هايدرزنت"
+        },
+        "banded-glute-bridge": {
+            "name": "بشريط جسر المؤخرة"
+        },
+        "banded-good-morning": {
+            "name": "بشريط جود مورنينج"
+        },
+        "banded-hamstring-stretch": {
+            "name": "بشريط Hamstring تمدد"
+        },
+        "banded-hip-thrust": {
+            "name": "بشريط رفع الورك"
+        },
+        "banded-it-band-stretch": {
+            "name": "بشريط IT-شريط تمدد"
+        },
+        "banded-kneeling-hip-thrust": {
+            "name": "بشريط راكع رفع الورك"
+        },
+        "banded-lat-stretch": {
+            "name": "بشريط Lat تمدد"
+        },
+        "banded-lateral-walk": {
+            "name": "بشريط جانبي مشي"
+        },
+        "banded-rear-delt-stretch": {
+            "name": "بشريط خلفي Delt تمدد"
+        },
+        "banded-romanian-deadlift": {
+            "name": "بشريط ديدلفت روماني"
+        },
+        "banded-seated-hip-abduction": {
+            "name": "بشريط جالس تبعيد الورك"
+        },
+        "banded-shoulder-stretch": {
+            "name": "بشريط Shoulder تمدد"
+        },
+        "banded-squat": {
+            "name": "بشريط سكوات"
+        },
+        "banded-standing-curl": {
+            "name": "بشريط واقف ثني"
+        },
+        "banded-standing-hip-abduction": {
+            "name": "بشريط واقف تبعيد الورك"
+        },
+        "banded-standing-hip-adduction": {
+            "name": "بشريط واقف تقريب الورك"
+        },
+        "banded-triceps-stretch": {
+            "name": "بشريط Triceps تمدد"
+        },
+        "barbell-ab-rollout": {
+            "name": "Ab دحرجة بالباربل"
+        },
+        "barbell-calf-raise": {
+            "name": "رفع السمانة بالباربل"
+        },
+        "barbell-curl": {
+            "name": "ثني بالباربل"
+        },
+        "barbell-front-raise": {
+            "name": "رفعة أمامية بالباربل"
+        },
+        "barbell-glute-bridge": {
+            "name": "جسر المؤخرة بالباربل"
+        },
+        "barbell-lunge": {
+            "name": "اندفاع بالباربل"
+        },
+        "barbell-overhead-extension": {
+            "name": "فوق الرأس فرد بالباربل"
+        },
+        "barbell-preacher-curl": {
+            "name": "ثني واعظ بالباربل"
+        },
+        "barbell-pullover": {
+            "name": "بول أوفر بالباربل"
+        },
+        "barbell-rear-delt-row": {
+            "name": "خلفي Delt سحب بالباربل"
+        },
+        "barbell-reverse-lunge": {
+            "name": "عكسي اندفاع بالباربل"
+        },
+        "barbell-row": {
+            "name": "Bent-Over باربل سحب"
+        },
+        "battle-ropes": {
+            "name": "Battle Ropes"
+        },
+        "behind-the-back-barbell-shrug": {
+            "name": "خلف الظهر باربل شراغ"
+        },
+        "behind-the-neck-lat-pulldown": {
+            "name": "Behind- -Neck سحب عريض للظهر"
+        },
+        "behind-the-neck-press": {
+            "name": "خلف الرقبة ضغط"
+        },
+        "bench-adductor-stretch": {
+            "name": "بنش Adductor تمدد"
+        },
+        "bench-ankle-stretch": {
+            "name": "بنش Ankle تمدد"
+        },
+        "bench-bulgarian-split-stretch": {
+            "name": "Bench Bulgarian Split Stretch"
+        },
+        "bench-calf-stretch": {
+            "name": "بنش Calf تمدد"
+        },
+        "bench-chest-stretch": {
+            "name": "بنش Chest تمدد"
+        },
+        "bench-childs-pose": {
+            "name": "Bench Child's Pose"
+        },
+        "bench-couch-stretch": {
+            "name": "بنش Couch تمدد"
+        },
+        "bench-dips": {
+            "name": "بنش ديبز"
+        },
+        "bench-figure-4-glute-stretch": {
+            "name": "بنش Figure-4 Glute تمدد"
+        },
+        "bench-hamstring-stretch": {
+            "name": "بنش Hamstring تمدد"
+        },
+        "bench-lat-stretch": {
+            "name": "بنش Lat تمدد"
+        },
+        "bench-leg-pull-in": {
+            "name": "Bench Leg Pull-In"
+        },
+        "bench-press": {
+            "name": "بنش برس بالباربل"
+        },
+        "bench-pull": {
+            "name": "بنش Pull"
+        },
+        "bent-arm-barbell-pullover": {
+            "name": "Bent Arm باربل بول أوفر"
+        },
+        "bent-arm-ez-bar-pullover": {
+            "name": "Bent-Arm بار EZ بول أوفر"
+        },
+        "bent-over-db-row": {
+            "name": "Bent-Over دمبل سحب"
+        },
+        "bent-over-ez-bar-row": {
+            "name": "Bent-Over بار EZ سحب"
+        },
+        "bicep-curl": {
+            "name": "ثني البايسبس بالدمبل"
+        },
+        "bicycle-crunch": {
+            "name": "Bicycle كرانش"
+        },
+        "bird-dog-hold": {
+            "name": "بيرد دوغ ثبات"
+        },
+        "bodyweight-calf-raise": {
+            "name": "رفع السمانة بوزن الجسم"
+        },
+        "bodyweight-good-morning": {
+            "name": "جود مورنينج بوزن الجسم"
+        },
+        "bodyweight-lateral-raise": {
+            "name": "رفعة جانبية بوزن الجسم"
+        },
+        "bodyweight-overhead-press": {
+            "name": "ضغط فوق الرأس بوزن الجسم"
+        },
+        "bodyweight-squat": {
+            "name": "سكوات بوزن الجسم"
+        },
+        "box-jump": {
+            "name": "صندوق قفز"
+        },
+        "box-squat": {
+            "name": "سكوات على صندوق"
+        },
+        "bulgarian-split-squat": {
+            "name": "سكوات بلغاري متبادل"
+        },
+        "burpees": {
+            "name": "Burpees"
+        },
+        "butterfly-stretch": {
+            "name": "Butterfly Stretch"
+        },
+        "cable-bent-over-row": {
+            "name": "Bent-Over سحب بالكيبل"
+        },
+        "cable-chest-press": {
+            "name": "ضغط الصدر بالكيبل"
+        },
+        "cable-crunch": {
+            "name": "كرانش بالكيبل"
+        },
+        "cable-curl": {
+            "name": "ثني بالكيبل"
+        },
+        "cable-external-rotation": {
+            "name": "External دوران بالكيبل"
+        },
+        "cable-fly": {
+            "name": "فتحة بالكيبل"
+        },
+        "cable-front-raise": {
+            "name": "رفعة أمامية بالكيبل"
+        },
+        "cable-hammer-curl": {
+            "name": "ثني مطرقة بالكيبل"
+        },
+        "cable-kickback": {
+            "name": "Glute ركلة خلفية بالكيبل"
+        },
+        "cable-lateral-raise": {
+            "name": "رفعة جانبية بالكيبل"
+        },
+        "cable-tricep-kickback": {
+            "name": "Tricep ركلة خلفية بالكيبل"
+        },
+        "cable-upright-row": {
+            "name": "سحب عمودي بالكيبل"
+        },
+        "cable-wrist-curl": {
+            "name": "ثني المعصم بالكيبل"
+        },
+        "captains-chair-knee-raise": {
+            "name": "Captain's Chair رفع الركبتين"
+        },
+        "captains-chair-leg-raise": {
+            "name": "Captain's Chair Leg Raise"
+        },
+        "cheat-curl": {
+            "name": "Cheat Curl"
+        },
+        "chest-press-machine": {
+            "name": "ضغط الصدر بالجهاز"
+        },
+        "chest-supported-db-row": {
+            "name": "Chest-Supported Dumbbell Row"
+        },
+        "chest-supported-dumbbell-shrug": {
+            "name": "Chest Supported Dumbbell Shrug"
+        },
+        "chest-supported-kettlebell-row": {
+            "name": "Chest-Supported كيتل بيل سحب"
+        },
+        "chin-tuck-hold": {
+            "name": "Chin Tuck Hold"
+        },
+        "chin-ups": {
+            "name": "Chin-Ups"
+        },
+        "clamshells": {
+            "name": "Clamshells"
+        },
+        "clap-push-ups": {
+            "name": "Clap Push-Ups"
+        },
+        "clean": {
+            "name": "كلين"
+        },
+        "clean-and-jerk": {
+            "name": "كلين آند جيرك"
+        },
+        "close-grip-barbell-curl": {
+            "name": "قبضة ضيقة باربل ثني"
+        },
+        "close-grip-bench-press": {
+            "name": "قبضة ضيقة بنش برس"
+        },
+        "close-grip-db-bench-press": {
+            "name": "قبضة ضيقة دمبل بنش برس"
+        },
+        "close-grip-ez-bar-bench-press": {
+            "name": "قبضة ضيقة بار EZ بنش برس"
+        },
+        "close-grip-incline-bench": {
+            "name": "قبضة ضيقة بنش برس مائل"
+        },
+        "close-grip-pull-ups": {
+            "name": "قبضة ضيقة Pull-Ups"
+        },
+        "cocoons": {
+            "name": "Cocoons"
+        },
+        "concentration-curl": {
+            "name": "ثني تركيز"
+        },
+        "cross-body-crunch": {
+            "name": "Cross-Body Crunch"
+        },
+        "cross-body-hammer-curl": {
+            "name": "Cross Body ثني مطرقة"
+        },
+        "crunches": {
+            "name": "كرانش"
+        },
+        "db-bench-press": {
+            "name": "بنش برس بالدمبل"
+        },
+        "db-fly": {
+            "name": "فتحة بالدمبل"
+        },
+        "db-lunge": {
+            "name": "اندفاع بالدمبل"
+        },
+        "db-pullover": {
+            "name": "بول أوفر بالدمبل"
+        },
+        "db-reverse-curl": {
+            "name": "ثني عكسي بالدمبل"
+        },
+        "db-shrug": {
+            "name": "شراغ بالدمبل"
+        },
+        "db-skull-crusher": {
+            "name": "سكل كراشر بالدمبل"
+        },
+        "dead-bug": {
+            "name": "الديد باغ"
+        },
+        "dead-hang": {
+            "name": "Dead Hang"
+        },
+        "deadlift": {
+            "name": "ديدلفت بالباربل"
+        },
+        "decline-bench-press": {
+            "name": "بنش برس هابط"
+        },
+        "decline-bench-press-barbell": {
+            "name": "باربل بنش برس هابط"
+        },
+        "decline-bench-press-ez-bar": {
+            "name": "بار EZ بنش برس هابط"
+        },
+        "decline-db-fly": {
+            "name": "دمبل فتحة هابط"
+        },
+        "decline-push-up": {
+            "name": "ضغط أرضي هابط"
+        },
+        "deficit-deadlift": {
+            "name": "من مستوى منخفض ديدلفت"
+        },
+        "deficit-push-ups": {
+            "name": "من مستوى منخفض ضغطات أرضية"
+        },
+        "diamond-push-ups": {
+            "name": "ماسي ضغطات أرضية"
+        },
+        "dips": {
+            "name": "Chest ديبز"
+        },
+        "double-kettlebell-bicep-curl": {
+            "name": "مزدوج كيتل بيل ثني البايسبس"
+        },
+        "double-kettlebell-clean": {
+            "name": "مزدوج كيتل بيل كلين"
+        },
+        "double-kettlebell-dead-clean": {
+            "name": "مزدوج كيتل بيل Dead كلين"
+        },
+        "double-kettlebell-dead-split-snatch": {
+            "name": "مزدوج كيتل بيل Dead Split خطف"
+        },
+        "double-kettlebell-jerk": {
+            "name": "مزدوج كيتل بيل جيرك"
+        },
+        "double-kettlebell-overhead-press": {
+            "name": "مزدوج كيتل بيل ضغط فوق الرأس"
+        },
+        "double-kettlebell-push-press": {
+            "name": "مزدوج كيتل بيل Push ضغط"
+        },
+        "double-kettlebell-row": {
+            "name": "مزدوج كيتل بيل سحب"
+        },
+        "double-kettlebell-split-jerk": {
+            "name": "مزدوج كيتل بيل Split جيرك"
+        },
+        "double-kettlebell-swing-snatch": {
+            "name": "مزدوج أرجحة الكيتل بيل خطف"
+        },
+        "drag-curl": {
+            "name": "Drag ثني"
+        },
+        "dragon-flag": {
+            "name": "Dragon Flag"
+        },
+        "dumbbell-bench-pull": {
+            "name": "بنش Pull بالدمبل"
+        },
+        "dumbbell-calf-raise": {
+            "name": "رفع السمانة بالدمبل"
+        },
+        "dumbbell-deadlift": {
+            "name": "ديدلفت بالدمبل"
+        },
+        "dumbbell-farmers-walk": {
+            "name": "Farmer's مشي بالدمبل"
+        },
+        "dumbbell-floor-press": {
+            "name": "ضغط من الأرض بالدمبل"
+        },
+        "dumbbell-front-raise": {
+            "name": "رفعة أمامية بالدمبل"
+        },
+        "dumbbell-front-squat": {
+            "name": "سكوات أمامي بالدمبل"
+        },
+        "dumbbell-hip-thrust": {
+            "name": "رفع الورك بالدمبل"
+        },
+        "dumbbell-pistol-squat": {
+            "name": "Pistol سكوات بالدمبل"
+        },
+        "dumbbell-push-press": {
+            "name": "Push ضغط بالدمبل"
+        },
+        "dumbbell-reverse-fly": {
+            "name": "عكسي فتحة بالدمبل"
+        },
+        "dumbbell-romanian-deadlift": {
+            "name": "ديدلفت روماني بالدمبل"
+        },
+        "dumbbell-shoulder-press": {
+            "name": "ضغط الأكتاف بالدمبل"
+        },
+        "dumbbell-side-bend": {
+            "name": "جانبي Bend بالدمبل"
+        },
+        "dumbbell-snatch": {
+            "name": "خطف بالدمبل"
+        },
+        "dumbbell-split-squat": {
+            "name": "سكوات متبادل بالدمبل"
+        },
+        "dumbbell-tricep-extension": {
+            "name": "فرد الترايسبس بالدمبل"
+        },
+        "dumbbell-upright-row": {
+            "name": "سحب عمودي بالدمبل"
+        },
+        "dumbbell-windmill": {
+            "name": "Windmill بالدمبل"
+        },
+        "dumbbell-wrist-curl": {
+            "name": "ثني المعصم بالدمبل"
+        },
+        "ez-bar-curl": {
+            "name": "بار EZ ثني"
+        },
+        "ez-bar-front-raise": {
+            "name": "بار EZ رفعة أمامية"
+        },
+        "ez-bar-overhead-extension": {
+            "name": "بار EZ فوق الرأس فرد الترايسبس"
+        },
+        "ez-bar-pullover": {
+            "name": "بار EZ بول أوفر"
+        },
+        "ez-bar-reverse-curl": {
+            "name": "بار EZ ثني عكسي"
+        },
+        "ez-bar-reverse-grip-row": {
+            "name": "بار EZ قبضة عكسية سحب"
+        },
+        "ez-bar-romanian-deadlift": {
+            "name": "بار EZ ديدلفت روماني"
+        },
+        "ez-bar-shrug": {
+            "name": "بار EZ شراغ"
+        },
+        "ez-bar-spider-curl": {
+            "name": "بار EZ Spider ثني"
+        },
+        "ez-bar-upright-row": {
+            "name": "بار EZ سحب عمودي"
+        },
+        "face-pull": {
+            "name": "فيس بول بالكيبل"
+        },
+        "floor-ez-bar-press": {
+            "name": "أرضي بار EZ ضغط"
+        },
+        "floor-kettlebell-pullover": {
+            "name": "أرضي كيتل بيل بول أوفر"
+        },
+        "floor-press": {
+            "name": "ضغط من الأرض"
+        },
+        "flutter-kicks": {
+            "name": "Flutter Kicks"
+        },
+        "front-lever": {
+            "name": "أمامي Lever"
+        },
+        "front-squat": {
+            "name": "سكوات أمامي"
+        },
+        "glute-bridge": {
+            "name": "جسر المؤخرة"
+        },
+        "glute-kickback": {
+            "name": "Glute ركلة خلفية"
+        },
+        "goblet-squat": {
+            "name": "سكوات الكأس"
+        },
+        "good-morning": {
+            "name": "جود مورنينج"
+        },
+        "hack-squat": {
+            "name": "هاك سكوات"
+        },
+        "hack-squat-calf-raise": {
+            "name": "هاك سكوات رفع السمانة"
+        },
+        "hammer-curl": {
+            "name": "ثني مطرقة بالدمبل"
+        },
+        "handstand-push-ups": {
+            "name": "Handstand ضغطات أرضية"
+        },
+        "hang-clean": {
+            "name": "هانج كلين"
+        },
+        "hang-power-clean": {
+            "name": "Hang باور كلين"
+        },
+        "hanging-knee-raise": {
+            "name": "Hanging رفع الركبتين"
+        },
+        "hanging-leg-raise": {
+            "name": "رفع الأرجل معلقاً"
+        },
+        "hanging-pike": {
+            "name": "Hanging Pike"
+        },
+        "heel-elevated-squat": {
+            "name": "Heel-مرتفع سكوات"
+        },
+        "hex-bar-deadlift": {
+            "name": "هيكس بار ديدلفت"
+        },
+        "high-plank": {
+            "name": "عالي بلانك"
+        },
+        "hip-abduction": {
+            "name": "تبعيد الورك بالجهاز"
+        },
+        "hip-adduction": {
+            "name": "تقريب الورك"
+        },
+        "hip-thrust": {
+            "name": "رفع الورك بالباربل"
+        },
+        "horizontal-leg-press": {
+            "name": "أفقي ضغط الأرجل"
+        },
+        "incline-bench-ez-bar-press": {
+            "name": "بار EZ بنش برس مائل"
+        },
+        "incline-bench-press": {
+            "name": "باربل بنش برس مائل"
+        },
+        "incline-db-curl": {
+            "name": "دمبل ثني مائل"
+        },
+        "incline-db-press": {
+            "name": "دمبل ضغط مائل"
+        },
+        "incline-dumbbell-fly": {
+            "name": "دمبل فتحة مائل"
+        },
+        "incline-hammer-curl": {
+            "name": "ثني مطرقة مائل"
+        },
+        "incline-push-ups": {
+            "name": "ضغط أرضي مائل"
+        },
+        "inverted-row": {
+            "name": "مقلوب سحب"
+        },
+        "isometric-neck-side": {
+            "name": "أيزومتري Neck جانبي Flexion"
+        },
+        "jackknife-sit-up": {
+            "name": "Jackknife جلوس بطني"
+        },
+        "jump-rope": {
+            "name": "قفز Rope"
+        },
+        "jump-squat": {
+            "name": "قفز سكوات"
+        },
+        "jumping-jacks": {
+            "name": "Jumping Jacks"
+        },
+        "kettlebell-bulgarian-split-squat": {
+            "name": "سكوات بلغاري متبادل بالكيتل بيل"
+        },
+        "kettlebell-close-grip-floor-press": {
+            "name": "قبضة ضيقة ضغط من الأرض بالكيتل بيل"
+        },
+        "kettlebell-deadlift": {
+            "name": "ديدلفت بالكيتل بيل"
+        },
+        "kettlebell-farmers-walk": {
+            "name": "Farmer's مشي بالكيتل بيل"
+        },
+        "kettlebell-floor-press": {
+            "name": "ضغط من الأرض بالكيتل بيل"
+        },
+        "kettlebell-goblet-lunge": {
+            "name": "Goblet اندفاع بالكيتل بيل"
+        },
+        "kettlebell-halo": {
+            "name": "Halo بالكيتل بيل"
+        },
+        "kettlebell-hammer-curl": {
+            "name": "ثني مطرقة بالكيتل بيل"
+        },
+        "kettlebell-hip-thrust": {
+            "name": "رفع الورك بالكيتل بيل"
+        },
+        "kettlebell-lunge-press": {
+            "name": "اندفاع ضغط بالكيتل بيل"
+        },
+        "kettlebell-offset-reverse-lunge-and-press": {
+            "name": "Offset عكسي اندفاع و ضغط بالكيتل بيل"
+        },
+        "kettlebell-overhead-tricep-extension": {
+            "name": "فوق الرأس فرد الترايسبس بالكيتل بيل"
+        },
+        "kettlebell-pistol-squat": {
+            "name": "Pistol سكوات بالكيتل بيل"
+        },
+        "kettlebell-pullover": {
+            "name": "بول أوفر بالكيتل بيل"
+        },
+        "kettlebell-reverse-lunge": {
+            "name": "عكسي اندفاع بالكيتل بيل"
+        },
+        "kettlebell-rotational-lunge": {
+            "name": "Rotational اندفاع بالكيتل بيل"
+        },
+        "kettlebell-russian-twist": {
+            "name": "التواء روسي بالكيتل بيل"
+        },
+        "kettlebell-shrug": {
+            "name": "شراغ بالكيتل بيل"
+        },
+        "kettlebell-single-leg-deadlift": {
+            "name": "ساق واحدة ديدلفت بالكيتل بيل"
+        },
+        "kettlebell-skull-crusher": {
+            "name": "سكل كراشر بالكيتل بيل"
+        },
+        "kettlebell-sumo-deadlift": {
+            "name": "ديدلفت سومو بالكيتل بيل"
+        },
+        "kettlebell-sumo-high-pull": {
+            "name": "Sumo عالي Pull بالكيتل بيل"
+        },
+        "kettlebell-swing": {
+            "name": "أرجحة الكيتل بيل"
+        },
+        "kettlebell-swing-clean": {
+            "name": "أرجحة الكيتل بيل كلين"
+        },
+        "kettlebell-turkish-get-ups": {
+            "name": "Turkish Get Ups بالكيتل بيل"
+        },
+        "kettlebell-windmills": {
+            "name": "Windmills بالكيتل بيل"
+        },
+        "knee-push-ups": {
+            "name": "Knee ضغطات أرضية"
+        },
+        "kneeling-cable-row": {
+            "name": "راكع كيبل سحب"
+        },
+        "l-sit": {
+            "name": "L Sit"
+        },
+        "landmine-press": {
+            "name": "ضغط لاندماين"
+        },
+        "lat-pulldown": {
+            "name": "سحب عريض للظهر"
+        },
+        "lateral-raise": {
+            "name": "رفعة جانبية بالدمبل"
+        },
+        "leg-curl": {
+            "name": "ثني الأرجل مستلقياً"
+        },
+        "leg-extension": {
+            "name": "فرد الأرجل"
+        },
+        "leg-press": {
+            "name": "ضغط الأرجل"
+        },
+        "lunge": {
+            "name": "اندفاع"
+        },
+        "lying-leg-raise": {
+            "name": "Leg رفعة مستلقياً"
+        },
+        "lying-tricep-extension": {
+            "name": "فرد الترايسبس مستلقياً"
+        },
+        "machine-bicep-curl": {
+            "name": "ثني البايسبس بالجهاز"
+        },
+        "machine-calf-raise": {
+            "name": "رفع السمانة بالجهاز"
+        },
+        "machine-preacher-curl": {
+            "name": "ثني واعظ بالجهاز"
+        },
+        "machine-shoulder-press": {
+            "name": "ضغط الأكتاف بالجهاز"
+        },
+        "medicine-ball-slam": {
+            "name": "كرة طبية Slam"
+        },
+        "mountain-climbers": {
+            "name": "Mountain Climbers"
+        },
+        "muscle-snatch": {
+            "name": "Muscle Snatch"
+        },
+        "muscle-ups": {
+            "name": "Muscle Ups"
+        },
+        "negative-pull-ups": {
+            "name": "Negative Pull Ups"
+        },
+        "neutral-grip-pull-ups": {
+            "name": "قبضة محايدة عقلات"
+        },
+        "nordic-hamstring-curl": {
+            "name": "Nordic Hamstring Curl"
+        },
+        "ohp": {
+            "name": "ضغط فوق الرأس بالباربل"
+        },
+        "one-arm-dumbbell-push-press": {
+            "name": "ذراع واحدة دمبل Push ضغط"
+        },
+        "one-arm-dumbbell-swing": {
+            "name": "ذراع واحدة دمبل أرجحة"
+        },
+        "one-arm-kettlebell-bicep-curl": {
+            "name": "ذراع واحدة كيتل بيل ثني البايسبس"
+        },
+        "one-arm-kettlebell-bottoms-up-press": {
+            "name": "ذراع واحدة كيتل بيل Bottoms-Up ضغط"
+        },
+        "one-arm-kettlebell-floor-glute-bridge-press": {
+            "name": "ذراع واحدة كيتل بيل أرضي جسر المؤخرة ضغط"
+        },
+        "one-arm-kettlebell-floor-press": {
+            "name": "ذراع واحدة كيتل بيل ضغط من الأرض"
+        },
+        "one-arm-kettlebell-front-squat": {
+            "name": "ذراع واحدة كيتل بيل سكوات أمامي"
+        },
+        "one-arm-kettlebell-push-press": {
+            "name": "ذراع واحدة كيتل بيل Push ضغط"
+        },
+        "one-arm-kettlebell-row": {
+            "name": "ذراع واحدة كيتل بيل سحب"
+        },
+        "one-arm-kettlebell-shoulder-press": {
+            "name": "ذراع واحدة كيتل بيل ضغط الأكتاف"
+        },
+        "one-arm-kettlebell-swing": {
+            "name": "ذراع واحدة أرجحة الكيتل بيل"
+        },
+        "one-arm-kettlebell-tricep-kickback": {
+            "name": "ذراع واحدة كيتل بيل Tricep ركلة خلفية"
+        },
+        "one-arm-landmine-press": {
+            "name": "ذراع واحدة ضغط لاندماين"
+        },
+        "one-arm-lat-pulldown": {
+            "name": "ذراع واحدة سحب عريض للظهر"
+        },
+        "one-arm-single-leg-dumbbell-romanian-deadlift": {
+            "name": "ذراع واحدة ساق واحدة دمبل ديدلفت روماني"
+        },
+        "one-arm-single-leg-kettlebell-romanian-deadlift": {
+            "name": "ذراع واحدة ساق واحدة كيتل بيل ديدلفت روماني"
+        },
+        "overhead-squat": {
+            "name": "سكوات فوق الرأس"
+        },
+        "overhead-tricep-extension": {
+            "name": "فوق الرأس فرد الترايسبس"
+        },
+        "pause-deadlift": {
+            "name": "توقف ديدلفت"
+        },
+        "pause-squat": {
+            "name": "توقف سكوات"
+        },
+        "paused-bench-press": {
+            "name": "مع توقف بنش برس"
+        },
+        "paused-incline-bench-press": {
+            "name": "مع توقف بنش برس مائل"
+        },
+        "pec-deck": {
+            "name": "بيك ديك"
+        },
+        "pendlay-row": {
+            "name": "Pendlay Row"
+        },
+        "pike-push-ups": {
+            "name": "بايك ضغطات أرضية"
+        },
+        "pistol-squat": {
+            "name": "Pistol سكوات"
+        },
+        "planche": {
+            "name": "Planche"
+        },
+        "plank": {
+            "name": "بلانك"
+        },
+        "plate-pinch": {
+            "name": "Plate Pinch"
+        },
+        "preacher-curl": {
+            "name": "ثني واعظ"
+        },
+        "pseudo-planche-push-ups": {
+            "name": "Pseudo Planche ضغطات أرضية"
+        },
+        "pull-up": {
+            "name": "عقلة"
+        },
+        "push-jerk": {
+            "name": "Push جيرك"
+        },
+        "push-press": {
+            "name": "Push ضغط"
+        },
+        "push-up": {
+            "name": "ضغط أرضي"
+        },
+        "rack-pull": {
+            "name": "Rack Pull"
+        },
+        "rear-delt-fly": {
+            "name": "فتحة دلت خلفي"
+        },
+        "reverse-crunches": {
+            "name": "عكسي كرانش"
+        },
+        "reverse-curl": {
+            "name": "ثني عكسي"
+        },
+        "reverse-grip-bent-over-row": {
+            "name": "قبضة عكسية سحب منحني"
+        },
+        "reverse-lunge": {
+            "name": "عكسي اندفاع"
+        },
+        "reverse-plank": {
+            "name": "عكسي بلانك"
+        },
+        "ring-dead-hang": {
+            "name": "Ring Dead Hang"
+        },
+        "ring-dips": {
+            "name": "Ring ديبز"
+        },
+        "ring-face-pull": {
+            "name": "Ring فيس بول"
+        },
+        "rings-inverted-row": {
+            "name": "Rings مقلوب سحب"
+        },
+        "romanian-deadlift": {
+            "name": "ديدلفت روماني"
+        },
+        "rope-climb": {
+            "name": "Rope Climb"
+        },
+        "russian-twist": {
+            "name": "التواء روسي"
+        },
+        "scapular-pull-ups": {
+            "name": "Scapular Pull Ups"
+        },
+        "seated-barbell-overhead-press": {
+            "name": "باربل ضغط فوق الرأس جالساً"
+        },
+        "seated-calf-raise": {
+            "name": "رفع السمانة جالساً"
+        },
+        "seated-db-press": {
+            "name": "دمبل ضغط الأكتاف جالساً"
+        },
+        "seated-dumbbell-curl": {
+            "name": "دمبل ثني جالساً"
+        },
+        "seated-dumbbell-lateral-raise": {
+            "name": "دمبل رفعة جانبية جالساً"
+        },
+        "seated-dumbbell-tricep-extension": {
+            "name": "دمبل فرد الترايسبس جالساً"
+        },
+        "seated-leg-curl": {
+            "name": "ثني الأرجل جالساً"
+        },
+        "seated-smith-machine-shoulder-press": {
+            "name": "جهاز سميث ضغط الأكتاف جالساً"
+        },
+        "shrug": {
+            "name": "شراغ بالباربل"
+        },
+        "side-lunge": {
+            "name": "جانبي اندفاع"
+        },
+        "side-lying-hip-abduction": {
+            "name": "جانبي-مستلقٍ تبعيد الورك"
+        },
+        "side-lying-hip-adduction": {
+            "name": "جانبي مستلقٍ تقريب الورك"
+        },
+        "side-plank": {
+            "name": "بلانك جانبي"
+        },
+        "single-arm-db-row": {
+            "name": "ذراع واحدة دمبل سحب"
+        },
+        "single-arm-dumbbell-overhead-tricep-extension": {
+            "name": "ذراع واحدة دمبل فوق الرأس فرد الترايسبس"
+        },
+        "single-leg-glute-bridge": {
+            "name": "ساق واحدة جسر المؤخرة"
+        },
+        "single-leg-lying-leg-curl": {
+            "name": "ساق واحدة مستلقٍ ثني الأرجل"
+        },
+        "single-leg-romanian-deadlift": {
+            "name": "ساق واحدة ديدلفت روماني"
+        },
+        "sit-ups": {
+            "name": "Sit-Ups"
+        },
+        "skull-crusher": {
+            "name": "سكل كراشر"
+        },
+        "sled-row": {
+            "name": "زلاجة سحب"
+        },
+        "smith-machine-bench-press": {
+            "name": "سميث بنش برس بالجهاز"
+        },
+        "smith-machine-bent-over-row": {
+            "name": "سميث سحب منحني بالجهاز"
+        },
+        "smith-machine-bulgarian-split": {
+            "name": "سميث سكوات بلغاري متبادل بالجهاز"
+        },
+        "smith-machine-calf-raise": {
+            "name": "سميث رفع السمانة بالجهاز"
+        },
+        "smith-machine-incline-bench-press": {
+            "name": "سميث بنش برس مائل بالجهاز"
+        },
+        "smith-machine-rdl": {
+            "name": "سميث ديدلفت روماني بالجهاز"
+        },
+        "smith-machine-reverse-grip-bent-over-row": {
+            "name": "سميث قبضة عكسية سحب منحني بالجهاز"
+        },
+        "smith-machine-shoulder-press": {
+            "name": "سميث ضغط الأكتاف بالجهاز"
+        },
+        "smith-machine-shrug": {
+            "name": "سميث شراغ بالجهاز"
+        },
+        "smith-machine-squat": {
+            "name": "سميث سكوات بالجهاز"
+        },
+        "snatch": {
+            "name": "خطف"
+        },
+        "spider-curl": {
+            "name": "Spider Curl"
+        },
+        "split-jerk": {
+            "name": "Split جيرك"
+        },
+        "split-squat": {
+            "name": "سكوات متبادل"
+        },
+        "spoto-press": {
+            "name": "Spoto Press"
+        },
+        "squat": {
+            "name": "سكوات خلفي بالباربل"
+        },
+        "stability-ball-hip-bridge": {
+            "name": "كرة توازن Hip جسر"
+        },
+        "stability-ball-knee-tuck": {
+            "name": "كرة توازن Knee Tuck"
+        },
+        "stability-ball-push-up": {
+            "name": "كرة توازن ضغط أرضي"
+        },
+        "standing-calf-raise": {
+            "name": "رفع السمانة واقفاً"
+        },
+        "step-ups": {
+            "name": "Step Ups"
+        },
+        "stiff-leg-deadlift": {
+            "name": "Stiff Leg ديدلفت"
+        },
+        "straight-arm-pulldown": {
+            "name": "Straight-Arm سحب للأسفل"
+        },
+        "sumo-deadlift": {
+            "name": "ديدلفت سومو"
+        },
+        "sumo-squat": {
+            "name": "Sumo سكوات"
+        },
+        "superman": {
+            "name": "سوبرمان"
+        },
+        "svend-press": {
+            "name": "Svend Press"
+        },
+        "t-bar-row": {
+            "name": "T-Bar سحب"
+        },
+        "thoracic-bridge": {
+            "name": "Thoracic Bridge"
+        },
+        "thruster": {
+            "name": "ثراستر"
+        },
+        "toes-to-bar": {
+            "name": "Toes to Bar"
+        },
+        "tricep-kickback": {
+            "name": "Tricep ركلة خلفية بالدمبل"
+        },
+        "tricep-pushdown": {
+            "name": "سحب الترايسبس للأسفل بالكيبل"
+        },
+        "trx-bicep-curl": {
+            "name": "تي آر إكس ثني البايسبس"
+        },
+        "trx-chest-press": {
+            "name": "تي آر إكس ضغط الصدر"
+        },
+        "trx-face-pull": {
+            "name": "تي آر إكس فيس بول"
+        },
+        "trx-hamstring-curl": {
+            "name": "تي آر إكس Hamstring ثني"
+        },
+        "trx-lunge": {
+            "name": "تي آر إكس اندفاع"
+        },
+        "trx-pistol-squat": {
+            "name": "تي آر إكس Pistol سكوات"
+        },
+        "trx-plank": {
+            "name": "تي آر إكس بلانك"
+        },
+        "trx-row": {
+            "name": "تي آر إكس سحب"
+        },
+        "trx-side-plank": {
+            "name": "تي آر إكس بلانك جانبي"
+        },
+        "trx-squat": {
+            "name": "تي آر إكس سكوات"
+        },
+        "trx-tricep-extension": {
+            "name": "تي آر إكس فرد الترايسبس"
+        },
+        "trx-y-fly": {
+            "name": "تي آر إكس Y-فتحة"
+        },
+        "upright-row": {
+            "name": "سحب عمودي بالباربل"
+        },
+        "v-bar-lat-pulldown": {
+            "name": "V-Bar سحب عريض للظهر"
+        },
+        "v-bar-tricep-pushdown": {
+            "name": "V-Bar سحب الترايسبس للأسفل"
+        },
+        "v-sit": {
+            "name": "V-Sit"
+        },
+        "v-ups": {
+            "name": "V Ups"
+        },
+        "walking-lunge": {
+            "name": "مشي اندفاع"
+        },
+        "wall-push-ups": {
+            "name": "حائط ضغطات أرضية"
+        },
+        "wall-sit": {
+            "name": "جلوس على الحائط"
+        },
+        "weighted-wall-crunch": {
+            "name": "بوزن إضافي حائط كرانش"
+        },
+        "wide-grip-bench-press": {
+            "name": "قبضة واسعة بنش برس"
+        },
+        "wide-grip-pull-ups": {
+            "name": "قبضة واسعة عقلات"
+        },
+        "wide-grip-seated-cable-row": {
+            "name": "قبضة واسعة سحب كيبل جالس"
+        },
+        "wrist-roller": {
+            "name": "Wrist Roller"
+        }
+    }
+}

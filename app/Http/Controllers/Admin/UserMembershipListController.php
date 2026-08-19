@@ -27,7 +27,7 @@ class UserMembershipListController extends Controller
         }
 
         $memberships = UserMembership::query()
-            ->with(['user', 'membershipType'])
+            ->with(['user', 'membershipType', 'subscriptionPlan'])
             ->latest()
             ->paginate(25)
             ->withQueryString();

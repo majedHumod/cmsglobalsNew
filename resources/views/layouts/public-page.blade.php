@@ -4,6 +4,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="vapid-public-key" content="{{ env('VAPID_PUBLIC_KEY', '') }}">
+    <link rel="manifest" href="/manifest.json">
 
     @php
         $siteName = \App\Models\SiteSetting::get('site_name', config('app.name', 'Laravel'));
@@ -19,31 +21,18 @@
 
     @php
         $siteFavicon = \App\Models\SiteSetting::get('site_favicon');
-        $primaryColor = \App\Models\SiteSetting::get('primary_color', '#6366f1');
-        $secondaryColor = \App\Models\SiteSetting::get('secondary_color', '#10b981');
     @endphp
 
     @if($siteFavicon)
         <link rel="icon" href="{{ Storage::url($siteFavicon) }}" type="image/x-icon">
     @endif
 
-    <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=tajawal:400,500,700&display=swap" rel="stylesheet" />
+    <meta name="theme-color" content="{{ \App\Support\Branding::primaryColor() }}">
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @include('partials.brand-tokens')
 
     <style>
-        :root {
-            --primary-color: {{ $primaryColor }};
-            --secondary-color: {{ $secondaryColor }};
-        }
-
-        .bg-primary { background-color: var(--primary-color); }
-        .text-primary { color: var(--primary-color); }
-        .border-primary { border-color: var(--primary-color); }
-        .bg-secondary { background-color: var(--secondary-color); }
-        .text-secondary { color: var(--secondary-color); }
-        .border-secondary { border-color: var(--secondary-color); }
-
         .prose {
             max-width: none;
         }
@@ -141,7 +130,7 @@
 
     @stack('styles')
 </head>
-<body class="font-sans antialiased pt-16" dir="rtl">
+<body class="font-sans antialiased pt-16" dir="rtl" data-push-prompt="{{ auth()->check() ? '1' : '0' }}">
     <div class="min-h-screen bg-gray-100">
         <header class="fixed left-0 right-0 top-0 z-50 bg-white shadow-sm">
             <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -152,7 +141,7 @@
                         @endphp
                         @if($siteLogo)
                             <a href="{{ route('home') }}" class="flex flex-shrink-0 items-center">
-                                <img class="h-8 w-auto" src="{{ Storage::url($siteLogo) }}" alt="{{ $siteName }}">
+                                <img class="h-8 w-auto" src="{{ Storage::url($siteLogo) }}" alt="{{ $siteName }}" title="{{ $siteName }}">
                             </a>
                         @else
                             <a href="{{ route('home') }}" class="flex flex-shrink-0 items-center">
@@ -173,22 +162,7 @@
                                     ->get();
 
                                 $user = auth()->user();
-                                $menuPages = $allMenuPages->filter(function ($page) use ($user) {
-                                    if ($page->access_level === 'public') return true;
-                                    if (! $user) return false;
-                                    if ($page->access_level === 'authenticated') return true;
-                                    if ($page->access_level === 'user' && $user->hasRole('user')) return true;
-                                    if ($page->access_level === 'page_manager' && $user->hasRole('page_manager')) return true;
-                                    if ($page->access_level === 'admin' && $user->hasRole('admin')) return true;
-                                    if ($page->access_level === 'membership' && $user->membership_type_id) {
-                                        $requiredTypes = $page->required_membership_types;
-                                        if (is_string($requiredTypes)) {
-                                            $requiredTypes = json_decode($requiredTypes, true) ?: [];
-                                        }
-                                        return in_array($user->membership_type_id, $requiredTypes);
-                                    }
-                                    return false;
-                                });
+                                $menuPages = $allMenuPages->filter(fn ($page) => $page->canAccess($user));
                             } catch (\Exception $e) {
                                 $menuPages = collect([]);
                             }

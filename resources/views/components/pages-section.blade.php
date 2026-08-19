@@ -17,23 +17,9 @@
                     ->orderBy('created_at', 'desc')
                     ->get();
                 
-                // تصفية الصفحات بناءً على صلاحيات المستخدم
-                $pages = $allPages->filter(function($page) use ($user) {
-                    if ($page->access_level === 'public') return true;
-                    if (!$user) return false;
-                    if ($page->access_level === 'authenticated') return true;
-                    if ($page->access_level === 'user' && $user->hasRole('user')) return true;
-                    if ($page->access_level === 'page_manager' && $user->hasRole('page_manager')) return true;
-                    if ($page->access_level === 'admin' && $user->hasRole('admin')) return true;
-                    if ($page->access_level === 'membership' && $user->membership_type_id) {
-                        $requiredTypes = $page->required_membership_types;
-                        if (is_string($requiredTypes)) {
-                            $requiredTypes = json_decode($requiredTypes, true) ?: [];
-                        }
-                        return in_array($user->membership_type_id, $requiredTypes);
-                    }
-                    return false;
-                })->take($pagesCount);
+                $pages = $allPages
+                    ->filter(fn ($page) => $page->canAccess($user))
+                    ->take($pagesCount);
             } catch (\Exception $e) {
                 $pages = collect([]);
             }

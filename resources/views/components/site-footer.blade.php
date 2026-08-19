@@ -9,7 +9,7 @@
                         $siteName = \App\Models\SiteSetting::get('site_name', config('app.name', 'Laravel'));
                     @endphp
                     @if($siteLogo)
-                        <img class="h-10 w-auto" src="{{ Storage::url($siteLogo) }}" alt="{{ $siteName }}">
+                        <img class="h-10 w-auto" src="{{ Storage::url($siteLogo) }}" alt="{{ $siteName }}" title="{{ $siteName }}">
                     @else
                         <span class="text-xl font-bold text-indigo-600">{{ $siteName }}</span>
                     @endif

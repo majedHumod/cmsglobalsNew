@@ -15,8 +15,14 @@ class SessionBooking extends Model
         'user_id',
         'booking_date',
         'booking_time',
+        'video_meeting_url',
+        'calendar_uid',
         'status',
         'payment_status',
+        'attendance_status',
+        'cancelled_at',
+        'cancelled_by_user_id',
+        'rescheduled_from_booking_id',
         'payment_amount',
         'payment_reference',
         'stripe_payment_intent_id',
@@ -27,6 +33,7 @@ class SessionBooking extends Model
         'booking_date' => 'date',
         'booking_time' => 'datetime:H:i',
         'payment_amount' => 'decimal:2',
+        'cancelled_at' => 'datetime',
     ];
 
     /**
@@ -43,6 +50,16 @@ class SessionBooking extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function cancelledBy()
+    {
+        return $this->belongsTo(User::class, 'cancelled_by_user_id');
+    }
+
+    public function rescheduledFrom()
+    {
+        return $this->belongsTo(self::class, 'rescheduled_from_booking_id');
     }
 
     /**
@@ -122,5 +139,12 @@ class SessionBooking extends Model
     public function canBeCancelled()
     {
         return $this->status === 'pending' || $this->status === 'confirmed';
+    }
+
+    public function canManage(User $user): bool
+    {
+        return $user->hasRole('admin')
+            || (int) $this->user_id === (int) $user->id
+            || (int) optional($this->trainingSession)->user_id === (int) $user->id;
     }
 }

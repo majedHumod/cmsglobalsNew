@@ -34,6 +34,7 @@ class SiteSettingsServiceProvider extends ServiceProvider
                 'site_favicon' => null,
                 'primary_color' => '#6366f1',
                 'secondary_color' => '#10b981',
+                'font_family' => config('branding.default_font', 'cairo'),
                 'footer_text' => '© ' . date('Y') . ' ' . config('app.name', 'Laravel') . '. جميع الحقوق محفوظة.'
             ],
             'contact' => [
@@ -111,5 +112,11 @@ class SiteSettingsServiceProvider extends ServiceProvider
 
         // Share settings with all views
         View::share('siteSettings', $dbSettings);
+
+        // Keep app display name in sync with tenant site name (avoid APP_NAME like laravel2 in titles)
+        $resolvedSiteName = $dbSettings['general']['site_name'] ?? null;
+        if (is_string($resolvedSiteName) && trim($resolvedSiteName) !== '') {
+            config(['app.name' => $resolvedSiteName]);
+        }
     }
 }

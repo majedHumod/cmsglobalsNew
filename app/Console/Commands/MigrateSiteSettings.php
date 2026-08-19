@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\Tenant;
+use App\Support\MigrationScope;
 use App\Services\TenantService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Artisan;
@@ -56,7 +57,8 @@ class MigrateSiteSettings extends Command
             if (!Schema::hasTable('site_settings')) {
                 $this->info("📝 Creating site_settings table...");
                 Artisan::call('migrate', [
-                    '--path' => 'database/migrations/tenants/2025_06_15_create_site_settings_table.php',
+                    '--path' => MigrationScope::tenant('database/migrations/tenants/2025_06_15_create_site_settings_table.php'),
+                    '--database' => 'tenant',
                     '--force' => true,
                 ]);
                 $this->info(Artisan::output());
@@ -68,6 +70,7 @@ class MigrateSiteSettings extends Command
             $this->info("🌱 Seeding site settings...");
             Artisan::call('db:seed', [
                 '--class' => 'Database\\Seeders\\Tenants\\SiteSettingsSeeder',
+                '--database' => 'tenant',
                 '--force' => true,
             ]);
             $this->info(Artisan::output());

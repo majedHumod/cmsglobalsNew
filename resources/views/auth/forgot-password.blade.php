@@ -4,8 +4,8 @@
             <x-authentication-card-logo />
         </x-slot>
 
-        <div class="mb-4 text-sm text-gray-600 text-right">
-            نسيت كلمة المرور؟ لا مشكلة. فقط أدخل عنوان بريدك الإلكتروني وسنرسل لك رابط إعادة تعيين كلمة المرور.
+        <div class="mb-5 text-sm leading-6 text-gray-600 text-right">
+            نسيت كلمة المرور؟ لا مشكلة. أدخل بريدك الإلكتروني وسنرسل لك رابطاً لإعادة تعيين كلمة المرور.
         </div>
 
         @session('status')
@@ -16,19 +16,26 @@
 
         <x-validation-errors class="mb-4" />
 
-        <form method="POST" action="{{ route('password.email') }}">
+        <form method="POST" action="{{ route('password.email') }}" class="space-y-5">
             @csrf
 
-            <div class="block">
+            <div>
                 <x-label for="email" value="البريد الإلكتروني" />
                 <x-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autofocus autocomplete="username" />
             </div>
 
-            <div class="flex items-center justify-end mt-4">
-                <x-button>
+            <div>
+                <x-button class="btn-brand w-full justify-center border-transparent hover:opacity-95">
                     إرسال رابط إعادة التعيين
                 </x-button>
             </div>
+
+            <p class="text-center text-sm text-gray-600">
+                تذكرت كلمة المرور؟
+                <a href="{{ route('login') }}" class="link-brand font-medium focus:outline-none focus:underline">
+                    تسجيل الدخول
+                </a>
+            </p>
         </form>
     </x-authentication-card>
 </x-guest-layout>

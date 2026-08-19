@@ -22,6 +22,13 @@
 @endsection
 
 @section('content')
+@php
+    $sessionTypeLabels = [
+        'in_person' => 'حضوري',
+        'online' => 'أونلاين',
+        'hybrid' => 'هجين',
+    ];
+@endphp
 <div class="bg-white shadow-md rounded-lg overflow-hidden">
     <div class="p-6">
         <div class="mb-6">
@@ -91,6 +98,14 @@
                                 <div class="flex items-center justify-between text-sm">
                                     <span class="text-gray-500">المدة:</span>
                                     <span class="font-medium">{{ $session->duration_text }}</span>
+                                </div>
+                                <div class="flex items-center justify-between text-sm">
+                                    <span class="text-gray-500">النوع:</span>
+                                    <span class="font-medium">{{ $sessionTypeLabels[$session->session_type ?? 'in_person'] ?? ($session->session_type ?? 'in_person') }}</span>
+                                </div>
+                                <div class="flex items-center justify-between text-sm">
+                                    <span class="text-gray-500">السعة:</span>
+                                    <span class="font-medium">{{ $session->capacity ?? 1 }}</span>
                                 </div>
                                 <div class="flex items-center justify-between text-sm">
                                     <span class="text-gray-500">الحالة:</span>

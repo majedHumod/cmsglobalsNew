@@ -73,7 +73,7 @@ class ArticleController extends Controller
         $article->published_at = $article->is_published ? now() : null;
         $article->save();
 
-        return redirect()->route('articles.index')->with('success', 'Article created successfully.');
+        return redirect()->route('articles.index')->with('success', 'تم إنشاء المقال بنجاح.');
     }
 
     public function edit(Article $article)
@@ -109,7 +109,7 @@ class ArticleController extends Controller
 
         $article->update($validated);
 
-        return redirect()->route('articles.index')->with('success', 'Article updated successfully.');
+        return redirect()->route('articles.index')->with('success', 'تم تحديث المقال بنجاح.');
     }
 
     public function destroy(Article $article)
@@ -119,6 +119,6 @@ class ArticleController extends Controller
         }
         
         $article->delete();
-        return redirect()->route('articles.index')->with('success', 'Article deleted successfully.');
+        return redirect()->route('articles.index')->with('success', 'تم حذف المقال بنجاح.');
     }
 }

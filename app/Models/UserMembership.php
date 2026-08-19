@@ -13,12 +13,14 @@ class UserMembership extends Model
     protected $fillable = [
         'user_id',
         'membership_type_id',
+        'subscription_plan_id',
         'starts_at',
         'expires_at',
         'is_active',
         'payment_status',
         'payment_amount',
         'payment_reference',
+        'stripe_payment_intent_id',
         'notes'
     ];
 
@@ -38,6 +40,11 @@ class UserMembership extends Model
     public function membershipType()
     {
         return $this->belongsTo(MembershipType::class);
+    }
+
+    public function subscriptionPlan()
+    {
+        return $this->belongsTo(SubscriptionPlan::class);
     }
 
     // Scopes

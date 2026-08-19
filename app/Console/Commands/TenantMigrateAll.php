@@ -3,6 +3,9 @@
 namespace App\Console\Commands;
 
 use App\Models\Tenant;
+use App\Services\Tenant\TenantAuditService;
+use App\Services\Tenant\TenantDefaultContentService;
+use App\Support\MigrationScope;
 use App\Services\TenantService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Artisan;
@@ -14,7 +17,7 @@ class TenantMigrateAll extends Command
      *
      * @var string
      */
-    protected $signature = 'tenant:migrate-all {--path=} {--rollback}';
+    protected $signature = 'tenant:migrate-all {--path=} {--rollback} {--fail-on-issue} {--skip-preflight}';
 
     /**
      * The console command description.
@@ -26,13 +29,23 @@ class TenantMigrateAll extends Command
     /**
      * Execute the console command.
      */
-    public function handle()
+    public function handle(TenantAuditService $auditService, TenantDefaultContentService $defaultContentService)
     {
-        $path = $this->option('path');
         $rollback = $this->option('rollback');
         
         try {
-            $tenants = Tenant::on('system')->get();
+            $migrationPath = MigrationScope::tenant($this->option('path'));
+            $tenants = Tenant::query()->get();
+            $failOnIssue = (bool) $this->option('fail-on-issue');
+            $migrated = 0;
+            $skipped = [];
+
+            if (! $this->option('skip-preflight')) {
+                $preflightExit = $this->runPreflight($auditService, $failOnIssue);
+                if ($preflightExit !== self::SUCCESS) {
+                    return $preflightExit;
+                }
+            }
             
             if ($tenants->isEmpty()) {
                 $this->info("📭 No tenants found.");
@@ -45,12 +58,23 @@ class TenantMigrateAll extends Command
                 $this->info("\n" . str_repeat("=", 50));
                 $this->info("🚀 Processing tenant: {$tenant->name} ({$tenant->domain})");
                 $this->info("💾 Database: {$tenant->db_name}");
+
+                $audit = $auditService->auditTenant($tenant);
+                if ($audit['database_status'] !== 'present') {
+                    $message = "Skipping {$tenant->domain}: {$audit['status_note']} (recommended: {$audit['recommended_action']})";
+                    $this->warn($message);
+                    $skipped[] = $message;
+
+                    if ($failOnIssue) {
+                        $this->error('Aborting because --fail-on-issue was provided.');
+                        return self::FAILURE;
+                    }
+
+                    continue;
+                }
                 
                 // التبديل إلى قاعدة بيانات المستأجر
                 TenantService::switchToTenant($tenant);
-                
-                // تحديد المسار
-                $migrationPath = $path ?: 'database/migrations/tenants/';
                 
                 if ($rollback) {
                     $this->info("🔄 Rolling back migrations...");
@@ -66,18 +90,47 @@ class TenantMigrateAll extends Command
                         '--path' => $migrationPath,
                         '--force' => true,
                     ]);
+                    $migrationOutput = Artisan::output();
+
+                    $seedResult = $defaultContentService->seedDefaultPublicContent();
+                    if (trim($migrationOutput) !== '') {
+                        $this->line($migrationOutput);
+                    }
+                    if (trim($seedResult['output']) !== '') {
+                        $this->line($seedResult['output']);
+                    }
+
+                    if ($seedResult['has_active_landing_page']) {
+                        $this->info('✅ Default landing page is available for this tenant.');
+                    } else {
+                        $this->warn('⚠️ No active landing page exists after seeding this tenant.');
+                    }
                 }
                 
                 // طباعة نتائج الأمر
-                $output = Artisan::output();
-                if (trim($output)) {
-                    $this->line($output);
+                if ($rollback) {
+                    $output = Artisan::output();
+                    if (trim($output)) {
+                        $this->line($output);
+                    }
                 }
                 
                 $this->info("✅ Completed for {$tenant->name}");
+                TenantService::switchToDefault();
+                $migrated++;
             }
             
-            $this->info("\n🎉 All tenant migrations completed successfully!");
+            $this->info("\n🎉 Tenant migration run finished.");
+            $this->line("Migrated tenants: {$migrated}");
+            $this->line('Skipped tenants: ' . count($skipped));
+
+            if ($skipped !== []) {
+                $this->newLine();
+                $this->line('Skipped details:');
+                foreach ($skipped as $message) {
+                    $this->line(" - {$message}");
+                }
+            }
             
             // العودة إلى قاعدة البيانات الرئيسية
             TenantService::switchToDefault();
@@ -96,5 +149,30 @@ class TenantMigrateAll extends Command
         }
         
         return 0;
+    }
+
+    private function runPreflight(TenantAuditService $auditService, bool $failOnIssue): int
+    {
+        $this->info("🔎 Running tenant preflight checks...");
+        $audits = $auditService->auditAll();
+        $summary = $auditService->summarize($audits);
+
+        $this->line('Preflight summary: '
+            . "total={$summary['total']}, present={$summary['present']}, missing={$summary['missing']}, "
+            . "ready={$summary['ready']}, partial={$summary['partial']}, unreachable={$summary['unreachable']}");
+
+        $criticalIssues = $audits->filter(fn (array $audit) => $audit['database_status'] !== 'present');
+        if ($criticalIssues->isNotEmpty()) {
+            foreach ($criticalIssues as $issue) {
+                $this->warn(" - {$issue['domain']}: {$issue['status_note']} (recommended: {$issue['recommended_action']})");
+            }
+
+            if ($failOnIssue) {
+                $this->error('Aborting because preflight found critical issues and --fail-on-issue was provided.');
+                return self::FAILURE;
+            }
+        }
+
+        return self::SUCCESS;
     }
 }

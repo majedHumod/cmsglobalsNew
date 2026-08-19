@@ -19,6 +19,7 @@ class SiteSettingsSeeder extends Seeder
         SiteSetting::set('site_favicon', null, 'general', 'string', 'Site favicon path');
         SiteSetting::set('primary_color', '#6366f1', 'general', 'string', 'Primary color');
         SiteSetting::set('secondary_color', '#10b981', 'general', 'string', 'Secondary color');
+        SiteSetting::set('font_family', config('branding.default_font', 'cairo'), 'general', 'string', 'Brand Arabic font family');
         SiteSetting::set('footer_text', '© ' . date('Y') . ' ' . config('app.name', 'CMS Global') . '. جميع الحقوق محفوظة.', 'general', 'string', 'Footer text');
 
         // Contact Settings

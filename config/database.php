@@ -42,14 +42,19 @@ return [
             'synchronous' => null,
         ],
 
+        /*
+         * System connection: جدول tenants وسجلات المستأجرين وما يخص الـ control plane.
+         * استخدم DB_SYSTEM_DATABASE عندما تكون DB_DATABASE تشير لقاعدة مستأجر أو لنسخة احتياطية
+         * لا تحتوي جدول tenants (وإلا ستفشل tenants:list و tenants:seeder).
+         */
         'system' => [
             'driver' => 'mysql',
-            'url' => env('DB_URL'),
-            'host' => env('DB_HOST', '127.0.0.1'),
-            'port' => env('DB_PORT', '3306'),
-            'database' => env('DB_DATABASE', 'laravel'),
-            'username' => env('DB_USERNAME', 'root'),
-            'password' => env('DB_PASSWORD', ''),
+            'url' => env('SYSTEM_DB_URL', env('DB_URL')),
+            'host' => env('SYSTEM_DB_HOST', env('DB_HOST', '127.0.0.1')),
+            'port' => env('SYSTEM_DB_PORT', env('DB_PORT', '3306')),
+            'database' => env('DB_SYSTEM_DATABASE', env('DB_DATABASE', 'laravel')),
+            'username' => env('SYSTEM_DB_USERNAME', env('DB_USERNAME', 'root')),
+            'password' => env('SYSTEM_DB_PASSWORD', env('DB_PASSWORD', '')),
             'unix_socket' => env('DB_SOCKET', ''),
             'charset' => env('DB_CHARSET', 'utf8mb4'),
             'collation' => env('DB_COLLATION', 'utf8mb4_unicode_ci'),

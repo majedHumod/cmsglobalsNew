@@ -24,13 +24,22 @@ return Application::configure(basePath: dirname(__DIR__))
                 'role_or_permission' => Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
                  'tenants' => \App\Http\Middleware\TenantsMiddleware::class,
                  'demo_readonly' => \App\Http\Middleware\DemoReadOnlyGuard::class,
+                 'verify_webhook_signature' => \App\Http\Middleware\VerifyCommunicationWebhookSignature::class,
+                 'trainee' => \App\Http\Middleware\EnsureTrainee::class,
+                 'set_locale' => \App\Http\Middleware\SetRequestLocale::class,
             ]);
             $middleware->validateCsrfTokens(except: [
                 'webhooks/paylink',
             ]);
+
+            // Allow same-origin browser sessions (cookies) to authenticate API routes.
+            $middleware->statefulApi();
+
             // Ensure tenant switching runs BEFORE session/auth middlewares.
             // This prevents user loading from default (system) connection.
             $middleware->prependToGroup('web', \App\Http\Middleware\TenantsMiddleware::class);
+            $middleware->prependToGroup('api', \App\Http\Middleware\TenantsMiddleware::class);
+            $middleware->appendToGroup('api', \App\Http\Middleware\SetRequestLocale::class);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

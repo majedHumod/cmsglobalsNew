@@ -39,9 +39,13 @@ class ListTenants extends Command
             
             foreach ($tenants as $tenant) {
                 $this->line("🏷️  Name: {$tenant->name}");
+                $this->line("🔑 Join code: " . ($tenant->join_code ?: '—'));
                 $this->line("🌐 Domain: {$tenant->domain}");
                 $this->line("💾 Database: {$tenant->db_name}");
                 $this->line("📊 Status: {$tenant->status}");
+                $this->line("🗄️  DB State: " . ($tenant->database_status ?? 'unknown'));
+                $this->line("🧩 Schema State: " . ($tenant->schema_status ?? 'unknown'));
+                $this->line("🛠️  Recommended Action: " . ($tenant->recommended_action ?? 'none'));
                 $this->line("📅 Created: {$tenant->created_at->format('Y-m-d H:i:s')}");
                 $this->line("---");
             }

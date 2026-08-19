@@ -229,7 +229,18 @@ class ArabicFitnessSeeder extends Seeder
         ];
 
         foreach ($membershipTypes as $type) {
-            MembershipType::create($type);
+            // Access path only — commercial offers are seeded via SubscriptionPlansSeeder / admin plans.
+            MembershipType::create([
+                'name' => $type['name'],
+                'slug' => $type['slug'],
+                'description' => $type['description'],
+                'price' => 0,
+                'duration_days' => 30,
+                'features' => null,
+                'is_active' => $type['is_active'],
+                'is_protected' => $type['is_protected'],
+                'sort_order' => $type['sort_order'],
+            ]);
         }
     }
 

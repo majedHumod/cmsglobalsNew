@@ -30,13 +30,13 @@
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
 
-            @hasanyrole('admin|user')
+            @hasanyrole('admin|user|client')
             <x-responsive-nav-link href="{{ route('notes.index') }}" :active="request()->routeIs('notes.*')">
                 {{ __('Notes') }}
             </x-responsive-nav-link>
             @endhasanyrole
 
-            @hasanyrole('admin|user')
+            @hasanyrole('admin|user|client')
             <x-responsive-nav-link href="{{ route('meal-plans.index') }}" :active="request()->routeIs('meal-plans.*')">
                 {{ __('الجداول الغذائية') }}
             </x-responsive-nav-link>
@@ -48,11 +48,11 @@
             </x-responsive-nav-link>
             @endrole
 
-            @hasanyrole('admin|page_manager')
+            @can('view pages')
             <x-responsive-nav-link href="{{ route('pages.index') }}" :active="request()->routeIs('pages.index', 'pages.create', 'pages.edit')">
                 {{ __('إدارة الصفحات') }}
             </x-responsive-nav-link>
-            @endhasanyrole
+            @endcan
 
             @role('admin')
             <x-responsive-nav-link href="{{ route('membership-types.index') }}" :active="request()->routeIs('membership-types.*')">
@@ -69,22 +69,7 @@
 
                     $user = auth()->user();
 
-                    $menuPages = $allMenuPages->filter(function($page) use ($user) {
-                        if ($page->access_level === 'public') return true;
-                        if (!$user) return false;
-                        if ($page->access_level === 'authenticated') return true;
-                        if ($page->access_level === 'user' && $user->hasRole('user')) return true;
-                        if ($page->access_level === 'page_manager' && $user->hasRole('page_manager')) return true;
-                        if ($page->access_level === 'admin' && $user->hasRole('admin')) return true;
-                        if ($page->access_level === 'membership' && $user->membership_type_id) {
-                            $requiredTypes = is_string($page->required_membership_types)
-                                ? json_decode($page->required_membership_types, true) ?: []
-                                : $page->required_membership_types;
-
-                            return in_array($user->membership_type_id, $requiredTypes);
-                        }
-                        return false;
-                    });
+                    $menuPages = $allMenuPages->filter(fn ($page) => $page->canAccess($user));
                 } catch (\Exception $e) {
                     $menuPages = collect();
                 }

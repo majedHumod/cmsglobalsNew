@@ -1,0 +1,18 @@
+{
+  "name": "CMSGlobals Coach Platform",
+  "short_name": "CMSGlobals",
+  "description": "Client-first coaching experience",
+  "start_url": "/client/home",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#4f46e5",
+  "lang": "ar",
+  "dir": "rtl",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    }
+  ]
+}

@@ -49,8 +49,11 @@ class SiteSettingController extends Controller
             'site_description' => 'nullable|string|max:500',
             'site_logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'site_favicon' => 'nullable|image|mimes:ico,png|max:1024',
+            'remove_site_logo' => 'nullable|boolean',
+            'remove_site_favicon' => 'nullable|boolean',
             'primary_color' => 'nullable|string|max:7',
             'secondary_color' => 'nullable|string|max:7',
+            'font_family' => 'nullable|string|in:' . implode(',', array_keys(config('branding.fonts', []))),
             'footer_text' => 'nullable|string|max:500',
         ]);
 
@@ -58,14 +61,20 @@ class SiteSettingController extends Controller
             return back()->withErrors($validator)->withInput();
         }
 
-        // Handle site logo upload
-        if ($request->hasFile('site_logo')) {
+        // Remove site logo when requested
+        if ($request->boolean('remove_site_logo')) {
+            $this->deleteStoredFile(SiteSetting::get('site_logo'));
+            SiteSetting::set('site_logo', null, 'general', 'string', 'Site logo path');
+        } elseif ($request->hasFile('site_logo')) {
             $logoPath = $this->handleFileUpload($request->file('site_logo'), 'logos', SiteSetting::get('site_logo'));
             SiteSetting::set('site_logo', $logoPath, 'general', 'string', 'Site logo path');
         }
 
-        // Handle favicon upload
-        if ($request->hasFile('site_favicon')) {
+        // Remove favicon when requested
+        if ($request->boolean('remove_site_favicon')) {
+            $this->deleteStoredFile(SiteSetting::get('site_favicon'));
+            SiteSetting::set('site_favicon', null, 'general', 'string', 'Site favicon path');
+        } elseif ($request->hasFile('site_favicon')) {
             $faviconPath = $this->handleFileUpload($request->file('site_favicon'), 'favicons', SiteSetting::get('site_favicon'));
             SiteSetting::set('site_favicon', $faviconPath, 'general', 'string', 'Site favicon path');
         }
@@ -75,7 +84,20 @@ class SiteSettingController extends Controller
         SiteSetting::set('site_description', $request->site_description, 'general', 'string', 'Site description');
         SiteSetting::set('primary_color', $request->primary_color, 'general', 'string', 'Primary color');
         SiteSetting::set('secondary_color', $request->secondary_color, 'general', 'string', 'Secondary color');
+        SiteSetting::set(
+            'font_family',
+            $request->input('font_family', config('branding.default_font', 'cairo')),
+            'general',
+            'string',
+            'Brand Arabic font family'
+        );
         SiteSetting::set('footer_text', $request->footer_text, 'general', 'string', 'Footer text');
+
+        SiteSetting::clearGroupCache('general');
+        \Illuminate\Support\Facades\Cache::forget(\App\Services\TenantCache::key('site_settings_general'));
+        \Illuminate\Support\Facades\Cache::forget(\App\Services\TenantCache::key('setting_font_family'));
+        \Illuminate\Support\Facades\Cache::forget(\App\Services\TenantCache::key('setting_primary_color'));
+        \Illuminate\Support\Facades\Cache::forget(\App\Services\TenantCache::key('setting_secondary_color'));
 
         return back()->with('success', 'تم تحديث الإعدادات العامة بنجاح.');
     }
@@ -235,9 +257,7 @@ class SiteSettingController extends Controller
     private function handleFileUpload($file, $directory, $oldPath = null)
     {
         // Delete old file if exists
-        if ($oldPath && Storage::disk('public')->exists($oldPath)) {
-            Storage::disk('public')->delete($oldPath);
-        }
+        $this->deleteStoredFile($oldPath);
 
         // Generate a unique filename
         $filename = Str::random(20) . '.' . $file->getClientOriginalExtension();
@@ -246,5 +266,15 @@ class SiteSettingController extends Controller
         $path = $file->storeAs($directory, $filename, 'public');
         
         return $path;
+    }
+
+    /**
+     * Delete a file from the public disk when present.
+     */
+    private function deleteStoredFile(?string $path): void
+    {
+        if ($path && Storage::disk('public')->exists($path)) {
+            Storage::disk('public')->delete($path);
+        }
     }
 }

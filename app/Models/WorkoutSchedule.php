@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasAudience;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class WorkoutSchedule extends Model
 {
     use HasFactory;
+    use HasAudience;
 
     protected $fillable = [
         'workout_id',
@@ -15,13 +17,16 @@ class WorkoutSchedule extends Model
         'session_number',
         'notes',
         'status',
-        'user_id'
+        'user_id',
+        'audience_gender',
+        'required_membership_types',
     ];
 
     protected $casts = [
         'status' => 'boolean',
         'week_number' => 'integer',
         'session_number' => 'integer',
+        'audience_gender' => 'string',
     ];
 
     /**
@@ -30,6 +35,11 @@ class WorkoutSchedule extends Model
     public function workout()
     {
         return $this->belongsTo(Workout::class);
+    }
+
+    public function logs()
+    {
+        return $this->hasMany(WorkoutLog::class);
     }
 
     /**

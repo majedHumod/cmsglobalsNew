@@ -10,7 +10,7 @@
             <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <!-- Notes Card - Visible to both admin and user roles -->
-                    @hasanyrole('admin|user')
+                    @hasanyrole('admin|user|client')
                     <div class="bg-white overflow-hidden shadow rounded-lg">
                         <div class="px-4 py-5 sm:p-6">
                             <h3 class="text-lg font-medium text-gray-900">Notes Management</h3>
@@ -27,7 +27,7 @@
                     @endhasanyrole
 
                     <!-- Meal Plans Card - Visible to both admin and user roles -->
-                    @hasanyrole('admin|user')
+                    @hasanyrole('admin|user|client')
                     <div class="bg-white overflow-hidden shadow rounded-lg">
                         <div class="px-4 py-5 sm:p-6">
                             <h3 class="text-lg font-medium text-gray-900">الجداول الغذائية</h3>
@@ -47,7 +47,7 @@
                     @endhasanyrole
 
                     <!-- Workouts Card - Visible to admin, coach, and client roles -->
-                    @hasanyrole('admin|coach|client')
+                    @hasanyrole('admin|coach|user|client')
                     <div class="bg-white overflow-hidden shadow rounded-lg">
                         <div class="px-4 py-5 sm:p-6">
                             <h3 class="text-lg font-medium text-gray-900">التمارين الرياضية</h3>
@@ -83,8 +83,7 @@
                     </div>
                     @endrole
 
-                    <!-- Pages Card - Visible to admin and page_manager roles -->
-                    @hasanyrole('admin|page_manager')
+                    @can('view pages')
                     <div class="bg-white overflow-hidden shadow rounded-lg">
                         <div class="px-4 py-5 sm:p-6">
                             <h3 class="text-lg font-medium text-gray-900">إدارة الصفحات</h3>
@@ -101,7 +100,7 @@
                             </div>
                         </div>
                     </div>
-                    @endhasanyrole
+                    @endcan
 
                     <!-- Membership Types Card - Visible only to admin role -->
                     @role('admin')
@@ -122,7 +121,7 @@
 
                     <!-- Public Pages Card - Visible to all authenticated users -->
                     @auth
-                    @if(!auth()->user()->hasAnyRole(['admin', 'page_manager']))
+                    @cannot('view pages')
                     <div class="bg-white overflow-hidden shadow rounded-lg">
                         <div class="px-4 py-5 sm:p-6">
                             <h3 class="text-lg font-medium text-gray-900">صفحات الموقع</h3>
@@ -136,7 +135,7 @@
                             </div>
                         </div>
                     </div>
-                    @endif
+                    @endcannot
                     @endauth
                 </div>
             </div>

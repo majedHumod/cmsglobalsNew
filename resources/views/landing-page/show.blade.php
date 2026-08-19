@@ -19,12 +19,11 @@
         <link rel="icon" href="{{ Storage::url($siteFavicon) }}" type="image/x-icon">
     @endif
 
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=tajawal:400,500,700&display=swap" rel="stylesheet" />
+    <meta name="theme-color" content="{{ \App\Support\Branding::primaryColor() }}">
 
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @include('partials.brand-tokens')
     
     <!-- Preload critical resources -->
     <link rel="preload" href="{{ Storage::url($landingPage->header_image) }}" as="image">
@@ -32,42 +31,6 @@
         <link rel="preload" href="{{ Storage::url(\App\Models\SiteSetting::get('site_logo')) }}" as="image">
     @endif
 
-    <!-- Custom Colors -->
-    @php
-        $primaryColor = \App\Models\SiteSetting::get('primary_color', '#6366f1');
-        $secondaryColor = \App\Models\SiteSetting::get('secondary_color', '#10b981');
-    @endphp
-    <style>
-        :root {
-            --primary-color: {{ $primaryColor }};
-            --secondary-color: {{ $secondaryColor }};
-        }
-        
-        .bg-primary {
-            background-color: var(--primary-color);
-        }
-        
-        .text-primary {
-            color: var(--primary-color);
-        }
-        
-        .border-primary {
-            border-color: var(--primary-color);
-        }
-        
-        .bg-secondary {
-            background-color: var(--secondary-color);
-        }
-        
-        .text-secondary {
-            color: var(--secondary-color);
-        }
-        
-        .border-secondary {
-            border-color: var(--secondary-color);
-        }
-    </style>
-    
     <!-- Custom Styles for Landing Page -->
     <style>
         .hero-section {
@@ -211,71 +174,15 @@
             {!! $landingPage->content !!}
         </div>
     </section>
+
+    {{-- Trainee portal just above sessions --}}
+    @include('components.trainee-portal-block')
     
     <!-- Training Sessions Section -->
     @include('components.training-sessions-section')
     
-    <!-- Membership Types Section -->
-    <section class="bg-gray-50 py-16">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-10">
-                <h2 class="text-3xl font-bold text-gray-900">خطط العضوية</h2>
-                <p class="mt-4 text-xl text-gray-600">اختر الخطة المناسبة لاحتياجاتك</p>
-            </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-stretch">
-                @php
-                    try {
-                        $membershipTypes = \App\Models\MembershipType::where('is_active', true)
-                            ->where('is_protected', false)
-                            ->orderBy('sort_order')
-                            ->orderBy('price')
-                            ->get();
-                    } catch (\Exception $e) {
-                        $membershipTypes = collect([]);
-                    }
-                @endphp
-                
-                @forelse($membershipTypes as $membershipType)
-                    <div class="bg-white rounded-lg overflow-hidden shadow-sm membership-card flex flex-col h-full" loading="lazy">
-                        <div class="p-6 flex flex-col h-full">
-                            <h3 class="text-2xl font-bold text-gray-900 mb-2">{{ $membershipType->name }}</h3>
-                            
-                            @if($membershipType->description)
-                                <p class="text-gray-600 mb-4">{{ $membershipType->description }}</p>
-                            @endif
-                            
-                            <div class="flex items-baseline mb-6">
-                                <span class="text-4xl font-bold text-indigo-600">{{ $membershipType->formatted_price }}</span>
-                                <span class="text-gray-500 mr-2">/ {{ $membershipType->duration_text }}</span>
-                            </div>
-
-                            @if($membershipType->features && is_array($membershipType->features) && count($membershipType->features) > 0)
-                                <ul class="space-y-3 mb-6">
-                                    @foreach($membershipType->features as $feature)
-                                        <li class="flex items-center">
-                                            <svg class="w-5 h-5 text-green-500 ml-2" fill="currentColor" viewBox="0 0 20 20">
-                                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                                            </svg>
-                                            <span>{{ $feature }}</span>
-                                        </li>
-                                    @endforeach
-                                </ul>
-                            @endif
-
-                            <a href="{{ route('register') }}" class="block w-full text-center bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md transition-colors">
-                                اشترك الآن
-                            </a>
-                        </div>
-                    </div>
-                @empty
-                    <div class="col-span-full text-center py-8">
-                        <p class="text-gray-500">لا توجد خطط عضوية متاحة حالياً</p>
-                    </div>
-                @endforelse
-            </div>
-        </div>
-    </section>
+    <!-- Subscription Plans Section -->
+    @include('components.homepage-subscription-plans')
 
     @php
         $articlesEnabled = \App\Models\SiteSetting::get('articles_enabled', true);

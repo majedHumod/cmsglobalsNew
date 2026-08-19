@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\TrainingSession;
 use App\Models\SessionBooking;
+use App\Events\BookingLifecycleChanged;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
@@ -15,8 +16,8 @@ class TrainingSessionController extends Controller
 {
     public function __construct()
     {
-        $this->middleware(['auth', 'role:admin'])->except(['show', 'book', 'processPayment']);
-        $this->middleware('auth')->only(['book', 'processPayment']);
+        $this->middleware(['auth', 'role:admin|coach'])->except(['show', 'book', 'processPayment', 'paymentSuccess', 'cancel', 'rescheduleForm', 'reschedule']);
+        $this->middleware('auth')->only(['book', 'processPayment', 'paymentSuccess', 'cancel', 'rescheduleForm', 'reschedule']);
     }
 
     /**
@@ -24,7 +25,13 @@ class TrainingSessionController extends Controller
      */
     public function index()
     {
-        $sessions = TrainingSession::with('user')->ordered()->get();
+        $query = TrainingSession::with('user')->ordered();
+
+        if (auth()->user()->hasRole('coach')) {
+            $query->where('user_id', auth()->id());
+        }
+
+        $sessions = $query->get();
         return view('admin.training-sessions.index', compact('sessions'));
     }
 
@@ -46,8 +53,15 @@ class TrainingSessionController extends Controller
             'description' => 'required|string',
             'price' => 'required|numeric|min:0',
             'duration_hours' => 'required|integer|min:1|max:8',
+            'session_type' => 'required|in:online,in_person,hybrid',
+            'capacity' => 'required|integer|min:1|max:100',
+            'location' => 'nullable|string|max:255',
+            'video_meeting_url' => 'nullable|url|max:2048',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'sort_order' => 'nullable|integer|min:0'
+            'sort_order' => 'nullable|integer|min:0',
+            'audience_gender' => 'nullable|in:all,male,female',
+            'required_membership_types' => 'nullable|array',
+            'required_membership_types.*' => 'exists:membership_types,id',
         ]);
 
         try {
@@ -61,6 +75,8 @@ class TrainingSessionController extends Controller
             $validated['user_id'] = auth()->id();
             $validated['is_visible'] = $request->has('is_visible') ? true : false;
             $validated['sort_order'] = $validated['sort_order'] ?? 0;
+            $validated['audience_gender'] = $validated['audience_gender'] ?? 'all';
+            $validated['required_membership_types'] = $request->input('required_membership_types', []);
 
             // Create training session
             TrainingSession::create($validated);
@@ -81,14 +97,14 @@ class TrainingSessionController extends Controller
      */
     public function show(TrainingSession $trainingSession)
     {
-        if (!$trainingSession->is_visible) {
+        if (!$trainingSession->is_visible || !$trainingSession->matchesAudience(auth()->user())) {
             abort(404);
         }
 
         // Optimize query by selecting only needed fields
         $trainingSession = TrainingSession::select([
-            'id', 'title', 'description', 'price', 'duration_hours', 
-            'image', 'is_visible', 'user_id'
+            'id', 'title', 'description', 'price', 'duration_hours', 'session_type', 'capacity',
+            'location', 'video_meeting_url', 'image', 'is_visible', 'user_id', 'audience_gender', 'required_membership_types'
         ])->findOrFail($trainingSession->id);
         return view('training-sessions.show', compact('trainingSession'));
     }
@@ -98,6 +114,8 @@ class TrainingSessionController extends Controller
      */
     public function edit(TrainingSession $trainingSession)
     {
+        abort_unless($trainingSession->canManage(auth()->user()), 403);
+
         return view('admin.training-sessions.edit', compact('trainingSession'));
     }
 
@@ -111,11 +129,20 @@ class TrainingSessionController extends Controller
             'description' => 'required|string',
             'price' => 'required|numeric|min:0',
             'duration_hours' => 'required|integer|min:1|max:8',
+            'session_type' => 'required|in:online,in_person,hybrid',
+            'capacity' => 'required|integer|min:1|max:100',
+            'location' => 'nullable|string|max:255',
+            'video_meeting_url' => 'nullable|url|max:2048',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'sort_order' => 'nullable|integer|min:0'
+            'sort_order' => 'nullable|integer|min:0',
+            'audience_gender' => 'nullable|in:all,male,female',
+            'required_membership_types' => 'nullable|array',
+            'required_membership_types.*' => 'exists:membership_types,id',
         ]);
 
         try {
+            abort_unless($trainingSession->canManage(auth()->user()), 403);
+
             // Handle image upload
             if ($request->hasFile('image')) {
                 // Delete old image if exists
@@ -129,6 +156,8 @@ class TrainingSessionController extends Controller
             // Set boolean values
             $validated['is_visible'] = $request->has('is_visible') ? true : false;
             $validated['sort_order'] = $validated['sort_order'] ?? 0;
+            $validated['audience_gender'] = $validated['audience_gender'] ?? 'all';
+            $validated['required_membership_types'] = $request->input('required_membership_types', []);
 
             // Update training session
             $trainingSession->update($validated);
@@ -150,6 +179,8 @@ class TrainingSessionController extends Controller
     public function destroy(TrainingSession $trainingSession)
     {
         try {
+            abort_unless($trainingSession->canManage(auth()->user()), 403);
+
             // Check if there are any bookings
             if ($trainingSession->bookings()->count() > 0) {
                 return back()->with('error', 'لا يمكن حذف جلسة التدريب لوجود حجوزات مرتبطة بها.');
@@ -179,6 +210,8 @@ class TrainingSessionController extends Controller
     public function toggleVisibility(TrainingSession $trainingSession)
     {
         try {
+            abort_unless($trainingSession->canManage(auth()->user()), 403);
+
             $trainingSession->update(['is_visible' => !$trainingSession->is_visible]);
 
             // Clear cache
@@ -205,6 +238,10 @@ class TrainingSessionController extends Controller
         ]);
 
         try {
+            if (!$trainingSession->matchesAudience(auth()->user())) {
+                abort(403, 'هذه الجلسة غير متاحة لمسارك الحالي.');
+            }
+
             // Check if slot is available
             if (!$trainingSession->isAvailableAt($validated['booking_date'], $validated['booking_time'])) {
                 return back()->with('error', 'هذا الموعد محجوز بالفعل. يرجى اختيار موعد آخر.');
@@ -216,11 +253,15 @@ class TrainingSessionController extends Controller
                 'user_id' => auth()->id(),
                 'booking_date' => $validated['booking_date'],
                 'booking_time' => $validated['booking_time'],
+                'video_meeting_url' => $trainingSession->video_meeting_url,
                 'payment_amount' => $trainingSession->price,
                 'notes' => $validated['notes'],
                 'status' => 'pending',
-                'payment_status' => $trainingSession->price > 0 ? 'pending' : 'paid'
+                'payment_status' => $trainingSession->price > 0 ? 'pending' : 'paid',
+                'attendance_status' => 'scheduled',
             ]);
+
+            event(new BookingLifecycleChanged($booking->loadMissing('trainingSession'), 'created'));
 
             // If free session, confirm immediately
             if ($trainingSession->price == 0) {
@@ -245,27 +286,29 @@ class TrainingSessionController extends Controller
     /**
      * Process payment for booking
      */
-    public function processPayment(Request $request, SessionBooking $booking)
+    public function processPayment(Request $request, SessionBooking $sessionBooking)
     {
         try {
+            abort_unless($sessionBooking->user_id === auth()->id(), 403);
+
             // Initialize Stripe
             Stripe::setApiKey(env('STRIPE_SECRET_KEY'));
 
             // Create payment intent
             $paymentIntent = PaymentIntent::create([
-                'amount' => $booking->payment_amount * 100, // Convert to cents
+                'amount' => $sessionBooking->payment_amount * 100, // Convert to cents
                 'currency' => 'sar',
                 'metadata' => [
-                    'booking_id' => $booking->id,
-                    'user_id' => $booking->user_id,
-                    'session_id' => $booking->training_session_id
+                    'booking_id' => $sessionBooking->id,
+                    'user_id' => $sessionBooking->user_id,
+                    'session_id' => $sessionBooking->training_session_id
                 ]
             ]);
 
             // Update booking with payment intent ID
-            $booking->update(['stripe_payment_intent_id' => $paymentIntent->id]);
+            $sessionBooking->update(['stripe_payment_intent_id' => $paymentIntent->id]);
 
-            return view('training-sessions.payment', compact('booking', 'paymentIntent'));
+            return view('training-sessions.payment', ['booking' => $sessionBooking, 'paymentIntent' => $paymentIntent]);
 
         } catch (\Exception $e) {
             Log::error('Error processing payment: ' . $e->getMessage());
@@ -276,24 +319,86 @@ class TrainingSessionController extends Controller
     /**
      * Handle successful payment
      */
-    public function paymentSuccess(SessionBooking $booking)
+    public function paymentSuccess(SessionBooking $sessionBooking)
     {
         try {
+            abort_unless($sessionBooking->user_id === auth()->id(), 403);
+
             // Update booking status
-            $booking->update([
+            $sessionBooking->update([
                 'status' => 'confirmed',
-                'payment_status' => 'paid'
+                'payment_status' => 'paid',
+                'attendance_status' => 'scheduled',
             ]);
 
-            // Send confirmation email
-            $this->sendBookingConfirmationEmail($booking);
+            event(new BookingLifecycleChanged($sessionBooking->loadMissing('trainingSession'), 'confirmed'));
 
-            return view('training-sessions.booking-success', compact('booking'));
+            // Send confirmation email
+            $this->sendBookingConfirmationEmail($sessionBooking);
+
+            return view('training-sessions.booking-success', ['booking' => $sessionBooking]);
 
         } catch (\Exception $e) {
             Log::error('Error handling payment success: ' . $e->getMessage());
             return back()->with('error', 'حدث خطأ أثناء تأكيد الحجز.');
         }
+    }
+
+    public function cancel(SessionBooking $sessionBooking)
+    {
+        abort_unless($sessionBooking->canManage(auth()->user()), 403);
+
+        if (! $sessionBooking->canBeCancelled()) {
+            return back()->with('error', 'لا يمكن إلغاء هذا الحجز في حالته الحالية.');
+        }
+
+        $sessionBooking->update([
+            'status' => 'cancelled',
+            'attendance_status' => 'late_cancelled',
+            'cancelled_at' => now(),
+            'cancelled_by_user_id' => auth()->id(),
+        ]);
+
+        event(new BookingLifecycleChanged($sessionBooking->loadMissing('trainingSession'), 'cancelled'));
+
+        return back()->with('success', 'تم إلغاء الحجز بنجاح.');
+    }
+
+    public function rescheduleForm(SessionBooking $sessionBooking)
+    {
+        abort_unless($sessionBooking->canManage(auth()->user()), 403);
+
+        return view('training-sessions.reschedule', ['booking' => $sessionBooking->load('trainingSession', 'user')]);
+    }
+
+    public function reschedule(Request $request, SessionBooking $sessionBooking)
+    {
+        abort_unless($sessionBooking->canManage(auth()->user()), 403);
+
+        $validated = $request->validate([
+            'booking_date' => 'required|date|after:today',
+            'booking_time' => 'required|date_format:H:i',
+        ]);
+
+        if (! $sessionBooking->trainingSession->isAvailableAt($validated['booking_date'], $validated['booking_time'])) {
+            return back()->withInput()->with('error', 'الموعد الجديد غير متاح.');
+        }
+
+        $sessionBooking->update([
+            'booking_date' => $validated['booking_date'],
+            'booking_time' => $validated['booking_time'],
+            'attendance_status' => 'scheduled',
+            'cancelled_at' => null,
+            'cancelled_by_user_id' => null,
+        ]);
+
+        event(new BookingLifecycleChanged($sessionBooking->loadMissing('trainingSession'), 'rescheduled'));
+
+        if (auth()->user()?->hasTraineeRole()) {
+            return redirect()->route('client.bookings.index')->with('success', 'تمت إعادة جدولة الحجز بنجاح.');
+        }
+
+        return redirect()->route('admin.session-bookings.edit', $sessionBooking)->with('success', 'تمت إعادة جدولة الحجز بنجاح.');
     }
 
     /**

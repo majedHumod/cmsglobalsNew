@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\SessionBooking;
 use App\Models\TrainingSession;
+use App\Events\BookingLifecycleChanged;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
@@ -11,7 +12,7 @@ class SessionBookingController extends Controller
 {
     public function __construct()
     {
-        $this->middleware(['auth', 'role:admin']);
+        $this->middleware(['auth', 'role:admin|coach']);
     }
 
     /**
@@ -19,7 +20,13 @@ class SessionBookingController extends Controller
      */
     public function index()
     {
-        $bookings = SessionBooking::with(['trainingSession', 'user'])
+        $query = SessionBooking::with(['trainingSession', 'user']);
+
+        if (auth()->user()->hasRole('coach')) {
+            $query->whereHas('trainingSession', fn ($sessionQuery) => $sessionQuery->where('user_id', auth()->id()));
+        }
+
+        $bookings = $query
             ->latest()
             ->paginate(20);
 
@@ -31,6 +38,8 @@ class SessionBookingController extends Controller
      */
     public function edit(SessionBooking $sessionBooking)
     {
+        abort_unless($sessionBooking->canManage(auth()->user()), 403);
+
         return view('admin.session-bookings.edit', compact('sessionBooking'));
     }
 
@@ -42,11 +51,15 @@ class SessionBookingController extends Controller
         $validated = $request->validate([
             'status' => 'required|in:pending,confirmed,completed,cancelled',
             'payment_status' => 'required|in:pending,paid,failed,refunded',
+            'attendance_status' => 'nullable|in:scheduled,attended,missed,late_cancelled',
+            'video_meeting_url' => 'nullable|url|max:2048',
             'notes' => 'nullable|string|max:500'
         ]);
 
         try {
+            abort_unless($sessionBooking->canManage(auth()->user()), 403);
             $sessionBooking->update($validated);
+            event(new BookingLifecycleChanged($sessionBooking->loadMissing('trainingSession'), 'updated'));
 
             return redirect()->route('admin.session-bookings.index')
                 ->with('success', 'تم تحديث الحجز بنجاح.');
@@ -62,6 +75,7 @@ class SessionBookingController extends Controller
     public function destroy(SessionBooking $sessionBooking)
     {
         try {
+            abort_unless($sessionBooking->canManage(auth()->user()), 403);
             $sessionBooking->delete();
 
             return redirect()->route('admin.session-bookings.index')
@@ -82,7 +96,9 @@ class SessionBookingController extends Controller
         ]);
 
         try {
+            abort_unless($sessionBooking->canManage(auth()->user()), 403);
             $sessionBooking->update($validated);
+            event(new BookingLifecycleChanged($sessionBooking->loadMissing('trainingSession'), 'status_updated'));
 
             $statusText = [
                 'pending' => 'في الانتظار',

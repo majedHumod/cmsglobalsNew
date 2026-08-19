@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\LandingPage;
+use App\Models\SubscriptionPlan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
@@ -27,11 +28,27 @@ class LandingPageController extends Controller
         });
         
         if (!$landingPage) {
-            // If no landing page is active, redirect to login
-            return redirect()->route('login');
+            // Fall back to the generic welcome page when tenant content is not ready yet.
+            return view('welcome');
         }
+
+        $subscriptionPlans = Cache::remember(TenantCache::key('homepage_subscription_plans'), 1800, function () {
+            try {
+                return SubscriptionPlan::query()
+                    ->active()
+                    ->whereHas('membershipType', function ($query) {
+                        $query->where('is_active', true)
+                            ->where('is_protected', false);
+                    })
+                    ->with('membershipType')
+                    ->ordered()
+                    ->get();
+            } catch (\Throwable $e) {
+                return collect();
+            }
+        });
         
-        return view('landing-page.show', compact('landingPage'));
+        return view('landing-page.show', compact('landingPage', 'subscriptionPlans'));
     }
 
     /**

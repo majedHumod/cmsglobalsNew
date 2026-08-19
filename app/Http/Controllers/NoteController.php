@@ -7,16 +7,44 @@ use Illuminate\Http\Request;
 
 class NoteController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $notesQuery = Note::with('user')->latest();
-
-        if (! auth()->user()->hasRole('admin')) {
-            $notesQuery->where('user_id', auth()->id());
+        $tab = $request->string('tab')->toString();
+        if (! in_array($tab, ['all', 'mine', 'stats'], true)) {
+            $tab = 'all';
         }
 
-        $notes = $notesQuery->get();
-        return view('notes.index', compact('notes'));
+        if ($tab === 'mine' && ! auth()->user()->hasRole('admin')) {
+            $tab = 'all';
+        }
+
+        $scoped = function () {
+            return Note::query()
+                ->when(! auth()->user()->hasRole('admin'), function ($query) {
+                    return $query->where('user_id', auth()->id());
+                });
+        };
+
+        $stats = [
+            'total' => $scoped()->count(),
+            'mine' => Note::query()->where('user_id', auth()->id())->count(),
+            'month' => $scoped()->where('created_at', '>=', now()->startOfMonth())->count(),
+        ];
+
+        $notesQuery = Note::with('user')
+            ->when(! auth()->user()->hasRole('admin'), function ($query) {
+                return $query->where('user_id', auth()->id());
+            })
+            ->when($tab === 'mine', function ($query) {
+                return $query->where('user_id', auth()->id());
+            })
+            ->latest();
+
+        $notes = $tab === 'stats'
+            ? $notesQuery->take(6)->get()
+            : $notesQuery->paginate(12)->withQueryString();
+
+        return view('notes.index', compact('notes', 'stats', 'tab'));
     }
 
     public function create()
@@ -28,14 +56,14 @@ class NoteController extends Controller
     {
         $validated = $request->validate([
             'title' => 'required|max:255',
-            'content' => 'required'
+            'content' => 'required',
         ]);
 
         $note = new Note($validated);
         $note->user_id = auth()->id();
         $note->save();
 
-        return redirect()->route('notes.index')->with('success', 'Note created successfully.');
+        return redirect()->route('notes.index')->with('success', 'تم إنشاء الملاحظة بنجاح.');
     }
 
     public function edit(Note $note)
@@ -43,6 +71,8 @@ class NoteController extends Controller
         if (! auth()->user()->hasRole('admin') && $note->user_id !== auth()->id()) {
             abort(403, 'غير مصرح لك بتعديل هذه الملاحظة.');
         }
+
+        $note->loadMissing('user');
 
         return view('notes.edit', compact('note'));
     }
@@ -55,12 +85,12 @@ class NoteController extends Controller
 
         $validated = $request->validate([
             'title' => 'required|max:255',
-            'content' => 'required'
+            'content' => 'required',
         ]);
 
         $note->update($validated);
 
-        return redirect()->route('notes.index')->with('success', 'Note updated successfully.');
+        return redirect()->route('notes.index')->with('success', 'تم تحديث الملاحظة بنجاح.');
     }
 
     public function destroy(Note $note)
@@ -70,6 +100,7 @@ class NoteController extends Controller
         }
 
         $note->delete();
-        return redirect()->route('notes.index')->with('success', 'Note deleted successfully.');
+
+        return redirect()->route('notes.index')->with('success', 'تم حذف الملاحظة بنجاح.');
     }
 }

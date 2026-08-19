@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\Tenant;
+use App\Support\MigrationScope;
 use App\Services\TenantService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Artisan;
@@ -27,7 +28,7 @@ class ResetDemoTenant extends Command
 
         try {
             Artisan::call('migrate:fresh', [
-                '--path' => 'database/migrations/tenants/',
+                '--path' => MigrationScope::tenant(),
                 '--database' => 'tenant',
                 '--force' => true,
             ]);

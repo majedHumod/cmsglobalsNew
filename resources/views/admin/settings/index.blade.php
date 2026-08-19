@@ -85,23 +85,46 @@
                         <!-- Site Logo -->
                         <div>
                             <label for="site_logo" class="block text-sm font-medium text-gray-700 text-right">شعار الموقع</label>
-                            @if(\App\Models\SiteSetting::get('site_logo'))
+                            @php
+                                $currentSiteLogo = \App\Models\SiteSetting::get('site_logo');
+                                $currentSiteName = \App\Models\SiteSetting::get('site_name', config('app.name'));
+                            @endphp
+                            @if($currentSiteLogo)
                                 <div class="mt-2 mb-4 text-right">
-                                    <img src="{{ Storage::url(\App\Models\SiteSetting::get('site_logo')) }}" alt="Site Logo" class="h-16 object-contain">
+                                    <img
+                                        src="{{ Storage::url($currentSiteLogo) }}"
+                                        alt="{{ $currentSiteName }}"
+                                        title="{{ $currentSiteName }}"
+                                        class="h-16 object-contain"
+                                    >
                                     <p class="mt-1 text-xs text-gray-500">الشعار الحالي</p>
+                                    <label class="mt-3 inline-flex items-center gap-2 text-sm text-red-600 cursor-pointer">
+                                        <input type="checkbox" name="remove_site_logo" value="1" class="rounded border-gray-300 text-red-600 shadow-sm focus:ring-red-500">
+                                        إزالة الشعار الحالي
+                                    </label>
                                 </div>
                             @endif
                             <input type="file" name="site_logo" id="site_logo" class="mt-1 block w-full text-sm text-gray-500 file:ml-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
-                            <p class="mt-1 text-sm text-gray-500 text-right">يفضل أن يكون الشعار بصيغة PNG أو SVG بخلفية شفافة.</p>
+                            <p class="mt-1 text-sm text-gray-500 text-right">يفضل أن يكون الشعار بصيغة PNG أو SVG بخلفية شفافة. عند الإزالة سيظهر اسم الموقع بدلاً منه.</p>
                         </div>
                         
                         <!-- Site Favicon -->
                         <div>
                             <label for="site_favicon" class="block text-sm font-medium text-gray-700 text-right">أيقونة التبويب (Favicon)</label>
-                            @if(\App\Models\SiteSetting::get('site_favicon'))
+                            @php $currentSiteFavicon = \App\Models\SiteSetting::get('site_favicon'); @endphp
+                            @if($currentSiteFavicon)
                                 <div class="mt-2 mb-4 text-right">
-                                    <img src="{{ Storage::url(\App\Models\SiteSetting::get('site_favicon')) }}" alt="Site Favicon" class="h-8 w-8 object-contain">
+                                    <img
+                                        src="{{ Storage::url($currentSiteFavicon) }}"
+                                        alt="{{ $currentSiteName }}"
+                                        title="{{ $currentSiteName }}"
+                                        class="h-8 w-8 object-contain"
+                                    >
                                     <p class="mt-1 text-xs text-gray-500">الأيقونة الحالية</p>
+                                    <label class="mt-3 inline-flex items-center gap-2 text-sm text-red-600 cursor-pointer">
+                                        <input type="checkbox" name="remove_site_favicon" value="1" class="rounded border-gray-300 text-red-600 shadow-sm focus:ring-red-500">
+                                        إزالة الأيقونة الحالية
+                                    </label>
                                 </div>
                             @endif
                             <input type="file" name="site_favicon" id="site_favicon" class="mt-1 block w-full text-sm text-gray-500 file:ml-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
@@ -129,6 +152,89 @@
                             </div>
                             <p class="mt-1 text-sm text-gray-500 text-right">اللون الثانوي للموقع (العناصر المساعدة).</p>
                         </div>
+                    </div>
+
+                    @php
+                        $brandFonts = config('branding.fonts', []);
+                        $currentFont = old('font_family', \App\Models\SiteSetting::get('font_family', config('branding.default_font', 'cairo')));
+                    @endphp
+                    @foreach($brandFonts as $fontMeta)
+                        <link href="https://fonts.bunny.net/css?family={{ $fontMeta['bunny'] }}&display=swap" rel="stylesheet" />
+                    @endforeach
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 text-right mb-3">خط الموقع</label>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3" id="font-family-options">
+                            @foreach($brandFonts as $fontKey => $fontMeta)
+                                <label class="relative cursor-pointer rounded-lg border p-4 transition hover:border-indigo-400 has-[:checked]:border-indigo-600 has-[:checked]:ring-2 has-[:checked]:ring-indigo-200">
+                                    <input
+                                        type="radio"
+                                        name="font_family"
+                                        value="{{ $fontKey }}"
+                                        class="sr-only font-family-radio"
+                                        data-font-family="{{ $fontMeta['family'] }}"
+                                        data-bunny="{{ $fontMeta['bunny'] }}"
+                                        {{ $currentFont === $fontKey ? 'checked' : '' }}
+                                    >
+                                    <div class="text-right">
+                                        <div class="text-base font-bold text-gray-900" style="font-family: {{ $fontMeta['family'] }}">{{ $fontMeta['label_ar'] }}</div>
+                                        <div class="text-xs text-gray-500 mt-0.5">{{ $fontMeta['label'] }}</div>
+                                        <p class="mt-2 text-xs text-gray-500 leading-5">{{ $fontMeta['description'] }}</p>
+                                        <p class="mt-3 text-sm text-gray-800" style="font-family: {{ $fontMeta['family'] }}">مرحباً بك في نادينا الرياضي</p>
+                                    </div>
+                                </label>
+                            @endforeach
+                        </div>
+                        <p class="mt-2 text-sm text-gray-500 text-right">يُطبَّق على الموقع العام وصفحات الزوار فقط — لوحة التحكم تبقى بخطها الثابت.</p>
+                    </div>
+
+                    <!-- Live brand preview -->
+                    @php
+                        $previewPalette = \App\Support\Branding::palette(
+                            old('primary_color', \App\Models\SiteSetting::get('primary_color', '#6366f1')),
+                            old('secondary_color', \App\Models\SiteSetting::get('secondary_color', '#10b981'))
+                        );
+                    @endphp
+                    <div class="rounded-xl border border-gray-200 bg-gray-50 p-4" id="brand-preview" dir="rtl">
+                        <div class="flex items-center justify-between gap-3 mb-3">
+                            <h3 class="text-sm font-semibold text-gray-800">معاينة الهوية المتناسقة</h3>
+                            <span class="text-xs text-gray-500">يتولد تلقائياً من لونك</span>
+                        </div>
+                        <div class="rounded-lg bg-white p-4 shadow-sm space-y-3" id="brand-preview-card" style="font-family: var(--preview-font, inherit);">
+                            <div class="text-lg font-bold" id="brand-preview-title" style="color: var(--preview-primary, {{ $previewPalette['primary'] }});">
+                                {{ $currentSiteName }}
+                            </div>
+                            <p class="text-sm text-gray-600" id="brand-preview-text">الأزرار والتدرجات والأيقونات تُشتق من اللون الرئيسي لتبقى متناسقة في كل الموقع.</p>
+                            <div class="flex flex-wrap items-center gap-2">
+                                <button type="button" id="brand-preview-btn" class="inline-flex items-center rounded-md px-4 py-2 text-sm font-medium text-white" style="background-color: var(--preview-primary, {{ $previewPalette['primary'] }});">
+                                    زر رئيسي
+                                </button>
+                                <button type="button" id="brand-preview-gradient" class="inline-flex items-center rounded-md px-4 py-2 text-sm font-medium text-white" style="background-image: linear-gradient(to left, {{ $previewPalette['gradient_from'] }}, {{ $previewPalette['gradient_to'] }});">
+                                    تدرج الجلسات
+                                </button>
+                                <button type="button" id="brand-preview-cta" class="inline-flex items-center rounded-md px-4 py-2 text-sm font-medium text-white" style="background-image: linear-gradient(to left, {{ $previewPalette['gradient_cta_from'] }}, {{ $previewPalette['gradient_cta_to'] }});">
+                                    تدرج الشهادات
+                                </button>
+                                <span id="brand-preview-link" class="text-sm font-medium" style="color: var(--preview-primary, {{ $previewPalette['primary'] }});">رابط</span>
+                                <span id="brand-preview-badge" class="inline-flex rounded-full px-2.5 py-1 text-xs font-medium text-white" style="background-color: var(--preview-secondary, {{ $previewPalette['secondary'] }});">
+                                    ثانوي
+                                </span>
+                            </div>
+                            <div class="flex flex-wrap gap-2 pt-1" id="brand-preview-swatches" aria-label="ألوان مشتقة">
+                                @foreach([
+                                    ['label' => 'رئيسي', 'key' => 'primary'],
+                                    ['label' => 'مرافق', 'key' => 'companion'],
+                                    ['label' => 'مميز', 'key' => 'accent'],
+                                    ['label' => 'ناعم', 'key' => 'primary_soft'],
+                                    ['label' => 'ثانوي', 'key' => 'secondary'],
+                                ] as $swatch)
+                                    <div class="flex items-center gap-1.5 text-[11px] text-gray-500">
+                                        <span class="brand-swatch inline-block h-4 w-4 rounded-full border border-black/10" data-swatch="{{ $swatch['key'] }}" style="background: {{ $previewPalette[$swatch['key']] }}"></span>
+                                        {{ $swatch['label'] }}
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                        <p class="mt-2 text-xs text-gray-500 text-right">يُطبَّق التناسق على الموقع العام فقط دون تغيير مظهر لوحة التحكم.</p>
                     </div>
                     
                     <!-- Footer Text -->
@@ -461,31 +567,144 @@
             });
         });
         
-        // Color picker sync
+        // Color picker sync + live brand preview (mirrors App\Support\Branding::palette)
         const primaryColor = document.getElementById('primary_color');
         const primaryColorText = document.getElementById('primary_color_text');
         const secondaryColor = document.getElementById('secondary_color');
         const secondaryColorText = document.getElementById('secondary_color_text');
-        
+        const previewCard = document.getElementById('brand-preview-card');
+        const previewBtn = document.getElementById('brand-preview-btn');
+        const previewGradient = document.getElementById('brand-preview-gradient');
+        const previewCta = document.getElementById('brand-preview-cta');
+        const previewLink = document.getElementById('brand-preview-link');
+        const previewBadge = document.getElementById('brand-preview-badge');
+        const previewTitle = document.getElementById('brand-preview-title');
+        const fontRadios = document.querySelectorAll('.font-family-radio');
+        const loadedFontHrefs = new Set();
+
+        function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
+        function hexToRgb(hex) {
+            const h = (hex || '#6366f1').replace('#', '');
+            return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+        }
+        function rgbToHex(r, g, b) {
+            return '#' + [r, g, b].map((n) => clamp(Math.round(n), 0, 255).toString(16).padStart(2, '0')).join('');
+        }
+        function mixHex(a, b, amount) {
+            const [ar, ag, ab] = hexToRgb(a);
+            const [br, bg, bb] = hexToRgb(b);
+            return rgbToHex(ar + (br - ar) * amount, ag + (bg - ag) * amount, ab + (bb - ab) * amount);
+        }
+        function hexToHsl(hex) {
+            let [r, g, b] = hexToRgb(hex).map((n) => n / 255);
+            const max = Math.max(r, g, b), min = Math.min(r, g, b);
+            const l = (max + min) / 2;
+            if (max === min) return [0, 0, l * 100];
+            const d = max - min;
+            const s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+            let h;
+            switch (max) {
+                case r: h = ((g - b) / d) + (g < b ? 6 : 0); break;
+                case g: h = ((b - r) / d) + 2; break;
+                default: h = ((r - g) / d) + 4;
+            }
+            return [h * 60, s * 100, l * 100];
+        }
+        function hslToHex(h, s, l) {
+            h = ((h % 360) + 360) % 360; s = clamp(s, 0, 100) / 100; l = clamp(l, 0, 100) / 100;
+            if (s < 0.00001) { const v = l * 255; return rgbToHex(v, v, v); }
+            const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+            const p = 2 * l - q;
+            const hk = h / 360;
+            const hue = (t) => {
+                if (t < 0) t += 1; if (t > 1) t -= 1;
+                if (t < 1 / 6) return p + (q - p) * 6 * t;
+                if (t < 1 / 2) return q;
+                if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+                return p;
+            };
+            return rgbToHex(hue(hk + 1 / 3) * 255, hue(hk) * 255, hue(hk - 1 / 3) * 255);
+        }
+        function buildPalette(primary, secondary) {
+            const [h, s, l] = hexToHsl(primary);
+            const accent = hslToHex((h + 28 + 360) % 360, Math.min(100, s + 8), clamp(l + 4, 28, 62));
+            const companion = hslToHex((h - 18 + 360) % 360, Math.min(100, s + 4), clamp(l + 2, 30, 58));
+            return {
+                primary,
+                companion,
+                accent,
+                primary_soft: mixHex(primary, '#ffffff', 0.88),
+                secondary,
+                gradient_from: primary,
+                gradient_to: companion,
+                gradient_cta_from: primary,
+                gradient_cta_to: accent,
+            };
+        }
+
+        function loadBunnyFont(bunnyFamily) {
+            if (!bunnyFamily || loadedFontHrefs.has(bunnyFamily)) return;
+            const href = 'https://fonts.bunny.net/css?family=' + bunnyFamily + '&display=swap';
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = href;
+            document.head.appendChild(link);
+            loadedFontHrefs.add(bunnyFamily);
+        }
+
+        function updateBrandPreview() {
+            const primary = primaryColor ? primaryColor.value : '#6366f1';
+            const secondary = secondaryColor ? secondaryColor.value : '#10b981';
+            const selectedFont = document.querySelector('.font-family-radio:checked');
+            const palette = buildPalette(primary, secondary);
+
+            if (previewCard) {
+                previewCard.style.setProperty('--preview-primary', primary);
+                previewCard.style.setProperty('--preview-secondary', secondary);
+            }
+            if (previewBtn) previewBtn.style.backgroundColor = palette.primary;
+            if (previewGradient) previewGradient.style.backgroundImage = `linear-gradient(to left, ${palette.gradient_from}, ${palette.gradient_to})`;
+            if (previewCta) previewCta.style.backgroundImage = `linear-gradient(to left, ${palette.gradient_cta_from}, ${palette.gradient_cta_to})`;
+            if (previewLink) previewLink.style.color = palette.primary;
+            if (previewTitle) previewTitle.style.color = palette.primary;
+            if (previewBadge) previewBadge.style.backgroundColor = palette.secondary;
+
+            document.querySelectorAll('[data-swatch]').forEach((el) => {
+                const key = el.getAttribute('data-swatch');
+                if (palette[key]) el.style.background = palette[key];
+            });
+
+            if (selectedFont && previewCard) {
+                const family = selectedFont.getAttribute('data-font-family');
+                const bunny = selectedFont.getAttribute('data-bunny');
+                loadBunnyFont(bunny);
+                previewCard.style.fontFamily = family;
+                previewCard.style.setProperty('--preview-font', family);
+            }
+        }
+
         if (primaryColor && primaryColorText) {
             primaryColor.addEventListener('input', () => {
                 primaryColorText.value = primaryColor.value;
-            });
-            
-            primaryColorText.addEventListener('input', () => {
-                primaryColor.value = primaryColorText.value;
+                updateBrandPreview();
             });
         }
-        
+
         if (secondaryColor && secondaryColorText) {
             secondaryColor.addEventListener('input', () => {
                 secondaryColorText.value = secondaryColor.value;
-            });
-            
-            secondaryColorText.addEventListener('input', () => {
-                secondaryColor.value = secondaryColorText.value;
+                updateBrandPreview();
             });
         }
+
+        fontRadios.forEach((radio) => {
+            radio.addEventListener('change', updateBrandPreview);
+            if (radio.checked) {
+                loadBunnyFont(radio.getAttribute('data-bunny'));
+            }
+        });
+
+        updateBrandPreview();
     });
 </script>
 @endsection

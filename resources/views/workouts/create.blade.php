@@ -110,6 +110,10 @@
                 </div>
             </div>
             
+            @include('partials.audience-fields', ['model' => new \App\Models\Workout()])
+
+            @include('partials.workout-exercise-picker', ['selectedExercises' => $selectedExercises ?? collect()])
+
             <!-- إعدادات النشر -->
             <div class="py-6">
                 <h3 class="text-lg font-medium text-gray-900">إعدادات النشر</h3>

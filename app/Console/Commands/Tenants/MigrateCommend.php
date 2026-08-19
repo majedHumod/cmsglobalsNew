@@ -3,6 +3,9 @@
 namespace App\Console\Commands\Tenants;
 
 use App\Models\Tenant;
+use App\Services\Tenant\TenantAuditService;
+use App\Services\Tenant\TenantDefaultContentService;
+use App\Support\MigrationScope;
 use App\Services\TenantService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Artisan;
@@ -26,11 +29,17 @@ class MigrateCommend extends Command
     /**
      * Execute the console command.
      */
-    public function handle()
+    public function handle(TenantAuditService $auditService, TenantDefaultContentService $defaultContentService)
     {
-        $tenants = Tenant::all();
+        $tenants = Tenant::query()->get();
 
-        $tenants->each(function ($tenant) {
+        $tenants->each(function ($tenant) use ($auditService, $defaultContentService) {
+            $audit = $auditService->auditTenant($tenant);
+            if ($audit['database_status'] !== 'present') {
+                $this->warn('Skipping ' . $tenant->domain . ': ' . $audit['status_note']);
+                return;
+            }
+
             // تبديل الاتصال إلى قاعدة بيانات العميل
             TenantService::switchToTenant($tenant);
 
@@ -40,13 +49,21 @@ class MigrateCommend extends Command
             // تنفيذ المايجريشن
            //Artisan::call('migrate:rollback', [ في حال الرغبة في الرول باك
             Artisan::call('migrate', [
-                '--path' => 'database/migrations/tenants/',
+                '--path' => MigrationScope::tenant(),
                 '--database' => 'tenant',
                 '--force' => true, // مهم في بعض السيرفرات
             ]);
+            $migrationOutput = Artisan::output();
+
+            $seedResult = $defaultContentService->seedDefaultPublicContent();
 
             // طباعة نتائج الأمر
-            $this->line(Artisan::output());
+            $this->line($migrationOutput);
+            if (trim($seedResult['output']) !== '') {
+                $this->line($seedResult['output']);
+            }
         });
+
+        TenantService::switchToDefault();
     }
 }

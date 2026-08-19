@@ -10,6 +10,11 @@ class MembershipType extends Model
 {
     use HasFactory;
 
+    /**
+     * Access-path / entitlement tier.
+     * Commercial price, duration, and marketing features belong on SubscriptionPlan.
+     * Legacy columns (price, duration_days, features) remain for backward compatibility only.
+     */
     protected $fillable = [
         'name',
         'slug',
@@ -65,6 +70,11 @@ class MembershipType extends Model
     public function activeUserMemberships()
     {
         return $this->hasMany(UserMembership::class)->where('is_active', true)->where('expires_at', '>', now());
+    }
+
+    public function subscriptionPlans()
+    {
+        return $this->hasMany(SubscriptionPlan::class);
     }
 
     // Scopes

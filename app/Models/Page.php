@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasAudience;
+use App\Services\MembershipAccessService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Page extends Model
 {
     use HasFactory;
+    use HasAudience;
 
     /**
      * الحقول التي يمكن تعبئتها بشكل جماعي.
@@ -28,6 +31,7 @@ class Page extends Model
         'published_at',
         'user_id',
         'required_membership_types',
+        'audience_gender',
     ];
 
     /**
@@ -38,34 +42,8 @@ class Page extends Model
         'is_premium' => 'boolean',
         'show_in_menu' => 'boolean',
         'published_at' => 'datetime',
+        'audience_gender' => 'string',
     ];
-
-    /**
-     * فك ترميز حقل required_membership_types تلقائيًا عند القراءة.
-     */
-    public function getRequiredMembershipTypesAttribute($value)
-    {
-        return json_decode($value, true) ?: [];
-    }
-
-    /**
-     * ترميز حقل required_membership_types إلى JSON عند الحفظ.
-     */
-    public function setRequiredMembershipTypesAttribute($value)
-    {
-        // تحويل القيم إلى أرقام صحيحة وتأكد من أنها مصفوفة
-        if (is_array($value)) {
-            $value = array_map('intval', $value);
-        } else if (is_string($value) && !empty($value)) {
-            // إذا كانت سلسلة نصية، حاول تحويلها إلى مصفوفة
-            $decoded = json_decode($value, true);
-            $value = is_array($decoded) ? array_map('intval', $decoded) : [];
-        } else {
-            $value = [];
-        }
-        
-        $this->attributes['required_membership_types'] = json_encode($value);
-    }
 
     /**
      * العلاقة مع المستخدم (مالك الصفحة).
@@ -99,25 +77,29 @@ class Page extends Model
     {
         if (!$user) {
             // المستخدم غير مسجل الدخول يمكنه رؤية الصفحات العامة فقط
-            return $query->where('access_level', 'public');
+            return $query->where('access_level', 'public')->visibleTo($user);
         }
 
         if ($user->hasRole('admin')) {
             return $query; // كل الصفحات
         }
 
-        // أمثلة على التحقق من الصلاحيات
         return $query->where(function ($q) use ($user) {
             $q->where('access_level', 'public')
-              ->orWhere(function ($q2) use ($user) {
-                  $q2->where('access_level', 'authenticated')
-                     ->whereNotNull($user->id);
-              })
-              ->orWhere(function ($q3) use ($user) {
-                  $q3->where('access_level', 'membership')
-                     ->whereJsonContains('required_membership_types', $user->membership_type_id);
-              });
-        });
+                ->orWhere('access_level', 'authenticated');
+
+            if (MembershipAccessService::hasTraineeRole($user)) {
+                $q->orWhere('access_level', 'user');
+            }
+
+            if ($user->hasRole('page_manager')) {
+                $q->orWhere('access_level', 'page_manager');
+            }
+
+            if (MembershipAccessService::currentMembershipTypeIds($user) !== []) {
+                $q->orWhere('access_level', 'membership');
+            }
+        })->visibleTo($user);
     }
 
     /**
@@ -125,8 +107,10 @@ class Page extends Model
      */
     public function canAccess($user = null)
     {
+        $audienceMatches = MembershipAccessService::matchesGender($user, $this->audience_gender);
+
         if ($this->access_level === 'public') {
-            return true;
+            return $audienceMatches && $this->matchesAudience($user);
         }
 
         if (!$user) {
@@ -138,33 +122,24 @@ class Page extends Model
         }
 
         if ($this->access_level === 'authenticated' && $user) {
-            return true;
+            return $this->matchesAudience($user);
         }
-        
-        if ($this->access_level === 'user' && $user->hasRole('user')) {
-            return true;
+
+        if ($this->access_level === 'user' && MembershipAccessService::hasTraineeRole($user)) {
+            return $this->matchesAudience($user);
         }
-        
+
         if ($this->access_level === 'page_manager' && $user->hasRole('page_manager')) {
-            return true;
+            return $this->matchesAudience($user);
         }
 
         if ($this->access_level === 'membership') {
-            // تحقق من وجود نوع العضوية للمستخدم
-            if (!$user->membership_type_id) {
+            if (! MembershipAccessService::matchesMembershipTypes($user, $this->required_membership_types ?? [])) {
                 return false;
             }
-            
-            // تحويل required_membership_types إلى مصفوفة إذا كان نصًا
-            $requiredTypes = $this->required_membership_types;
-            if (is_string($requiredTypes)) {
-                $requiredTypes = json_decode($requiredTypes, true) ?: [];
-            }
-            
-            return in_array($user->membership_type_id, $requiredTypes);
-        }
 
-        // أضف تحقق إضافي حسب احتياجاتك
+            return $this->matchesAudience($user);
+        }
 
         return false;
     }

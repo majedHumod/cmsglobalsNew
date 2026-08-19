@@ -81,6 +81,16 @@
                 @endif
             @endif
         </div>
+
+        <div class="col-span-6 sm:col-span-4">
+            <x-label for="gender" value="{{ __('الجنس') }}" />
+            <select id="gender" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" wire:model="state.gender">
+                <option value="">{{ __('اختر الجنس') }}</option>
+                <option value="male">{{ __('رجال') }}</option>
+                <option value="female">{{ __('نساء') }}</option>
+            </select>
+            <x-input-error for="gender" class="mt-2" />
+        </div>
     </x-slot>
 
     <x-slot name="actions">

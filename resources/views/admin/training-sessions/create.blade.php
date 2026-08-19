@@ -118,6 +118,29 @@
                     </div>
                 </div>
 
+                <div class="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div>
+                        <label for="session_type" class="block text-sm font-medium text-gray-700">نوع الجلسة *</label>
+                        <select name="session_type" id="session_type" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                            <option value="in_person" {{ old('session_type', 'in_person') === 'in_person' ? 'selected' : '' }}>حضوري</option>
+                            <option value="online" {{ old('session_type') === 'online' ? 'selected' : '' }}>أونلاين</option>
+                            <option value="hybrid" {{ old('session_type') === 'hybrid' ? 'selected' : '' }}>هجين</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="capacity" class="block text-sm font-medium text-gray-700">السعة *</label>
+                        <input type="number" name="capacity" id="capacity" min="1" value="{{ old('capacity', 1) }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                    </div>
+                    <div>
+                        <label for="location" class="block text-sm font-medium text-gray-700">الموقع / رابط الجلسة</label>
+                        <input type="text" name="location" id="location" value="{{ old('location') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="الاستوديو أو رابط Zoom">
+                    </div>
+                    <div>
+                        <label for="video_meeting_url" class="block text-sm font-medium text-gray-700">رابط الاجتماع المرئي</label>
+                        <input type="url" name="video_meeting_url" id="video_meeting_url" value="{{ old('video_meeting_url') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="https://zoom.us/...">
+                    </div>
+                </div>
+
                 <!-- صورة الجلسة -->
                 <div class="mt-6">
                     <label for="image" class="block text-sm font-medium text-gray-700">صورة الجلسة</label>
@@ -128,6 +151,8 @@
                     <p class="mt-1 text-sm text-gray-500">صورة تعبر عن جلسة التدريب (اختياري).</p>
                 </div>
             </div>
+
+            @include('partials.audience-fields', ['model' => new \App\Models\TrainingSession()])
 
             <!-- إعدادات العرض -->
             <div class="py-6">

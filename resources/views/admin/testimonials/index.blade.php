@@ -5,106 +5,85 @@
 @section('header', 'إدارة قصص النجاح')
 
 @section('header_actions')
-<div class="flex space-x-2">
-    <a href="{{ route('admin.testimonials.create') }}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
-        <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-        </svg>
-        إضافة قصة نجاح جديدة
-    </a>
-</div>
+    <x-admin.button :href="route('admin.testimonials.create')" variant="primary">إضافة قصة نجاح جديدة</x-admin.button>
 @endsection
 
 @section('content')
-<div class="bg-white shadow-md rounded-lg overflow-hidden">
-    <div class="p-6">
-        <div class="mb-6">
-            <h2 class="text-lg font-medium text-gray-900">قائمة قصص النجاح</h2>
-            <p class="mt-1 text-sm text-gray-500">إدارة وتنظيم قصص النجاح والشهادات من هنا.</p>
-        </div>
+<x-admin.card :padding="false">
+    <x-slot:header>
+        <x-admin.section-heading
+            class="mb-0"
+            title="قائمة قصص النجاح"
+            description="إدارة وتنظيم قصص النجاح والشهادات من هنا."
+        />
+    </x-slot:header>
 
-        @if($testimonials->isEmpty())
-            <div class="text-center py-12">
-                <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-gray-100 mb-4">
-                    <svg class="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-1l-4 4z" />
-                    </svg>
-                </div>
-                <h3 class="text-lg font-medium text-gray-900 mb-2">لا توجد قصص نجاح</h3>
-                <p class="text-sm text-gray-500 mb-6">ابدأ بإضافة قصة نجاح جديدة لعرضها للزوار.</p>
-                <a href="{{ route('admin.testimonials.create') }}" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                    </svg>
-                    إضافة قصة نجاح جديدة
-                </a>
-            </div>
-        @else
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الاسم</th>
-                            <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">محتوى القصة</th>
-                            <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الصورة</th>
-                            <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الترتيب</th>
-                            <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الحالة</th>
-                            <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">تاريخ الإنشاء</th>
-                            <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الإجراءات</th>
+    @if($testimonials->isEmpty())
+        <x-admin.empty-state
+            title="لا توجد قصص نجاح"
+            description="ابدأ بإضافة قصة نجاح جديدة لعرضها للزوار."
+        >
+            <x-slot:actions>
+                <x-admin.button :href="route('admin.testimonials.create')" variant="primary">إضافة قصة نجاح جديدة</x-admin.button>
+            </x-slot:actions>
+        </x-admin.empty-state>
+    @else
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-tremor-border">
+                <thead class="bg-tremor-background-muted">
+                    <tr>
+                        <th class="px-5 py-3 text-right text-xs font-semibold uppercase tracking-wide text-tremor-content-subtle">الاسم</th>
+                        <th class="px-5 py-3 text-right text-xs font-semibold uppercase tracking-wide text-tremor-content-subtle">محتوى القصة</th>
+                        <th class="px-5 py-3 text-right text-xs font-semibold uppercase tracking-wide text-tremor-content-subtle">الصورة</th>
+                        <th class="px-5 py-3 text-right text-xs font-semibold uppercase tracking-wide text-tremor-content-subtle">الترتيب</th>
+                        <th class="px-5 py-3 text-right text-xs font-semibold uppercase tracking-wide text-tremor-content-subtle">الحالة</th>
+                        <th class="px-5 py-3 text-right text-xs font-semibold uppercase tracking-wide text-tremor-content-subtle">تاريخ الإنشاء</th>
+                        <th class="px-5 py-3"></th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-tremor-border bg-white">
+                    @foreach($testimonials as $testimonial)
+                        <tr class="hover:bg-tremor-background-muted/70">
+                            <td class="px-5 py-4 text-sm font-medium text-tremor-content-strong">{{ $testimonial->name }}</td>
+                            <td class="px-5 py-4 text-sm text-tremor-content">{{ Str::limit($testimonial->story_content, 100) }}</td>
+                            <td class="px-5 py-4">
+                                @if($testimonial->image)
+                                    <img src="{{ Storage::url($testimonial->image) }}" alt="{{ $testimonial->name }}" class="h-10 w-10 rounded-full object-cover">
+                                @else
+                                    <span class="text-sm text-tremor-content-subtle">لا توجد صورة</span>
+                                @endif
+                            </td>
+                            <td class="px-5 py-4 text-sm text-tremor-content">{{ $testimonial->sort_order }}</td>
+                            <td class="px-5 py-4">
+                                <x-admin.badge :tone="$testimonial->is_visible ? 'success' : 'neutral'">
+                                    {{ $testimonial->is_visible ? 'مرئي' : 'مخفي' }}
+                                </x-admin.badge>
+                            </td>
+                            <td class="px-5 py-4 text-sm text-tremor-content">{{ $testimonial->created_at->format('Y-m-d') }}</td>
+                            <td class="px-5 py-4">
+                                <x-admin.actions>
+                                    <x-admin.action :href="route('admin.testimonials.edit', $testimonial)">تعديل</x-admin.action>
+
+                                    <form action="{{ route('admin.testimonials.toggle-visibility', $testimonial) }}" method="POST">
+                                        @csrf
+                                        @method('PATCH')
+                                        <x-admin.action type="submit">
+                                            {{ $testimonial->is_visible ? 'إخفاء' : 'إظهار' }}
+                                        </x-admin.action>
+                                    </form>
+
+                                    <form action="{{ route('admin.testimonials.destroy', $testimonial) }}" method="POST">
+                                        @csrf
+                                        @method('DELETE')
+                                        <x-admin.action type="submit" tone="danger" confirm="هل أنت متأكد من حذف هذه القصة؟">حذف</x-admin.action>
+                                    </form>
+                                </x-admin.actions>
+                            </td>
                         </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                        @foreach($testimonials as $testimonial)
-                            <tr>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm font-medium text-gray-900">{{ $testimonial->name }}</div>
-                                </td>
-                                <td class="px-6 py-4">
-                                    <div class="text-sm text-gray-500 max-w-xs truncate">{{ Str::limit($testimonial->story_content, 100) }}</div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    @if($testimonial->image)
-                                        <img src="{{ Storage::url($testimonial->image) }}" alt="{{ $testimonial->name }}" class="h-10 w-10 rounded-full object-cover">
-                                    @else
-                                        <span class="text-gray-400">لا توجد صورة</span>
-                                    @endif
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    {{ $testimonial->sort_order }}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    {!! $testimonial->status_badge !!}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    {{ $testimonial->created_at->format('Y-m-d') }}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                    <div class="flex space-x-2">
-                                        <a href="{{ route('admin.testimonials.edit', $testimonial) }}" class="text-indigo-600 hover:text-indigo-900">تعديل</a>
-                                        
-                                        <form action="{{ route('admin.testimonials.toggle-visibility', $testimonial) }}" method="POST" class="inline">
-                                            @csrf
-                                            @method('PATCH')
-                                            <button type="submit" class="{{ $testimonial->is_visible ? 'text-yellow-600 hover:text-yellow-900' : 'text-green-600 hover:text-green-900' }}">
-                                                {{ $testimonial->is_visible ? 'إخفاء' : 'إظهار' }}
-                                            </button>
-                                        </form>
-                                        
-                                        <form action="{{ route('admin.testimonials.destroy', $testimonial) }}" method="POST" class="inline">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="text-red-600 hover:text-red-900" onclick="return confirm('هل أنت متأكد من حذف هذه القصة؟')">
-                                                حذف
-                                            </button>
-                                        </form>
-                                    </div>
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-        @endif
-    </div>
-</div>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    @endif
+</x-admin.card>
 @endsection

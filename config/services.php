@@ -35,6 +35,10 @@ return [
         ],
     ],
 
+    'communication_webhook' => [
+        'secret' => env('COMMUNICATION_WEBHOOK_SECRET', ''),
+    ],
+
     'paylink' => [
         'base_url' => env('PAYLINK_BASE_URL', 'https://restapi.paylink.sa'),
         'api_id' => env('PAYLINK_API_ID'),
@@ -46,6 +50,22 @@ return [
         'webhook_url' => env('PAYLINK_WEBHOOK_URL'),
         'currency' => env('PAYLINK_CURRENCY', 'SAR'),
         'supported_card_brands' => array_values(array_filter(array_map('trim', explode(',', (string) env('PAYLINK_SUPPORTED_CARD_BRANDS', 'mada,visaMastercard,stcpay'))))),
+    ],
+
+    'twilio' => [
+        'sid' => env('TWILIO_SID'),
+        'token' => env('TWILIO_AUTH_TOKEN'),
+        'sms_from' => env('TWILIO_PHONE_NUMBER'),
+    ],
+
+    'whatsapp' => [
+        // log = write OTP to laravel.log (local). twilio = send via WhatsApp API.
+        'driver' => env('WHATSAPP_DRIVER', 'log'),
+        'from' => env('TWILIO_WHATSAPP_FROM', 'whatsapp:+14155238886'),
+        'otp_ttl' => (int) env('WHATSAPP_OTP_TTL', 300),
+        'otp_resend_seconds' => (int) env('WHATSAPP_OTP_RESEND_SECONDS', 60),
+        // When true, API returns debug_code in response (local testing only).
+        'otp_debug' => (bool) env('WHATSAPP_OTP_DEBUG', false),
     ],
 
 ];

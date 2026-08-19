@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\Tenant;
+use App\Support\MigrationScope;
 use App\Services\TenantService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Artisan;
@@ -56,7 +57,8 @@ class MigrateLandingPage extends Command
             if (!Schema::hasTable('landing_pages')) {
                 $this->info("📝 Creating landing_pages table...");
                 Artisan::call('migrate', [
-                    '--path' => 'database/migrations/tenants/2025_06_20_create_landing_pages_table.php',
+                    '--path' => MigrationScope::tenant('database/migrations/tenants/2025_06_20_create_landing_pages_table.php'),
+                    '--database' => 'tenant',
                     '--force' => true,
                 ]);
                 $this->info(Artisan::output());

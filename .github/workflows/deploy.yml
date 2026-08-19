@@ -1,6 +1,8 @@
 name: Deploy to cPanel
 
-on: [push]
+# Manual only: pushing to GitHub must not publish to production.
+on:
+  workflow_dispatch:
 
 jobs:
   deploy:
@@ -8,6 +10,37 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v5
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, xml, ctype, json, bcmath, fileinfo, tokenizer
+          coverage: none
+
+      - name: Prepare build environment
+        run: |
+          cp .env.example .env
+          php -r "file_put_contents('.env', preg_replace('/^APP_KEY=.*/m', 'APP_KEY=base64:'.base64_encode(random_bytes(32)), file_get_contents('.env')));"
+
+      - name: Install PHP dependencies
+        run: composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Build frontend assets
+        run: |
+          npm ci
+          npm run build
+
+      - name: Strip non-runtime files
+        run: |
+          rm -f .env .env.backup .env.production
+          rm -rf tests docs demoPro github .github node_modules
 
       - name: FTP Deploy
         uses: SamKirkland/FTP-Deploy-Action@v4.3.6
@@ -17,3 +50,20 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           server-dir: app.etoscoach.com/
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/.env
+            **/.env.*
+            **/node_modules/**
+            **/.github/**
+            **/github/**
+            **/tests/**
+            **/docs/**
+            **/demoPro/**
+            **/storage/logs/**
+            **/storage/framework/cache/**
+            **/storage/framework/sessions/**
+            **/storage/framework/views/**
+            phpunit.xml
+            phpunit.xml.dist

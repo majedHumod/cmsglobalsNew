@@ -20,6 +20,7 @@
                 <tr>
                     <th scope="col" class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">المشترك</th>
                     <th scope="col" class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">نوع العضوية</th>
+                    <th scope="col" class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الخطة</th>
                     <th scope="col" class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">بداية</th>
                     <th scope="col" class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">انتهاء</th>
                     <th scope="col" class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الدفع</th>
@@ -41,6 +42,9 @@
                                 —
                             @endif
                         </td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
+                            {{ $m->subscriptionPlan?->name ?? '—' }}
+                        </td>
                         <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
                             {{ $m->starts_at?->format('Y-m-d') ?? '—' }}
                         </td>
@@ -56,7 +60,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="6" class="px-4 py-8 text-center text-gray-500">لا توجد اشتراكات مسجّلة بعد.</td>
+                        <td colspan="7" class="px-4 py-8 text-center text-gray-500">لا توجد اشتراكات مسجّلة بعد.</td>
                     </tr>
                 @endforelse
             </tbody>

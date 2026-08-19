@@ -117,6 +117,10 @@
                 </div>
             </div>
             
+            @include('partials.audience-fields', ['model' => $workout])
+
+            @include('partials.workout-exercise-picker')
+
             <!-- معلومات التمرين -->
             <div class="py-6">
                 <h3 class="text-lg font-medium text-gray-900">معلومات التمرين</h3>

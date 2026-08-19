@@ -1,49 +1,32 @@
-@extends('layouts.admin')
+﻿@extends('layouts.admin')
 
 @section('title', 'تعديل الصفحة')
 
 @section('header', 'تعديل الصفحة: ' . $page->title)
 
 @section('header_actions')
-<div class="flex space-x-2">
-    <a href="{{ route('pages.show', $page->slug) }}" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50" target="_blank">
-        <svg class="-ml-1 mr-2 h-5 w-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-        </svg>
-        عرض الصفحة
-    </a>
-    <a href="{{ route('pages.index') }}" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
-        <svg class="-ml-1 mr-2 h-5 w-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-        </svg>
-        العودة للقائمة
-    </a>
+<div class="flex flex-wrap gap-2">
+    <a href="{{ route('pages.show', $page->slug) }}" target="_blank" class="inline-flex items-center rounded-tremor-default border border-tremor-border bg-white px-3 py-2 text-sm font-medium text-tremor-content-emphasis shadow-tremor-input hover:bg-tremor-background-muted">عرض الصفحة</a>
+    <a href="{{ route('pages.index') }}" class="inline-flex items-center rounded-tremor-default border border-tremor-border bg-white px-3 py-2 text-sm font-medium text-tremor-content-emphasis shadow-tremor-input hover:bg-tremor-background-muted">العودة للقائمة</a>
 </div>
 @endsection
 
 @section('content')
-<div class="bg-white shadow-md rounded-lg overflow-hidden">
-    <div class="p-6">
-        <div class="mb-6">
-            <h2 class="text-lg font-medium text-gray-900">تعديل الصفحة</h2>
-            <p class="mt-1 text-sm text-gray-500">قم بتعديل محتوى وإعدادات الصفحة.</p>
-        </div>
-
-        <form action="{{ route('pages.update', $page) }}" method="POST" enctype="multipart/form-data" class="space-y-6">
+<div class="mx-auto max-w-5xl space-y-4">
+        <form action="{{ route('pages.update', $page) }}" method="POST" enctype="multipart/form-data" class="admin-card p-5 sm:p-6 space-y-6">
             @csrf
             @method('PUT')
             
             <!-- معلومات الصفحة الأساسية -->
-            <div class="border-b border-gray-200 pb-6">
-                <h3 class="text-lg font-medium text-gray-900">معلومات الصفحة الأساسية</h3>
-                <p class="mt-1 text-sm text-gray-500">تعديل المعلومات الأساسية للصفحة.</p>
+            <div class="border-b border-tremor-border pb-6">
+                <h3 class="text-sm font-semibold text-tremor-content-strong">معلومات الصفحة الأساسية</h3>
+                <p class="mt-1 text-sm text-tremor-content">تعديل المعلومات الأساسية للصفحة.</p>
                 
                 <div class="mt-6">
                     <!-- العنوان -->
                     <div>
-                        <label for="title" class="block text-sm font-medium text-gray-700 mb-2">عنوان الصفحة *</label>
-                        <input type="text" name="title" id="title" class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500" value="{{ old('title', $page->title) }}" required>
+                        <label for="title" class="block text-sm font-medium text-tremor-content-emphasis mb-2">عنوان الصفحة *</label>
+                        <input type="text" name="title" id="title" class="w-full border-tremor-border rounded-tremor-default shadow-tremor-input focus:border-orange-400 focus:ring-orange-400" value="{{ old('title', $page->title) }}" required>
                         @error('title')
                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                         @enderror
@@ -52,51 +35,51 @@
             </div>
             
             <!-- محتوى الصفحة -->
-            <div class="border-b border-gray-200 py-6">
-                <h3 class="text-lg font-medium text-gray-900">محتوى الصفحة</h3>
-                <p class="mt-1 text-sm text-gray-500">تعديل محتوى الصفحة مع إمكانيات التنسيق المتقدمة.</p>
+            <div class="border-b border-tremor-border py-6">
+                <h3 class="text-sm font-semibold text-tremor-content-strong">محتوى الصفحة</h3>
+                <p class="mt-1 text-sm text-tremor-content">تعديل محتوى الصفحة مع إمكانيات التنسيق المتقدمة.</p>
                 
                 <div class="mt-6">
                         <!-- المحتوى مع المحرر المجاني -->
                         <div>
-                            <label for="content" class="block text-sm font-medium text-gray-700 mb-2">محتوى الصفحة *</label>
+                            <label for="content" class="block text-sm font-medium text-tremor-content-emphasis mb-2">محتوى الصفحة *</label>
                             
                             <!-- أدوات التنسيق -->
-                            <div class="border border-gray-300 rounded-t-md bg-gray-50 p-2 flex flex-wrap gap-1" id="editor-toolbar">
-                                <button type="button" onclick="formatText('bold')" class="px-3 py-1 bg-white border border-gray-300 rounded hover:bg-gray-100" title="غامق">
+                            <div class="border border-tremor-border rounded-t-tremor-default bg-tremor-background-muted p-2 flex flex-wrap gap-1" id="editor-toolbar">
+                                <button type="button" onclick="formatText('bold')" class="px-3 py-1 bg-white border border-tremor-border rounded-tremor-small hover:bg-tremor-background-subtle" title="غامق">
                                     <strong>B</strong>
                                 </button>
-                                <button type="button" onclick="formatText('italic')" class="px-3 py-1 bg-white border border-gray-300 rounded hover:bg-gray-100" title="مائل">
+                                <button type="button" onclick="formatText('italic')" class="px-3 py-1 bg-white border border-tremor-border rounded-tremor-small hover:bg-tremor-background-subtle" title="مائل">
                                     <em>I</em>
                                 </button>
-                                <button type="button" onclick="formatText('underline')" class="px-3 py-1 bg-white border border-gray-300 rounded hover:bg-gray-100" title="تسطير">
+                                <button type="button" onclick="formatText('underline')" class="px-3 py-1 bg-white border border-tremor-border rounded-tremor-small hover:bg-tremor-background-subtle" title="تسطير">
                                     <u>U</u>
                                 </button>
-                                <div class="border-l border-gray-300 mx-1"></div>
-                                <button type="button" onclick="formatText('insertUnorderedList')" class="px-3 py-1 bg-white border border-gray-300 rounded hover:bg-gray-100" title="قائمة نقطية">
+                                <div class="border-l border-tremor-border mx-1"></div>
+                                <button type="button" onclick="formatText('insertUnorderedList')" class="px-3 py-1 bg-white border border-tremor-border rounded-tremor-small hover:bg-tremor-background-subtle" title="قائمة نقطية">
                                     • قائمة
                                 </button>
-                                <button type="button" onclick="formatText('insertOrderedList')" class="px-3 py-1 bg-white border border-gray-300 rounded hover:bg-gray-100" title="قائمة مرقمة">
+                                <button type="button" onclick="formatText('insertOrderedList')" class="px-3 py-1 bg-white border border-tremor-border rounded-tremor-small hover:bg-tremor-background-subtle" title="قائمة مرقمة">
                                     1. قائمة
                                 </button>
-                                <div class="border-l border-gray-300 mx-1"></div>
-                                <button type="button" onclick="formatText('justifyLeft')" class="px-3 py-1 bg-white border border-gray-300 rounded hover:bg-gray-100" title="محاذاة يسار">
+                                <div class="border-l border-tremor-border mx-1"></div>
+                                <button type="button" onclick="formatText('justifyLeft')" class="px-3 py-1 bg-white border border-tremor-border rounded-tremor-small hover:bg-tremor-background-subtle" title="محاذاة يسار">
                                     ←
                                 </button>
-                                <button type="button" onclick="formatText('justifyCenter')" class="px-3 py-1 bg-white border border-gray-300 rounded hover:bg-gray-100" title="محاذاة وسط">
+                                <button type="button" onclick="formatText('justifyCenter')" class="px-3 py-1 bg-white border border-tremor-border rounded-tremor-small hover:bg-tremor-background-subtle" title="محاذاة وسط">
                                     ↔
                                 </button>
-                                <button type="button" onclick="formatText('justifyRight')" class="px-3 py-1 bg-white border border-gray-300 rounded hover:bg-gray-100" title="محاذاة يمين">
+                                <button type="button" onclick="formatText('justifyRight')" class="px-3 py-1 bg-white border border-tremor-border rounded-tremor-small hover:bg-tremor-background-subtle" title="محاذاة يمين">
                                     →
                                 </button>
-                                <div class="border-l border-gray-300 mx-1"></div>
-                                <button type="button" onclick="insertLink()" class="px-3 py-1 bg-white border border-gray-300 rounded hover:bg-gray-100" title="إدراج رابط">
+                                <div class="border-l border-tremor-border mx-1"></div>
+                                <button type="button" onclick="insertLink()" class="px-3 py-1 bg-white border border-tremor-border rounded-tremor-small hover:bg-tremor-background-subtle" title="إدراج رابط">
                                     🔗 رابط
                                 </button>
-                                <button type="button" onclick="insertImage()" class="px-3 py-1 bg-white border border-gray-300 rounded hover:bg-gray-100" title="إدراج صورة">
+                                <button type="button" onclick="insertImage()" class="px-3 py-1 bg-white border border-tremor-border rounded-tremor-small hover:bg-tremor-background-subtle" title="إدراج صورة">
                                     🖼️ صورة
                                 </button>
-                                <div class="border-l border-gray-300 mx-1"></div>
+                                <div class="border-l border-tremor-border mx-1"></div>
                                 <select onchange="formatHeading(this.value)" class="px-2 py-1 bg-white border border-gray-300 rounded text-sm">
                                     <option value="">العناوين</option>
                                     <option value="h1">عنوان رئيسي</option>
@@ -104,18 +87,18 @@
                                     <option value="h3">عنوان صغير</option>
                                     <option value="p">نص عادي</option>
                                 </select>
-                                <div class="border-l border-gray-300 mx-1"></div>
-                                <button type="button" onclick="toggleSourceCode()" class="px-3 py-1 bg-white border border-gray-300 rounded hover:bg-gray-100" title="عرض الكود">
+                                <div class="border-l border-tremor-border mx-1"></div>
+                                <button type="button" onclick="toggleSourceCode()" class="px-3 py-1 bg-white border border-tremor-border rounded-tremor-small hover:bg-tremor-background-subtle" title="عرض الكود">
                                     &lt;/&gt; كود
                                 </button>
                             </div>
 
                             <!-- منطقة المحرر -->
                             <div id="editor-container" class="border-l border-r border-b border-gray-300 rounded-b-md">
-                                <div id="editor" contenteditable="true" class="min-h-96 p-4 focus:outline-none focus:ring-2 focus:ring-indigo-500" style="direction: rtl;">
+                                <div id="editor" contenteditable="true" class="min-h-96 p-4 focus:outline-none focus:ring-2 focus:ring-orange-400" style="direction: rtl;">
                                     {!! old('content', $page->content) !!}
                                 </div>
-                                <textarea name="content" id="content-textarea" class="hidden w-full min-h-96 p-4 border-0 focus:outline-none focus:ring-2 focus:ring-indigo-500" style="direction: rtl;">{!! old('content', $page->content) !!}</textarea>
+                                <textarea name="content" id="content-textarea" class="hidden w-full min-h-96 p-4 border-0 focus:outline-none focus:ring-2 focus:ring-orange-400" style="direction: rtl;">{!! old('content', $page->content) !!}</textarea>
                             </div>
                             
                             @error('content')
@@ -127,15 +110,15 @@
             </div>
             
             <!-- معلومات إضافية -->
-            <div class="border-b border-gray-200 py-6">
-                <h3 class="text-lg font-medium text-gray-900">معلومات إضافية</h3>
-                <p class="mt-1 text-sm text-gray-500">تعديل المعلومات الإضافية للصفحة.</p>
+            <div class="border-b border-tremor-border py-6">
+                <h3 class="text-sm font-semibold text-tremor-content-strong">معلومات إضافية</h3>
+                <p class="mt-1 text-sm text-tremor-content">تعديل المعلومات الإضافية للصفحة.</p>
                 
                 <div class="mt-6">
                     <!-- المقتطف -->
                     <div class="mb-6">
-                        <label for="excerpt" class="block text-sm font-medium text-gray-700 mb-2">مقتطف قصير</label>
-                        <textarea name="excerpt" id="excerpt" rows="3" class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="وصف مختصر للصفحة">{{ old('excerpt', $page->excerpt) }}</textarea>
+                        <label for="excerpt" class="block text-sm font-medium text-tremor-content-emphasis mb-2">مقتطف قصير</label>
+                        <textarea name="excerpt" id="excerpt" rows="3" class="w-full border-tremor-border rounded-tremor-default shadow-tremor-input focus:border-orange-400 focus:ring-orange-400" placeholder="وصف مختصر للصفحة">{{ old('excerpt', $page->excerpt) }}</textarea>
                         @error('excerpt')
                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                         @enderror
@@ -144,8 +127,8 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <!-- عنوان SEO -->
                         <div>
-                            <label for="meta_title" class="block text-sm font-medium text-gray-700 mb-2">عنوان SEO</label>
-                            <input type="text" name="meta_title" id="meta_title" class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500" value="{{ old('meta_title', $page->meta_title) }}" placeholder="عنوان محرك البحث">
+                            <label for="meta_title" class="block text-sm font-medium text-tremor-content-emphasis mb-2">عنوان SEO</label>
+                            <input type="text" name="meta_title" id="meta_title" class="w-full border-tremor-border rounded-tremor-default shadow-tremor-input focus:border-orange-400 focus:ring-orange-400" value="{{ old('meta_title', $page->meta_title) }}" placeholder="عنوان محرك البحث">
                             @error('meta_title')
                                 <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                             @enderror
@@ -153,14 +136,14 @@
 
                         <!-- الصورة المميزة -->
                         <div>
-                            <label for="featured_image" class="block text-sm font-medium text-gray-700 mb-2">الصورة المميزة</label>
+                            <label for="featured_image" class="block text-sm font-medium text-tremor-content-emphasis mb-2">الصورة المميزة</label>
                             @if($page->featured_image)
                                 <div class="mb-2">
                                     <img src="{{ Storage::url($page->featured_image) }}" alt="{{ $page->title }}" class="w-32 h-32 object-cover rounded">
-                                    <p class="text-sm text-gray-500 mt-1">الصورة الحالية</p>
+                                    <p class="text-sm text-tremor-content mt-1">الصورة الحالية</p>
                                 </div>
                             @endif
-                            <input type="file" name="featured_image" id="featured_image" accept="image/*" class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            <input type="file" name="featured_image" id="featured_image" accept="image/*" class="w-full border-tremor-border rounded-tremor-default shadow-tremor-input focus:border-orange-400 focus:ring-orange-400">
                             @error('featured_image')
                                 <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                             @enderror
@@ -169,8 +152,8 @@
 
                     <!-- وصف SEO -->
                     <div class="mt-6">
-                        <label for="meta_description" class="block text-sm font-medium text-gray-700 mb-2">وصف SEO</label>
-                        <textarea name="meta_description" id="meta_description" rows="2" class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="وصف الصفحة لمحركات البحث (160 حرف كحد أقصى)">{{ old('meta_description', $page->meta_description) }}</textarea>
+                        <label for="meta_description" class="block text-sm font-medium text-tremor-content-emphasis mb-2">وصف SEO</label>
+                        <textarea name="meta_description" id="meta_description" rows="2" class="w-full border-tremor-border rounded-tremor-default shadow-tremor-input focus:border-orange-400 focus:ring-orange-400" placeholder="وصف الصفحة لمحركات البحث (160 حرف كحد أقصى)">{{ old('meta_description', $page->meta_description) }}</textarea>
                         @error('meta_description')
                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                         @enderror
@@ -179,99 +162,62 @@
             </div>
 
             <!-- إعدادات الوصول -->
-            <div class="border-b border-gray-200 py-6">
-                <h3 class="text-lg font-medium text-gray-900">إعدادات الوصول والصلاحيات</h3>
-                <p class="mt-1 text-sm text-gray-500">تعديل إعدادات الوصول والصلاحيات للصفحة.</p>
+            <div class="border-b border-tremor-border py-6">
+                <h3 class="text-sm font-semibold text-tremor-content-strong">إعدادات الوصول والصلاحيات</h3>
+                <p class="mt-1 text-sm text-tremor-content">تعديل إعدادات الوصول والصلاحيات للصفحة.</p>
                 
                 <div class="mt-6 bg-gray-50 p-4 rounded-lg">
-                            
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <!-- مستوى الوصول -->
-                                <div>
-                                    <label for="access_level" class="block text-sm font-medium text-gray-700 mb-2">مستوى الوصول *</label>
-                                    <select name="access_level" id="access_level" class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                                <div class="md:col-span-2">
+                                    <label for="access_level" class="block text-sm font-medium text-tremor-content-emphasis mb-2">مستوى الوصول *</label>
+                                    <select name="access_level" id="access_level" class="w-full border-tremor-border rounded-tremor-default shadow-tremor-input focus:border-orange-400 focus:ring-orange-400" required>
                                         <option value="public" {{ old('access_level', $page->access_level) == 'public' ? 'selected' : '' }}>🌍 عام للجميع</option>
-                                        <option value="authenticated" {{ old('access_level', $page->access_level) == 'authenticated' ? 'selected' : '' }}>🔐 المستخدمين المسجلين</option>
-                                        <option value="user" {{ old('access_level', $page->access_level) == 'user' ? 'selected' : '' }}>👤 المستخدمين العاديين</option>
-                                        <option value="page_manager" {{ old('access_level', $page->access_level) == 'page_manager' ? 'selected' : '' }}>📝 مديري الصفحات</option>
-                                        <option value="admin" {{ old('access_level', $page->access_level) == 'admin' ? 'selected' : '' }}>👑 المديرين فقط</option>
-                                       <option value="membership" {{ old('access_level', $page->access_level) == 'membership' ? 'selected' : '' }}>💎 أعضاء العضويات المدفوعة</option>
+                                        <option value="authenticated" {{ old('access_level', $page->access_level) == 'authenticated' ? 'selected' : '' }}>🔐 أي مستخدم مسجّل الدخول</option>
+                                        <option value="user" {{ old('access_level', $page->access_level) == 'user' ? 'selected' : '' }}>👤 متدربون (أدوار user أو client)</option>
+                                        <option value="page_manager" {{ old('access_level', $page->access_level) == 'page_manager' ? 'selected' : '' }}>📝 مديرو الصفحات فقط</option>
+                                        <option value="admin" {{ old('access_level', $page->access_level) == 'admin' ? 'selected' : '' }}>👑 المديرون فقط</option>
+                                       <option value="membership" {{ old('access_level', $page->access_level) == 'membership' ? 'selected' : '' }}>💎 أعضاء العضويات المدفوعة (حسب المسار)</option>
                                     </select>
                                     @error('access_level')
                                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                                     @enderror
-                                    <p class="text-xs text-gray-500 mt-1">حدد من يستطيع الوصول لهذه الصفحة</p>
+                                    <p class="text-xs text-gray-500 mt-2">هذا المستوى مستقل عن صلاحيات لوحة إدارة الصفحات (Spatie). المدربون يرون عادةً مستوى «مسجّل» فما فوق؛ «متدربون» يقتصر على أدوار user/client في النظام.</p>
                                 </div>
 
-                                <!-- محتوى مدفوع -->
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">نوع المحتوى</label>
+                                    <label class="block text-sm font-medium text-tremor-content-emphasis mb-2">نوع المحتوى</label>
                                     <div class="flex items-center">
                                         <input type="hidden" name="is_premium" value="0">
-                                        <input type="checkbox" name="is_premium" id="is_premium" value="1" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" {{ old('is_premium', $page->is_premium) ? 'checked' : '' }}>
+                                        <input type="checkbox" name="is_premium" id="is_premium" value="1" class="rounded border-gray-300 text-tremor-brand shadow-sm focus:border-orange-400 focus:ring-orange-400" {{ old('is_premium', $page->is_premium) ? 'checked' : '' }}>
                                         <label for="is_premium" class="ml-2 block text-sm text-gray-700">💎 محتوى مدفوع</label>
                                     </div>
                                     <p class="text-xs text-gray-500 mt-1">سيتم تطبيق هذا لاحقاً مع نظام العضويات</p>
                                 </div>
                             </div>
-                           
-                           <!-- أنواع العضويات المطلوبة -->
-                           <div class="mt-6" id="membership-types-section" style="{{ old('access_level', $page->access_level) == 'membership' ? 'display:block' : 'display:none' }}">
-                               <label class="block text-sm font-medium text-gray-700 mb-2">أنواع العضويات المطلوبة</label>
-                               <p class="text-xs text-gray-500 mb-3">حدد أنواع العضويات التي يمكنها الوصول لهذه الصفحة</p>
-                               @error('required_membership_types')
-                                   <p class="text-red-500 text-xs mb-2">{{ $message }}</p>
-                               @enderror
-                               
-                               <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                   @php
-                                       try {
-                                           $membershipTypes = \App\Models\MembershipType::where('is_active', true)->orderBy('sort_order')->get();
-                                           $pageRequiredMembershipTypes = old('required_membership_types', $page->required_membership_types ?? []);
-                                           if (is_string($pageRequiredMembershipTypes)) {
-                                               $pageRequiredMembershipTypes = json_decode($pageRequiredMembershipTypes, true) ?? [];
-                                           }
-                                       } catch (\Exception $e) {
-                                           $membershipTypes = collect([]);
-                                           $pageRequiredMembershipTypes = [];
-                                       }
-                                   @endphp
-                                   
-                                   @forelse($membershipTypes as $membershipType)
-                                       <div class="flex items-center">
-                                           <input type="checkbox" name="required_membership_types[]" id="membership_{{ $membershipType->id }}" value="{{ $membershipType->id }}" 
-                                               class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                                               {{ in_array($membershipType->id, $pageRequiredMembershipTypes) ? 'checked' : '' }}>
-                                           <label for="membership_{{ $membershipType->id }}" class="ml-2 block text-sm text-gray-700">
-                                               {{ $membershipType->name }}
-                                               @if($membershipType->price > 0)
-                                                   <span class="text-xs text-gray-500">({{ $membershipType->formatted_price }})</span>
-                                               @else
-                                                   <span class="text-xs text-green-500">(مجاني)</span>
-                                               @endif
-                                           </label>
-                                       </div>
-                                   @empty
-                                       <div class="col-span-3">
-                                           <p class="text-sm text-gray-500">لا توجد أنواع عضويات متاحة</p>
-                                       </div>
-                                   @endforelse
-                               </div>
-                           </div>
+
+                            @include('partials.audience-fields', [
+                                'model' => $page,
+                                'audienceFieldsWrapperClass' => '',
+                                'audienceHeading' => 'استهداف الجمهور (الجنس والمسارات)',
+                                'audienceIntro' => 'فلتر إضافي فوق مستوى الوصول. عند اختيار «أعضاء العضويات المدفوعة» يجب تحديد مسار واحد على الأقل. عند أي مستوى آخر تُجاهَل المسارات عند الحفظ.',
+                                'membershipBlockId' => 'membership-types-section',
+                                'membershipPathsLabel' => 'مسارات العضوية',
+                                'membershipPathsHint' => 'يُستخدم بشكل إلزامي فقط عند مستوى «أعضاء العضويات المدفوعة»؛ وإلا يُفرغ تلقائياً عند الحفظ.',
+                            ])
                 </div>
             </div>
 
             <!-- إعدادات النشر -->
             <div class="py-6">
-                <h3 class="text-lg font-medium text-gray-900">إعدادات النشر</h3>
-                <p class="mt-1 text-sm text-gray-500">تعديل إعدادات النشر والعرض للصفحة.</p>
+                <h3 class="text-sm font-semibold text-tremor-content-strong">إعدادات النشر</h3>
+                <p class="mt-1 text-sm text-tremor-content">تعديل إعدادات النشر والعرض للصفحة.</p>
                 
                 <div class="mt-6">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <!-- ترتيب القائمة -->
                         <div>
-                            <label for="menu_order" class="block text-sm font-medium text-gray-700 mb-2">ترتيب القائمة</label>
-                            <input type="number" name="menu_order" id="menu_order" min="0" class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500" value="{{ old('menu_order', $page->menu_order) }}">
+                            <label for="menu_order" class="block text-sm font-medium text-tremor-content-emphasis mb-2">ترتيب القائمة</label>
+                            <input type="number" name="menu_order" id="menu_order" min="0" class="w-full border-tremor-border rounded-tremor-default shadow-tremor-input focus:border-orange-400 focus:ring-orange-400" value="{{ old('menu_order', $page->menu_order) }}">
                             @error('menu_order')
                                 <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                             @enderror
@@ -279,8 +225,8 @@
 
                         <!-- تاريخ النشر -->
                         <div>
-                            <label for="published_at" class="block text-sm font-medium text-gray-700 mb-2">تاريخ النشر</label>
-                            <input type="datetime-local" name="published_at" id="published_at" class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500" value="{{ old('published_at', $page->published_at ? $page->published_at->format('Y-m-d\TH:i') : '') }}">
+                            <label for="published_at" class="block text-sm font-medium text-tremor-content-emphasis mb-2">تاريخ النشر</label>
+                            <input type="datetime-local" name="published_at" id="published_at" class="w-full border-tremor-border rounded-tremor-default shadow-tremor-input focus:border-orange-400 focus:ring-orange-400" value="{{ old('published_at', $page->published_at ? $page->published_at->format('Y-m-d\TH:i') : '') }}">
                             @error('published_at')
                                 <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                             @enderror
@@ -290,12 +236,12 @@
                     <!-- خيارات النشر -->
                     <div class="mt-6 space-y-4">
                         <div class="flex items-center">
-                            <input type="checkbox" name="is_published" id="is_published" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" {{ old('is_published', $page->is_published) ? 'checked' : '' }}>
+                            <input type="checkbox" name="is_published" id="is_published" class="rounded border-gray-300 text-tremor-brand shadow-sm focus:border-orange-400 focus:ring-orange-400" {{ old('is_published', $page->is_published) ? 'checked' : '' }}>
                             <label for="is_published" class="ml-2 block text-sm text-gray-700">نشر الصفحة</label>
                         </div>
 
                         <div class="flex items-center">
-                            <input type="checkbox" name="show_in_menu" id="show_in_menu" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" {{ old('show_in_menu', $page->show_in_menu) ? 'checked' : '' }}>
+                            <input type="checkbox" name="show_in_menu" id="show_in_menu" class="rounded border-gray-300 text-tremor-brand shadow-sm focus:border-orange-400 focus:ring-orange-400" {{ old('show_in_menu', $page->show_in_menu) ? 'checked' : '' }}>
                             <label for="show_in_menu" class="ml-2 block text-sm text-gray-700">إظهار في قائمة التنقل</label>
                         </div>
                     </div>
@@ -325,19 +271,15 @@
                 </div>
             </div>
 
-            <div class="flex justify-end space-x-3">
-                <a href="{{ route('pages.index') }}" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+            <div class="flex justify-end gap-3">
+                <a href="{{ route('pages.index') }}" class="inline-flex items-center rounded-tremor-default border border-tremor-border bg-white px-3 py-2 text-sm font-medium text-tremor-content-emphasis shadow-tremor-input hover:bg-tremor-background-muted">
                     إلغاء
                 </a>
-                <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                    <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                    </svg>
+                <button type="submit" class="admin-btn-brand">
                     تحديث الصفحة
                 </button>
             </div>
         </form>
-    </div>
 </div>
 
     <!-- محرر مجاني بالكامل -->

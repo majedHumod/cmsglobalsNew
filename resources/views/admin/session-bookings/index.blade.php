@@ -16,6 +16,14 @@
 @endsection
 
 @section('content')
+@php
+    $attendanceLabels = [
+        'scheduled' => 'مجدول',
+        'attended' => 'حضر',
+        'missed' => 'لم يحضر',
+        'late_cancelled' => 'إلغاء متأخر',
+    ];
+@endphp
 <div class="bg-white shadow-md rounded-lg overflow-hidden">
     <div class="p-6">
         <div class="mb-6">
@@ -44,6 +52,7 @@
                             <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">المبلغ</th>
                             <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">حالة الحجز</th>
                             <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">حالة الدفع</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الحضور</th>
                             <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الإجراءات</th>
                         </tr>
                     </thead>
@@ -82,9 +91,15 @@
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     {!! $booking->payment_status_badge !!}
                                 </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                    {{ $attendanceLabels[$booking->attendance_status ?? 'scheduled'] ?? ($booking->attendance_status ?? 'scheduled') }}
+                                </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                     <div class="flex space-x-2">
                                         <a href="{{ route('admin.session-bookings.edit', $booking) }}" class="text-indigo-600 hover:text-indigo-900">تعديل</a>
+                                        @if($booking->canBeCancelled())
+                                            <a href="{{ route('training-sessions.reschedule-form', $booking) }}" class="text-blue-600 hover:text-blue-900">إعادة جدولة</a>
+                                        @endif
                                         
                                         @if($booking->canBeCancelled())
                                             <form action="{{ route('admin.session-bookings.update-status', $booking) }}" method="POST" class="inline">

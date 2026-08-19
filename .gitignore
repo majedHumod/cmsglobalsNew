@@ -21,3 +21,14 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
+
+# Not required to run the application
+/demoPro
+/github
+/docs/wireframes/
+/docs/*.pdf
+/docs/*.html
+/docs/comprehensive-implementation-plan.md
+/docs/communication-api-roadmap.md
+/docs/trainer-capabilities-audit.md
+/docs/tenant-status-report.md

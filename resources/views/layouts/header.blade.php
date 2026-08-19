@@ -10,7 +10,7 @@
                 @endphp
                 @if($siteLogo)
                     <a href="{{ route('home') }}" class="flex-shrink-0 flex items-center">
-                        <img class="h-8 w-auto" src="{{ Storage::url($siteLogo) }}" alt="{{ $siteName }}">
+                        <img class="h-8 w-auto" src="{{ Storage::url($siteLogo) }}" alt="{{ $siteName }}" title="{{ $siteName }}">
                     </a>
                 @else
                     <a href="{{ route('home') }}" class="flex-shrink-0 flex items-center">

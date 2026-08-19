@@ -11,7 +11,7 @@ class WorkoutScheduleController extends Controller
 {
     public function __construct()
     {
-        $this->middleware(['auth', 'role:admin|coach|client']);
+        $this->middleware(['auth', 'role:admin|coach|user|client']);
     }
 
     /**
@@ -27,9 +27,9 @@ class WorkoutScheduleController extends Controller
                 if (auth()->user()->hasRole('coach')) {
                     // المدرب يرى جدولته فقط
                     $query->where('user_id', auth()->id());
-                } elseif (auth()->user()->hasRole('client')) {
-                    // العميل يرى الجدولة النشطة فقط
-                    $query->where('status', true);
+                } elseif (auth()->user()->hasTraineeRole()) {
+                    // المتدرب يرى الجدولة النشطة المطابقة لمساره الحالي
+                    $query->where('status', true)->visibleTo(auth()->user());
                 }
             }
 
@@ -86,10 +86,16 @@ class WorkoutScheduleController extends Controller
                 'workout_id' => 'required|exists:workouts,id',
                 'week_number' => 'required|integer|min:1|max:52',
                 'session_number' => 'required|integer|min:1|max:7',
+                'notes' => 'nullable|string',
+                'audience_gender' => 'nullable|in:all,male,female',
+                'required_membership_types' => 'nullable|array',
+                'required_membership_types.*' => 'exists:membership_types,id',
             ]);
 
             $validated['user_id'] = auth()->id();
             $validated['status'] = $request->has('status');
+            $validated['audience_gender'] = $validated['audience_gender'] ?? 'all';
+            $validated['required_membership_types'] = $request->input('required_membership_types', []);
 
             WorkoutSchedule::create($validated);
 
@@ -106,6 +112,11 @@ class WorkoutScheduleController extends Controller
     public function show(WorkoutSchedule $workoutSchedule)
     {
         try {
+            if (!auth()->user()->hasAnyRole(['admin', 'coach']) &&
+                (!$workoutSchedule->status || !$workoutSchedule->matchesAudience(auth()->user()))) {
+                abort(403, 'هذه الجدولة غير متاحة.');
+            }
+
             $workoutSchedule->load(['workout', 'user']);
             
             return view('workout-schedules.show', compact('workoutSchedule'));
@@ -145,9 +156,14 @@ class WorkoutScheduleController extends Controller
                 'week_number' => 'required|integer|min:1|max:52',
                 'session_number' => 'required|integer|min:1|max:7',
                 'notes' => 'nullable|string',
+                'audience_gender' => 'nullable|in:all,male,female',
+                'required_membership_types' => 'nullable|array',
+                'required_membership_types.*' => 'exists:membership_types,id',
             ]);
 
             $validated['status'] = $request->has('status');
+            $validated['audience_gender'] = $validated['audience_gender'] ?? 'all';
+            $validated['required_membership_types'] = $request->input('required_membership_types', []);
 
             $workoutSchedule->update($validated);
 
@@ -193,8 +209,8 @@ class WorkoutScheduleController extends Controller
             if (!auth()->user()->hasRole('admin')) {
                 if (auth()->user()->hasRole('coach')) {
                     $query->where('user_id', auth()->id());
-                } elseif (auth()->user()->hasRole('client')) {
-                    $query->where('status', true);
+                } elseif (auth()->user()->hasTraineeRole()) {
+                    $query->where('status', true)->visibleTo(auth()->user());
                 }
             }
 

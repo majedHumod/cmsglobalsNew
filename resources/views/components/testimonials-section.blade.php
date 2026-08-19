@@ -7,7 +7,7 @@
 @endphp
 
 @if($testimonialsEnabled)
-<section class="bg-gray-50 py-0" dir="rtl">
+<section id="homepage-testimonials" class="bg-gray-50 py-0" dir="rtl">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         @php
             try {
@@ -34,9 +34,9 @@
                         </div>
                         
                         <div>
-                            <a href="{{ route('testimonials.all') }}" class="inline-flex items-center px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-xl hover:from-purple-700 hover:to-pink-700 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl">
+                            <a href="{{ route('testimonials.all') }}" class="ht-more-btn btn-brand">
                                 <span>عرض المزيد</span>
-                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
                                 </svg>
                             </a>
@@ -190,6 +190,39 @@
 @endif
 
 <style>
+    /* Scoped to homepage testimonials — does not affect other landing sections */
+    #homepage-testimonials .ht-more-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        border-radius: 0.375rem;
+        padding: 0.75rem 1.5rem;
+        font-size: 1rem;
+        font-weight: 600;
+        color: #ffffff !important;
+        text-decoration: none;
+        border: none;
+        background-color: var(--primary-color, #6366f1) !important;
+        background-image: none !important;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    #homepage-testimonials .ht-more-btn:hover,
+    #homepage-testimonials .ht-more-btn:focus {
+        background-color: var(--primary-hover, #4f46e5) !important;
+        background-image: none !important;
+        color: #ffffff !important;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    @media (max-width: 1023px) {
+        #homepage-testimonials .ht-more-btn {
+            margin-bottom: 0.75rem;
+        }
+    }
+
     /* Testimonials specific styles */
     .testimonial-card {
         transition: all 0.3s ease;

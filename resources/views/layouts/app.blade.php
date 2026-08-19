@@ -4,6 +4,9 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
+        <meta name="vapid-public-key" content="{{ env('VAPID_PUBLIC_KEY', '') }}">
+        <link rel="manifest" href="/manifest.json">
+        <meta name="theme-color" content="#4f46e5">
 
         <title>{{ \App\Models\SiteSetting::get('site_name', config('app.name', 'Laravel')) }} - @yield('title', '')</title>
 
@@ -15,9 +18,9 @@
             <link rel="icon" href="{{ Storage::url($siteFavicon) }}" type="image/x-icon">
         @endif
 
-        <!-- Fonts -->
+        <!-- Fixed UI font for authenticated app shell (not public brand font) -->
         <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+        <link href="https://fonts.bunny.net/css?family=tajawal:400,500,700&display=swap" rel="stylesheet" />
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -25,7 +28,6 @@
         <!-- Styles -->
         @livewireStyles
 
-        <!-- Custom Colors -->
         @php
             $primaryColor = \App\Models\SiteSetting::get('primary_color', '#6366f1');
             $secondaryColor = \App\Models\SiteSetting::get('secondary_color', '#10b981');
@@ -36,36 +38,23 @@
                 --secondary-color: {{ $secondaryColor }};
             }
 
-            .bg-primary {
-                background-color: var(--primary-color);
+            html, body, body.font-sans, .font-sans {
+                font-family: 'Tajawal', Tahoma, sans-serif !important;
             }
 
-            .text-primary {
-                color: var(--primary-color);
-            }
-
-            .border-primary {
-                border-color: var(--primary-color);
-            }
-
-            .bg-secondary {
-                background-color: var(--secondary-color);
-            }
-
-            .text-secondary {
-                color: var(--secondary-color);
-            }
-
-            .border-secondary {
-                border-color: var(--secondary-color);
-            }
+            .bg-primary { background-color: var(--primary-color); }
+            .text-primary { color: var(--primary-color); }
+            .border-primary { border-color: var(--primary-color); }
+            .bg-secondary { background-color: var(--secondary-color); }
+            .text-secondary { color: var(--secondary-color); }
+            .border-secondary { border-color: var(--secondary-color); }
 
             div.ms-3.relative {
                 z-index: 50 !important;
             }
         </style>
     </head>
-    <body class="font-sans antialiased">
+    <body class="font-sans antialiased" data-push-prompt="{{ auth()->check() ? '1' : '0' }}">
         <x-banner />
 
         <div class="min-h-screen bg-gray-100">

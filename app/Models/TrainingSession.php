@@ -2,31 +2,42 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasAudience;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Cache;
 use App\Services\TenantCache;
+use Illuminate\Support\Facades\Cache;
 
 class TrainingSession extends Model
 {
     use HasFactory;
+    use HasAudience;
 
     protected $fillable = [
         'title',
         'description',
         'price',
         'duration_hours',
+        'session_type',
+        'capacity',
+        'location',
+        'video_meeting_url',
         'image',
         'is_visible',
         'sort_order',
-        'user_id'
+        'user_id',
+        'audience_gender',
+        'required_membership_types',
     ];
 
     protected $casts = [
         'price' => 'decimal:2',
         'duration_hours' => 'integer',
+        'capacity' => 'integer',
         'is_visible' => 'boolean',
         'sort_order' => 'integer',
+        'audience_gender' => 'string',
     ];
 
     /**
@@ -53,6 +64,11 @@ class TrainingSession extends Model
         return $this->hasMany(SessionBooking::class)->where('status', 'confirmed');
     }
 
+    public function coachAvailabilities()
+    {
+        return $this->user?->coachAvailabilities();
+    }
+
     /**
      * Scope a query to only include visible sessions
      */
@@ -72,33 +88,39 @@ class TrainingSession extends Model
     /**
      * Get visible sessions for homepage (4 sessions)
      */
-    public static function getHomepageSessions()
+    public static function getHomepageSessions(?User $user = null)
     {
-        return Cache::remember(TenantCache::key('homepage_training_sessions'), 7200, function () {
-            try {
-                $count = \App\Models\SiteSetting::get('training_sessions_count', 4);
-                return self::visible()
-                    ->ordered()
-                    ->limit($count)
-                    ->select(['id', 'title', 'description', 'price', 'duration_hours', 'image', 'sort_order'])
-                    ->get();
-            } catch (\Exception $e) {
-                // Fallback to 4 sessions if there's an error
-                return self::visible()
-                    ->ordered()
-                    ->limit(4)
-                    ->select(['id', 'title', 'description', 'price', 'duration_hours', 'image', 'sort_order'])
-                    ->get();
-            }
-        });
+        try {
+            $count = \App\Models\SiteSetting::get('training_sessions_count', 4);
+
+            return self::visible()
+                ->visibleTo($user)
+                ->ordered()
+                ->limit($count)
+                ->select([
+                    'id', 'title', 'description', 'price', 'duration_hours', 'image',
+                    'sort_order', 'audience_gender', 'required_membership_types',
+                ])
+                ->get();
+        } catch (\Exception $e) {
+            return self::visible()
+                ->visibleTo($user)
+                ->ordered()
+                ->limit(4)
+                ->select([
+                    'id', 'title', 'description', 'price', 'duration_hours', 'image',
+                    'sort_order', 'audience_gender', 'required_membership_types',
+                ])
+                ->get();
+        }
     }
 
     /**
      * Get all visible sessions
      */
-    public static function getAllVisibleSessions()
+    public static function getAllVisibleSessions(?User $user = null)
     {
-        return self::visible()->ordered()->get();
+        return self::visible()->visibleTo($user)->ordered()->get();
     }
 
     /**
@@ -106,8 +128,6 @@ class TrainingSession extends Model
      */
     public static function clearCache()
     {
-        Cache::forget(TenantCache::key('homepage_training_sessions'));
-        // Also clear the site settings cache to ensure fresh data
         Cache::forget(TenantCache::key('settings_group_homepage'));
     }
 
@@ -155,11 +175,24 @@ class TrainingSession extends Model
      */
     public function isAvailableAt($date, $time)
     {
-        return !$this->bookings()
+        $requestedStart = Carbon::parse($date . ' ' . $time);
+
+        $availableWindows = CoachAvailability::query()
+            ->where('user_id', $this->user_id)
+            ->where('is_active', true)
+            ->get();
+
+        if ($availableWindows->isNotEmpty() && ! $availableWindows->contains(fn ($availability) => $availability->supportsSlot($date, $time, $this->duration_hours))) {
+            return false;
+        }
+
+        $existingBookings = $this->bookings()
             ->where('booking_date', $date)
-            ->where('booking_time', $time)
+            ->where('booking_time', $requestedStart->format('H:i:s'))
             ->whereIn('status', ['confirmed', 'pending'])
-            ->exists();
+            ->count();
+
+        return $existingBookings < max(1, (int) $this->capacity);
     }
 
     /**
@@ -176,5 +209,10 @@ class TrainingSession extends Model
     public function getConfirmedBookingsAttribute()
     {
         return $this->bookings()->where('status', 'confirmed')->count();
+    }
+
+    public function canManage(User $user): bool
+    {
+        return $user->hasRole('admin') || (int) $this->user_id === (int) $user->id;
     }
 }

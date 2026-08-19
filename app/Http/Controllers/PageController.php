@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Page;
+use App\Support\PageAudienceInput;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -10,31 +11,61 @@ use Illuminate\Support\Facades\Log;
 
 class PageController extends Controller
 {
-    public function __construct()
+    public function index(Request $request)
     {
-        // تحديث الصلاحيات لتشمل page_manager
-        $this->middleware(['auth', 'role:admin|page_manager'])->except(['show', 'publicIndex']);
-    }
+        $this->authorize('viewAny', Page::class);
 
-    public function index()
-    {
-        $pages = Page::with('user')
-            ->when(!auth()->user()->hasRole('admin'), function ($query) {
+        $tab = $request->string('tab')->toString();
+        if (! in_array($tab, ['all', 'published', 'draft', 'mine', 'stats'], true)) {
+            $tab = 'all';
+        }
+
+        if ($tab === 'mine' && ! auth()->user()->hasRole('admin')) {
+            $tab = 'all';
+        }
+
+        $scoped = function () {
+            return Page::query()
+                ->when(! auth()->user()->hasRole('admin'), function ($query) {
+                    return $query->where('user_id', auth()->id());
+                });
+        };
+
+        $stats = [
+            'total' => $scoped()->count(),
+            'published' => $scoped()->where('is_published', true)->count(),
+            'draft' => $scoped()->where('is_published', false)->count(),
+            'mine' => Page::query()->where('user_id', auth()->id())->count(),
+            'in_menu' => $scoped()->where('show_in_menu', true)->count(),
+        ];
+
+        $pagesQuery = Page::with('user')
+            ->when(! auth()->user()->hasRole('admin'), function ($query) {
                 return $query->where('user_id', auth()->id());
             })
-            ->latest()
-            ->get();
+            ->when($tab === 'published', fn ($query) => $query->where('is_published', true))
+            ->when($tab === 'draft', fn ($query) => $query->where('is_published', false))
+            ->when($tab === 'mine', fn ($query) => $query->where('user_id', auth()->id()))
+            ->latest();
 
-        return view('pages.index', compact('pages'));
+        $pages = $tab === 'stats'
+            ? $pagesQuery->take(8)->get()
+            : $pagesQuery->paginate(12)->withQueryString();
+
+        return view('pages.index', compact('pages', 'stats', 'tab'));
     }
 
     public function create()
     {
+        $this->authorize('create', Page::class);
+
         return view('pages.create');
     }
 
     public function store(Request $request)
     {
+        $this->authorize('create', Page::class);
+
         Log::info('Page store method called', ['request_data' => $request->all()]);
 
         try {
@@ -49,6 +80,7 @@ class PageController extends Controller
                 'is_premium' => 'boolean',
                 'required_membership_types' => 'nullable|array',
                 'required_membership_types.*' => 'exists:membership_types,id',
+                'audience_gender' => 'nullable|in:all,male,female',
                 'menu_order' => 'nullable|integer|min:0',
                 'published_at' => 'nullable|date'
             ]);
@@ -81,16 +113,24 @@ class PageController extends Controller
             $validated['show_in_menu'] = $request->has('show_in_menu') ? 1 : 0;
             $validated['is_premium'] = $request->has('is_premium') ? 1 : 0;
             
-            // تخزين required_membership_types كنص JSON
-            $selectedMembershipTypes = array_values(array_filter(array_map('intval', $request->input('required_membership_types', []))));
+            // تخزين required_membership_types كنص JSON (فقط عند مستوى membership؛ وإلا يُفرغ لتفادي فلتر جمهور خفي)
+            $selectedMembershipTypes = PageAudienceInput::membershipTypeIdsForAccessLevel(
+                $validated['access_level'],
+                $request->input('required_membership_types', [])
+            );
             if ($validated['access_level'] === 'membership' && count($selectedMembershipTypes) === 0) {
                 return back()->withInput()->withErrors(['required_membership_types' => 'يجب اختيار نوع عضوية واحد على الأقل عند اختيار مستوى الوصول "أعضاء العضويات المدفوعة"']);
             }
-            $validated['required_membership_types'] = json_encode($selectedMembershipTypes);
+            $validated['required_membership_types'] = $selectedMembershipTypes;
+            $validated['audience_gender'] = $validated['audience_gender'] ?? 'all';
            
             // تعيين تاريخ النشر إذا كانت الصفحة منشورة
             if ($validated['is_published'] && !$validated['published_at']) {
                 $validated['published_at'] = now();
+            }
+
+            if ($validated['is_published'] && ! auth()->user()->hasRole('admin')) {
+                abort_unless(auth()->user()->can('publish pages'), 403);
             }
 
             // تنظيف المحتوى من أي أكواد ضارة (اختياري)
@@ -118,7 +158,7 @@ class PageController extends Controller
         $page = Page::select([
                 'id', 'title', 'slug', 'content', 'excerpt', 'meta_title', 
                 'meta_description', 'featured_image', 'access_level', 
-                'required_membership_types', 'is_published', 'published_at', 
+                'required_membership_types', 'audience_gender', 'is_published', 'published_at',
                 'user_id', 'created_at', 'updated_at'
             ])
             ->where('slug', $slug)
@@ -135,15 +175,21 @@ class PageController extends Controller
             abort(403, 'ليس لديك صلاحية للوصول لهذه الصفحة.');
         }
 
+        // المتدربون يرون الصفحة داخل غلاف التطبيق اليومي
+        if (
+            auth()->check()
+            && \App\Services\MembershipAccessService::hasTraineeRole(auth()->user())
+            && ! auth()->user()->hasAnyRole(['admin', 'coach'])
+        ) {
+            return view('client.pages.show', compact('page'));
+        }
+
         return view('pages.show', compact('page'));
     }
 
     public function edit(Page $page)
     {
-        // التحقق من الصلاحيات
-        if (!auth()->user()->hasRole('admin') && $page->user_id !== auth()->id()) {
-            abort(403);
-        }
+        $this->authorize('update', $page);
 
         return view('pages.edit', compact('page'));
     }
@@ -151,10 +197,7 @@ class PageController extends Controller
     public function update(Request $request, Page $page)
     {
         try {
-            // التحقق من الصلاحيات
-            if (!auth()->user()->hasRole('admin') && $page->user_id !== auth()->id()) {
-                abort(403);
-            }
+            $this->authorize('update', $page);
 
             $validated = $request->validate([
                 'title' => 'required|max:255',
@@ -167,6 +210,7 @@ class PageController extends Controller
                 'is_premium' => 'boolean',
                 'required_membership_types' => 'nullable|array',
                 'required_membership_types.*' => 'exists:membership_types,id',
+                'audience_gender' => 'nullable|in:all,male,female',
                 'menu_order' => 'nullable|integer|min:0',
                 'published_at' => 'nullable|date'
             ]);
@@ -198,16 +242,24 @@ class PageController extends Controller
             $validated['show_in_menu'] = $request->has('show_in_menu') ? 1 : 0;
             $validated['is_premium'] = $request->has('is_premium') ? 1 : 0;
 
-            // تخزين required_membership_types كنص JSON
-            $selectedMembershipTypes = array_values(array_filter(array_map('intval', $request->input('required_membership_types', []))));
+            // تخزين required_membership_types كنص JSON (فقط عند مستوى membership)
+            $selectedMembershipTypes = PageAudienceInput::membershipTypeIdsForAccessLevel(
+                $validated['access_level'],
+                $request->input('required_membership_types', [])
+            );
             if ($validated['access_level'] === 'membership' && count($selectedMembershipTypes) === 0) {
                 return back()->withInput()->withErrors(['required_membership_types' => 'يجب اختيار نوع عضوية واحد على الأقل عند اختيار مستوى الوصول "أعضاء العضويات المدفوعة"']);
             }
-            $validated['required_membership_types'] = json_encode($selectedMembershipTypes);
+            $validated['required_membership_types'] = $selectedMembershipTypes;
+            $validated['audience_gender'] = $validated['audience_gender'] ?? 'all';
            
             // تعيين تاريخ النشر إذا كانت الصفحة منشورة لأول مرة
             if ($validated['is_published'] && !$page->is_published && !$validated['published_at']) {
                 $validated['published_at'] = now();
+            }
+
+            if ($validated['is_published'] && ! $page->is_published && ! auth()->user()->hasRole('admin')) {
+                abort_unless(auth()->user()->can('publish pages'), 403);
             }
 
             // تنظيف المحتوى من أي أكواد ضارة (اختياري)
@@ -226,10 +278,7 @@ class PageController extends Controller
     public function destroy(Page $page)
     {
         try {
-            // التحقق من الصلاحيات
-            if (!auth()->user()->hasRole('admin') && $page->user_id !== auth()->id()) {
-                abort(403);
-            }
+            $this->authorize('delete', $page);
 
             // حذف الصورة المميزة
             if ($page->featured_image) {

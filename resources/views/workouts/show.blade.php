@@ -63,42 +63,92 @@
             </div>
         </div>
 
-        <!-- فيديو التمرين -->
-        @if($workout->video_url)
+        <!-- فيديو / وسائط التمرين -->
+        @php
+            $resolvedMedia = $workout->resolvedMedia();
+        @endphp
+        @if($resolvedMedia['video_url'])
             <div class="mb-6">
                 <h2 class="text-2xl font-bold text-gray-900 mb-4">فيديو التمرين</h2>
+                @if($resolvedMedia['media_source'] === 'first_exercise')
+                    <p class="text-xs text-gray-500 mb-2">يُعرض من أول حركة في الجلسة (لم تُضف وسائط على مستوى الجلسة).</p>
+                @endif
                 <div class="bg-gray-50 p-4 rounded-lg">
                     <div class="aspect-w-16 aspect-h-9">
-                        @if(str_contains($workout->video_url, 'youtube.com') || str_contains($workout->video_url, 'youtu.be'))
+                        @if(str_contains($resolvedMedia['video_url'], 'youtube.com') || str_contains($resolvedMedia['video_url'], 'youtu.be'))
                             @php
                                 $videoId = '';
-                                if (str_contains($workout->video_url, 'youtube.com/watch?v=')) {
-                                    $videoId = substr($workout->video_url, strpos($workout->video_url, 'v=') + 2);
+                                if (str_contains($resolvedMedia['video_url'], 'youtube.com/watch?v=')) {
+                                    $videoId = substr($resolvedMedia['video_url'], strpos($resolvedMedia['video_url'], 'v=') + 2);
                                     $videoId = substr($videoId, 0, strpos($videoId, '&') ?: strlen($videoId));
-                                } elseif (str_contains($workout->video_url, 'youtu.be/')) {
-                                    $videoId = substr($workout->video_url, strrpos($workout->video_url, '/') + 1);
+                                } elseif (str_contains($resolvedMedia['video_url'], 'youtu.be/')) {
+                                    $videoId = substr($resolvedMedia['video_url'], strrpos($resolvedMedia['video_url'], '/') + 1);
                                 }
                             @endphp
                             @if($videoId)
                                 <iframe class="w-full h-64 rounded" src="https://www.youtube.com/embed/{{ $videoId }}" frameborder="0" allowfullscreen></iframe>
                             @else
-                                <a href="{{ $workout->video_url }}" target="_blank" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700">
-                                    <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v2a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z"></path>
-                                    </svg>
-                                    مشاهدة الفيديو
-                                </a>
+                                <a href="{{ $resolvedMedia['video_url'] }}" target="_blank" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700">مشاهدة الفيديو</a>
                             @endif
                         @else
-                            <a href="{{ $workout->video_url }}" target="_blank" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
-                                <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v2a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z"></path>
-                                </svg>
-                                مشاهدة الفيديو
-                            </a>
+                            <a href="{{ $resolvedMedia['video_url'] }}" target="_blank" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">مشاهدة الفيديو</a>
                         @endif
                     </div>
                 </div>
+            </div>
+        @elseif($resolvedMedia['image_url'])
+            <div class="mb-6">
+                <h2 class="text-2xl font-bold text-gray-900 mb-4">صورة التمرين</h2>
+                @if($resolvedMedia['media_source'] === 'first_exercise')
+                    <p class="text-xs text-gray-500 mb-2">تُعرض من أول حركة في الجلسة (لم تُضف وسائط على مستوى الجلسة).</p>
+                @endif
+                <img src="{{ $resolvedMedia['image_url'] }}" alt="{{ $workout->name }}" class="w-full max-w-lg rounded-lg border border-gray-200">
+                @if(!empty($resolvedMedia['media_attribution']['required']))
+                    <p class="mt-2 text-xs text-gray-500">
+                        <a href="{{ $resolvedMedia['media_attribution']['url'] }}" target="_blank" rel="noopener" class="underline hover:text-indigo-600">{{ $resolvedMedia['media_attribution']['text'] }}</a>
+                    </p>
+                @endif
+            </div>
+        @endif
+
+        @if($workout->exercises->isNotEmpty())
+            <div class="mb-6">
+                <h2 class="text-2xl font-bold text-gray-900 mb-4">حركات الجلسة</h2>
+                <div class="space-y-4">
+                    @foreach($workout->exercises as $exercise)
+                        <div class="flex gap-4 border border-gray-200 rounded-lg p-3 bg-gray-50">
+                            @if($exercise->image_url)
+                                <img src="{{ $exercise->image_url }}" alt="{{ $exercise->localized_name }}" class="w-24 h-24 rounded-lg object-cover bg-white border border-gray-200">
+                            @endif
+                            <div class="flex-1">
+                                <div class="text-sm font-medium text-gray-900">{{ $exercise->localized_name }}</div>
+                                <div class="text-sm text-gray-500 mt-1">
+                                    @if($exercise->pivot->sets) {{ $exercise->pivot->sets }} مجموعات @endif
+                                    @if($exercise->pivot->reps) · {{ $exercise->pivot->reps }} تكرار @endif
+                                    @if($exercise->pivot->rest_seconds) · راحة {{ $exercise->pivot->rest_seconds }}ث @endif
+                                </div>
+                                @if($exercise->video_url)
+                                    <a href="{{ $exercise->video_url }}" target="_blank" rel="noopener" class="inline-block text-xs text-indigo-600 mt-1 underline">فيديو الحركة</a>
+                                @endif
+                                @if($exercise->pivot->coach_cue)
+                                    <p class="text-sm text-indigo-700 mt-1">{{ $exercise->pivot->coach_cue }}</p>
+                                @endif
+                                @if($exercise->attribution_required && $exercise->image_url)
+                                    <p class="text-[11px] text-gray-400 mt-2">
+                                        <a href="{{ $exercise->attribution_url }}" target="_blank" rel="noopener" class="underline hover:text-indigo-600">{{ $exercise->attribution_text }}</a>
+                                    </p>
+                                @endif
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+                @if($workout->mediaAttribution())
+                    @php $attr = $workout->mediaAttribution(); @endphp
+                    <p class="mt-3 text-xs text-gray-500">
+                        صور الحركات:
+                        <a href="{{ $attr['url'] }}" target="_blank" rel="noopener" class="underline hover:text-indigo-600">{{ $attr['text'] }}</a>
+                    </p>
+                @endif
             </div>
         @endif
     </div>
