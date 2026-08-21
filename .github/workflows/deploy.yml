@@ -53,7 +53,8 @@ jobs:
           port: 21
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          server-dir: app.etoscoach.com/
+          # FTP account already lands in public_html/app.etoscoach.com — do not nest again.
+          server-dir: ./
           # Keep existing server vendor/ and env; never delete them when missing locally.
           exclude: |
             **/.git*
