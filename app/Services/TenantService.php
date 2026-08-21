@@ -31,6 +31,29 @@ class TenantService
         DB::setDefaultConnection('tenant');
     }
 
+    /**
+     * Point the tenant connection at a raw MySQL database (e.g. pool prep before a Tenant row exists).
+     */
+    public static function switchToDatabase(string $dbName): void
+    {
+        $dbName = trim($dbName);
+        if ($dbName === '') {
+            throw ValidationException::withMessages(['db_name' => 'Database name is required']);
+        }
+
+        DB::purge('system');
+        DB::purge('tenant');
+
+        config(['database.connections.tenant.database' => $dbName]);
+
+        self::$tenant = null;
+        self::$domain = null;
+        self::$db_name = $dbName;
+
+        DB::connection('tenant')->reconnect();
+        DB::setDefaultConnection('tenant');
+    }
+
     public static function switchToDefault()
     {
         DB::purge('system');

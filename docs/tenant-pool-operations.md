@@ -19,23 +19,41 @@ php artisan system:migrate
 php artisan optimize:clear
 ```
 
-## Register prepared tenant databases
+## Prepare a clean pool database (recommended)
 
-Use this command for each tenant database you create in cPanel:
-
-```bash
-php artisan tenants:pool-register DB_NAME --label="Pool XX" --ready=1
-```
-
-Example:
+Create the empty MySQL database in cPanel first, then:
 
 ```bash
-php artisan tenants:pool-register etoscoach5 --label="Pool 05" --ready=1
+php artisan tenants:pool-prepare DB_NAME --label="Pool XX"
 ```
 
-Notes:
-- Use `--ready=1` when the database is already migrated and seeded.
-- Use `--ready=0` when the database exists but still needs tenant migrations and seed data the first time it is assigned.
+This will:
+- run all `database/migrations/tenants` on that DB
+- seed **PoolBaselineSeeder** only (site settings, membership catalog, FAQs, roles/permissions)
+- register the pool row as `available` + `is_ready=1`
+
+It does **not** create coaches, clients, or `admin@tenant.com`.
+
+Prepare every already-registered available pool DB:
+
+```bash
+php artisan tenants:pool-prepare --all-available
+```
+
+Schema only (no seed):
+
+```bash
+php artisan tenants:pool-prepare DB_NAME --no-seed
+```
+
+## Register without preparing (legacy)
+
+```bash
+php artisan tenants:pool-register DB_NAME --label="Pool XX" --ready=0
+```
+
+- `--ready=1` only when the DB was already migrated/seeded (prefer `pool-prepare` instead).
+- `--ready=0` defers baseline seed until first subscription.
 
 ## View pool status
 
@@ -48,78 +66,97 @@ Status meanings:
 - `allocated`: already assigned to a tenant.
 - `maintenance`: excluded from automatic assignment.
 
-## Provisioning flow
+## Fix mismatched schemas (existing DBs)
 
-When a new customer subscribes:
+Audit:
 
-1. The checkout endpoint creates a queued provisioning job.
-2. The provisioning service picks the first `available` database from the pool.
-3. A new record is created in `system.tenants`.
-4. The selected pool database is marked as `allocated`.
-5. Default tenant content is created for new tenants if the database is not already prepared.
+```bash
+php artisan tenants:audit --sync-system --only-issues
+```
+
+Apply pending migrations only (no wipe):
+
+```bash
+php artisan tenants:sync-schemas
+# or scoped:
+php artisan tenants:sync-schemas --allocated
+php artisan tenants:sync-schemas --pool-available
+```
+
+Also available:
+
+```bash
+php artisan tenant:migrate-all
+```
+
+## Provisioning flow (etoscoach subscription)
+
+When a customer pays for a platform plan:
+
+1. Checkout creates a pending invoice and Paylink session.
+2. Payment activation dispatches `ProvisionTenantJob`.
+3. `TenantProvisioner`:
+   - allocates the first available pool DB
+   - creates `system.tenants` with subdomain `{slug}.{APP_DOMAIN}`
+   - always runs tenant migrations
+   - seeds `PoolBaselineSeeder` if the DB was not ready / missing roles
+   - creates the subscriber user (email from checkout) with `admin` + `coach` roles
+   - seeds `DefaultTenantContentSeeder` (landing + light starter content)
+   - creates system subscription + billing contact
+   - queues welcome email with password-reset link
+
+Requirements on shared hosting:
+- pre-created MySQL databases in the pool
+- wildcard DNS (`*.etoscoach.com`) pointing at the app
+- queue worker / cron for `queue:work`
+
+cPanel does **not** auto-create MySQL databases or DNS records in this flow.
 
 ## Safe migration rules
 
-Never run `php artisan migrate` without an explicit scope in this project.
+Never run `php artisan migrate` without an explicit scope.
 
-Use only these commands:
+Use only:
 
 ```bash
 php artisan system:migrate
 php artisan tenants:audit --sync-system
-php artisan tenant:migrate coach-domain.example
+php artisan tenants:sync-schemas
+php artisan tenant:migrate DOMAIN
 php artisan tenant:migrate-all
+php artisan tenants:pool-prepare DB_NAME
 ```
 
-Recommended order before any batch tenant operation:
+Migration file placement:
 
-```bash
-php artisan tenants:audit --sync-system --only-issues
-php artisan tenant:migrate-all
-```
-
-Migration file placement rules:
-
-- `database/migrations/system` for platform tables in `cmsglobals_restored`
-- `database/migrations/tenants` for coach-owned tables inside each tenant database
-- no application table migrations in the root `database/migrations` directory
+- `database/migrations/system` → platform DB
+- `database/migrations/tenants` → each coach tenant DB
+- no application migrations in root `database/migrations`
 
 ## Queue worker
-
-Run the queue worker via cron or manually:
 
 ```bash
 php artisan queue:work --stop-when-empty --tries=3
 ```
 
-Recommended cron pattern on shared hosting: every minute.
+Recommended cron: every minute.
 
-## Default starter content for new tenants
+## Default content layers
 
-Fresh tenants now receive starter content automatically, including:
-- active landing page
-- starter meal plans
-- starter testimonials
-- starter training sessions
-- starter nutrition discounts
-- homepage display settings
+| Layer | When | Contains |
+|---|---|---|
+| `PoolBaselineSeeder` | pool-prepare / first provision if needed | settings, memberships, plans, FAQs, permissions |
+| Subscriber user | on paid provision | real checkout email only |
+| `DefaultTenantContentSeeder` | after subscriber exists | landing, sample meals/testimonials/sessions |
+
+Demo seeders (`ArabicFitnessSeeder`, `DemoTenantSeeder`) are **not** used for pool or production subscribe.
 
 ## Useful maintenance commands
 
-Clear caches:
-
 ```bash
 php artisan optimize:clear
-```
-
-Check failed jobs:
-
-```bash
 php artisan queue:failed
-```
-
-Retry failed jobs:
-
-```bash
 php artisan queue:retry all
+php artisan tenants:pool-list
+php artisan tenants:audit --only-issues
 ```

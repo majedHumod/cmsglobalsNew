@@ -172,6 +172,8 @@ class PermissionsSeeder extends Seeder
             'publish pages'
         ]);
 
-        $this->command->info('✅ تم إنشاء الصلاحيات والأدوار بنجاح');
+        if ($this->command) {
+            $this->command->info('✅ تم إنشاء الصلاحيات والأدوار بنجاح');
+        }
     }
 }

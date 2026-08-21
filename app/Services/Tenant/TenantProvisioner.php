@@ -108,10 +108,10 @@ class TenantProvisioner
                 '--force' => true,
             ]);
 
-            if ($shouldPrepareDatabase) {
-                // Seed base data (creates default landing page active)
+            $needsBaseline = $shouldPrepareDatabase || ! $this->tenantHasRoles();
+            if ($needsBaseline) {
                 Artisan::call('db:seed', [
-                    '--class' => 'Database\\Seeders\\Tenants\\BaseTenantSeeder',
+                    '--class' => 'Database\\Seeders\\Tenants\\PoolBaselineSeeder',
                     '--database' => 'tenant',
                     '--force' => true,
                 ]);
@@ -142,7 +142,7 @@ class TenantProvisioner
                 } catch (\Throwable $e) { /* ignore if roles not ready */ }
             }
 
-            // Always ensure starter public content exists for the tenant.
+            // Starter public content after real subscriber exists (idempotent).
             Artisan::call('db:seed', [
                 '--class' => 'Database\\Seeders\\Tenants\\DefaultTenantContentSeeder',
                 '--database' => 'tenant',
@@ -264,6 +264,19 @@ class TenantProvisioner
         return $plan->interval === 'yearly'
             ? now()->addYear()
             : now()->addMonth();
+    }
+
+    private function tenantHasRoles(): bool
+    {
+        try {
+            if (! \Illuminate\Support\Facades\Schema::connection('tenant')->hasTable('roles')) {
+                return false;
+            }
+
+            return \Spatie\Permission\Models\Role::query()->exists();
+        } catch (\Throwable) {
+            return false;
+        }
     }
 }
 
