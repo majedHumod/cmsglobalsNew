@@ -23,13 +23,15 @@ jobs:
           cp .env.example .env
           php -r "file_put_contents('.env', preg_replace('/^APP_KEY=.*/m', 'APP_KEY=base64:'.base64_encode(random_bytes(32)), file_get_contents('.env')));"
 
-      - name: Install PHP dependencies
+      # Needed only so Laravel package discovery / asset hooks do not break local build helpers.
+      # vendor itself is NOT uploaded over FTP (too many files for shared-host FTP).
+      - name: Install PHP dependencies (build only)
         run: composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
 
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
 
       - name: Build frontend assets
@@ -37,12 +39,14 @@ jobs:
           npm ci
           npm run build
 
-      - name: Strip non-runtime files
+      - name: Strip non-runtime and heavy paths before FTP
         run: |
           rm -f .env .env.backup .env.production
           rm -rf tests docs demoPro github .github node_modules
+          # Do not FTP vendor: ~15k+ files hang cPanel FTP. Install on server instead.
+          rm -rf vendor
 
-      - name: FTP Deploy
+      - name: FTP Deploy (app + built assets, no vendor)
         uses: SamKirkland/FTP-Deploy-Action@v4.3.6
         with:
           server: ${{ secrets.FTP_SERVER }}
@@ -50,6 +54,7 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           server-dir: app.etoscoach.com/
+          # Keep existing server vendor/ and env; never delete them when missing locally.
           exclude: |
             **/.git*
             **/.git*/**
@@ -61,9 +66,12 @@ jobs:
             **/tests/**
             **/docs/**
             **/demoPro/**
+            **/vendor/**
+            **/vendor/**/*
             **/storage/logs/**
             **/storage/framework/cache/**
             **/storage/framework/sessions/**
             **/storage/framework/views/**
+            **/storage/app/public/**
             phpunit.xml
             phpunit.xml.dist
