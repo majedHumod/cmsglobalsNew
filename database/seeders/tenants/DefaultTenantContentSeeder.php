@@ -22,6 +22,8 @@ class DefaultTenantContentSeeder extends Seeder
             return;
         }
 
+        $this->call(FaqsSeeder::class);
+
         $this->seedLandingPage($adminId);
         $this->seedMealPlans($adminId);
         $this->seedTestimonials($adminId);

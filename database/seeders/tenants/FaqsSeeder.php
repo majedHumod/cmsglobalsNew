@@ -3,6 +3,7 @@
 namespace Database\Seeders\Tenants;
 
 use App\Models\Faq;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 
 class FaqsSeeder extends Seeder
@@ -12,6 +13,12 @@ class FaqsSeeder extends Seeder
      */
     public function run(): void
     {
+        // Pool baseline has no users yet — FAQs require user_id FK.
+        $userId = User::query()->value('id');
+        if (! $userId) {
+            return;
+        }
+
         // إنشاء أسئلة شائعة للعضويات
         $membershipFaqs = [
             [
@@ -101,13 +108,19 @@ class FaqsSeeder extends Seeder
         // جمع جميع الأسئلة الشائعة
         $allFaqs = array_merge($membershipFaqs, $paymentFaqs, $accountFaqs, $supportFaqs, $generalFaqs);
 
-        // إنشاء الأسئلة الشائعة في قاعدة البيانات
         foreach ($allFaqs as $faqData) {
-            $faqData['user_id'] = 1; // افتراض أن المستخدم الأول هو المدير
-            Faq::create($faqData);
+            Faq::query()->firstOrCreate(
+                ['question' => $faqData['question']],
+                [
+                    'answer' => $faqData['answer'],
+                    'category' => $faqData['category'],
+                    'sort_order' => $faqData['sort_order'],
+                    'user_id' => $userId,
+                    'is_active' => true,
+                ]
+            );
         }
 
-        // مسح الكاش
         Faq::clearCache();
     }
 }

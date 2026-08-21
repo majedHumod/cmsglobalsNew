@@ -19,7 +19,7 @@ class PoolBaselineSeeder extends Seeder
             SiteSettingsSeeder::class,
             MembershipTypesSeeder::class,
             SubscriptionPlansSeeder::class,
-            FaqsSeeder::class,
+            // FaqsSeeder needs a user_id — seeded after subscriber exists (DefaultTenantContentSeeder).
             PermissionsSeeder::class,
         ]);
     }
