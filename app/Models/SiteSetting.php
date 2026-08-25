@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Schema;
 use App\Services\TenantCache;
 
 class SiteSetting extends Model
@@ -35,10 +36,15 @@ class SiteSetting extends Model
      */
     public static function get($key, $default = null)
     {
+        if (! static::tableAvailable()) {
+            return $default;
+        }
+
         $cacheKey = TenantCache::key('setting_' . $key);
         
-        return Cache::remember($cacheKey, 7200, function () use ($key, $default) {
-            $setting = self::where('key', $key)->first();
+        try {
+            return Cache::remember($cacheKey, 7200, function () use ($key, $default) {
+                $setting = self::where('key', $key)->first();
             
             if (!$setting) {
                 return $default;
@@ -58,7 +64,33 @@ class SiteSetting extends Model
                 default:
                     return $setting->value;
             }
-        });
+            });
+        } catch (\Throwable $e) {
+            return $default;
+        }
+    }
+
+    /**
+     * Tenant-only table. Platform hosts (system DB) do not have site_settings.
+     */
+    public static function tableAvailable(): bool
+    {
+        static $availableByConnection = [];
+
+        $connection = (new static)->getConnectionName() ?: (string) config('database.default');
+
+        if (array_key_exists($connection, $availableByConnection)) {
+            return $availableByConnection[$connection];
+        }
+
+        try {
+            $availableByConnection[$connection] = Schema::connection($connection)
+                ->hasTable((new static)->getTable());
+        } catch (\Throwable $e) {
+            $availableByConnection[$connection] = false;
+        }
+
+        return $availableByConnection[$connection];
     }
 
     /**
@@ -106,6 +138,10 @@ class SiteSetting extends Model
      */
     public static function getGroup($group)
     {
+        if (! static::tableAvailable()) {
+            return collect();
+        }
+
         $cacheKey = TenantCache::key('settings_group_' . $group);
 
         try {

@@ -6,6 +6,8 @@ use App\Http\Controllers\Billing\PaylinkWebhookController;
 use App\Http\Controllers\Billing\StripeWebhookController;
 use App\Http\Controllers\Billing\PlanController;
 use App\Http\Controllers\Billing\SubscribePageController;
+use App\Http\Controllers\Platform\AccountController;
+use App\Http\Controllers\Platform\CustomerDirectoryController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Session;
@@ -385,8 +387,19 @@ Route::get('/billing/paylink/callback', PaylinkCallbackController::class)->name(
 Route::post('/webhooks/paylink', PaylinkWebhookController::class)->name('billing.webhooks.paylink');
 Route::post('/webhooks/stripe', StripeWebhookController::class)->middleware('tenants')->name('billing.webhooks.stripe');
 
-// Subscribe landing/form
+// Subscribe landing/form (coach/club purchase — not trainee register)
 Route::get('/subscribe', [SubscribePageController::class, 'index'])->name('subscribe');
+
+Route::prefix('account')->name('platform.account.')->group(function () {
+    Route::get('/login', [AccountController::class, 'loginForm'])->name('login');
+    Route::post('/login', [AccountController::class, 'login'])->name('login.store');
+    Route::match(['get', 'post'], '/logout', [AccountController::class, 'logout'])->name('logout');
+    Route::get('/forgot', [AccountController::class, 'forgotForm'])->name('forgot');
+    Route::post('/forgot', [AccountController::class, 'forgot'])->name('forgot.store');
+    Route::get('/expired', [AccountController::class, 'expired'])->name('expired');
+});
+
+Route::get('/platform/customers', [CustomerDirectoryController::class, 'index'])->name('platform.customers');
 
 // ------------------------------
 // Tenant Admin - Billing page (read-only for now)

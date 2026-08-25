@@ -17,8 +17,11 @@ use App\Http\Controllers\Api\PushSubscriptionController;
 use App\Http\Controllers\Api\CommunicationWebhookController;
 use App\Http\Controllers\Api\TenantDiscoveryController;
 use App\Http\Controllers\Api\WorkoutLogController;
+use App\Http\Controllers\Platform\SessionApiController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+
+Route::get('/platform/session', [SessionApiController::class, 'show'])->name('api.platform.session');
 
 Route::get('/user', function (Request $request) {
     return $request->user();

@@ -82,6 +82,7 @@ class TenantProvisioner
             $tenant->subdomain = $slug;
             $tenant->email = $contactEmail;
             $tenant->status = 'active';
+            $tenant->access_status = 'active';
             $tenant->db_name = $poolDb->db_name;
             $tenant->save();
 

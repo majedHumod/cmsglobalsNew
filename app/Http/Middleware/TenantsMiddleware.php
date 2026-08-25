@@ -25,6 +25,11 @@ class TenantsMiddleware
 
         $domain = $this->normalizeDomain((string) $domain);
         $domain = $this->applyDomainAlias($domain);
+
+        if ($this->isPlatformHost($domain)) {
+            return $next($request);
+        }
+
         $subdomain = explode('.', $domain)[0] ?? $domain;
 
         $tenant = null;
@@ -66,6 +71,13 @@ class TenantsMiddleware
         return trim($domain);
     }
 
+    private function isPlatformHost(string $domain): bool
+    {
+        $hosts = array_map('strtolower', config('platform.hosts', []));
+
+        return $domain !== '' && in_array($domain, $hosts, true);
+    }
+
     /**
      * Optional aliases: TENANT_DOMAIN_ALIASES=app1.cmsglobals.test:app3.cmsglobals.test,old:new
      */
@@ -93,7 +105,7 @@ class TenantsMiddleware
         }
 
         // Platform webhooks stay on the system connection.
-        if ($request->is('api/webhooks/*') || $request->is('api/*/webhooks/*')) {
+        if ($request->is('api/webhooks/*') || $request->is('api/*/webhooks/*') || $request->is('api/platform/*')) {
             return false;
         }
 
