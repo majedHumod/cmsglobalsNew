@@ -8,7 +8,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="icon" type="image/png" href="assets/img/logo.png" />
+    <link rel="preconnect" href="https://app.etoscoach.com" />
     <link rel="stylesheet" href="assets/css/styles.css" />
+    <script>document.documentElement.classList.add("platform-session-pending");</script>
   </head>
   <body>
     <header class="site-header">
@@ -29,8 +31,7 @@
             <a href="index.html#about">عن المنصة</a>
             <a href="index.html#features">المزايا</a>
             <a href="index.html#pricing">الأسعار</a>
-            <div id="platform-account" class="platform-account"></div>
-            <a class="cta js-start-cta" href="https://app.etoscoach.com/subscribe">ابدأ الآن</a>
+            <div id="platform-account" class="platform-account" aria-live="polite"></div>
           </div>
         </nav>
       </div>
@@ -99,7 +100,7 @@
     </footer>
 
     <script src="assets/js/main.js"></script>
-    <script src="assets/js/platform-account.js"></script>
+    <script src="assets/js/platform-account.js?v=3"></script>
     <script>
       document.getElementById('year').textContent = new Date().getFullYear();
     </script>

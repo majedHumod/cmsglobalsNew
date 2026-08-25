@@ -14,46 +14,20 @@
     return wrap.firstElementChild;
   }
 
-  function setStartCtasVisible(show) {
-    document.body.classList.toggle("is-platform-authenticated", !show);
-    var links = document.querySelectorAll(".nav-links > a, .js-start-cta");
-    links.forEach(function (node) {
-      if (node.closest("#platform-account")) {
-        return;
-      }
-      var text = (node.textContent || "").replace(/\s+/g, " ").trim();
-      var href = node.getAttribute("href") || "";
-      var isStart =
-        node.classList.contains("js-start-cta") ||
-        text === "ابدأ الآن" ||
-        (node.classList.contains("cta") && href.indexOf("subscribe") !== -1);
-      if (!isStart) {
-        return;
-      }
-      if (show) {
-        node.removeAttribute("hidden");
-        node.style.removeProperty("display");
-      } else {
-        node.setAttribute("hidden", "hidden");
-        node.style.setProperty("display", "none", "important");
-      }
-    });
+  function setSessionState(state) {
+    var root = document.documentElement;
+    root.classList.remove("platform-session-pending", "platform-session-ready", "platform-guest", "platform-authenticated");
+    root.classList.add("platform-session-ready", state === "authenticated" ? "platform-authenticated" : "platform-guest");
   }
 
   function renderGuest(slot) {
-    setStartCtasVisible(true);
     slot.innerHTML = "";
-    slot.appendChild(
-      el(
-        '<a class="nav-login" href="' +
-          LOGIN +
-          '">تسجيل الدخول</a>'
-      )
-    );
+    slot.appendChild(el('<a class="nav-login" href="' + LOGIN + '">تسجيل الدخول</a>'));
+    slot.appendChild(el('<a class="cta js-start-cta" href="' + SUBSCRIBE + '">ابدأ الآن</a>'));
+    setSessionState("guest");
   }
 
   function renderUser(slot, data) {
-    setStartCtasVisible(false);
     var name = data.name || data.email || "حسابك";
     var club = data.club ? '<span class="account-club">' + escapeHtml(data.club) + "</span>" : "";
     var dash = data.dashboard_url || SUBSCRIBE;
@@ -79,6 +53,7 @@
           "</div>"
       )
     );
+    setSessionState("authenticated");
   }
 
   function escapeHtml(s) {
@@ -89,34 +64,49 @@
       .replace(/"/g, "&quot;");
   }
 
+  function fetchSession() {
+    var endpoints = [APP + "/account/session", APP + "/api/platform/session"];
+
+    function tryEndpoint(index) {
+      if (index >= endpoints.length) {
+        return Promise.resolve({ authenticated: false });
+      }
+
+      return fetch(endpoints[index], {
+        credentials: "include",
+        headers: { Accept: "application/json" },
+      })
+        .then(function (res) {
+          if (!res.ok) {
+            throw new Error("session " + res.status);
+          }
+          return res.json();
+        })
+        .catch(function () {
+          return tryEndpoint(index + 1);
+        });
+    }
+
+    return tryEndpoint(0);
+  }
+
   function mount() {
     var slot = document.getElementById("platform-account");
-    if (!slot) return;
-    renderGuest(slot);
-    fetch(APP + "/account/session", {
-      credentials: "include",
-      headers: { Accept: "application/json" },
-    })
-      .then(function (res) {
-        return res.json();
-      })
+    if (!slot) {
+      document.documentElement.classList.remove("platform-session-pending");
+      return;
+    }
+
+    fetchSession()
       .then(function (data) {
         if (data && data.authenticated) {
           renderUser(slot, data);
+        } else {
+          renderGuest(slot);
         }
       })
       .catch(function () {
-        return fetch(APP + "/api/platform/session", {
-          credentials: "include",
-          headers: { Accept: "application/json" },
-        }).then(function (res) {
-          return res.json();
-        });
-      })
-      .then(function (data) {
-        if (data && data.authenticated) {
-          renderUser(slot, data);
-        }
+        renderGuest(slot);
       });
   }
 
