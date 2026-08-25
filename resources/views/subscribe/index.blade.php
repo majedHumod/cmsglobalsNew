@@ -31,6 +31,7 @@
         <h2 class="font-bold mb-3">الخطط المتاحة</h2>
         @if($plans->isEmpty())
             <p class="text-gray-600">لا توجد خطط متاحة حالياً. يرجى المحاولة لاحقاً.</p>
+            <p class="mt-4"><a href="{{ $marketingUrl }}" class="px-4 py-2 rounded border inline-block">العودة للموقع الرئيسي</a></p>
         @else
             <form id="subscribe-form" action="{{ route('billing.checkout.session') }}" method="POST" class="space-y-5">
                 @csrf
@@ -92,7 +93,7 @@
                     <button type="submit" class="px-4 py-2 rounded bg-emerald-600 text-white font-bold hover:bg-emerald-700">
                         {{ $renewal ? 'تجديد الاشتراك والدفع' : 'متابعة إلى صفحة الدفع' }}
                     </button>
-                    <a href="/" class="px-4 py-2 rounded border">العودة</a>
+                    <a href="{{ $marketingUrl }}" class="px-4 py-2 rounded border">العودة للموقع الرئيسي</a>
                 </div>
             </form>
         @endif

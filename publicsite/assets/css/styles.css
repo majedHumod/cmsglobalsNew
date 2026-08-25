@@ -45,6 +45,10 @@ img{max-width:100%; height:auto; display:block}
 /* Ensure header CTA is white despite .nav-links a rule */
 .nav-links a.cta, .nav .cta, .nav .cta:visited { color:#ffffff; }
 .nav .cta:hover { color:#ffffff; opacity:.95; }
+body.is-platform-authenticated .nav-links > a.cta,
+body.is-platform-authenticated .js-start-cta{
+  display:none !important;
+}
 .nav-login{font-weight:700; color:var(--brand-700)!important}
 .platform-account{display:flex; align-items:center}
 .account-chip{display:flex; align-items:center; gap:10px; flex-wrap:wrap}

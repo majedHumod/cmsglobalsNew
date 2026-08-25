@@ -15,8 +15,28 @@
   }
 
   function setStartCtasVisible(show) {
-    document.querySelectorAll(".js-start-cta").forEach(function (node) {
-      node.style.display = show ? "" : "none";
+    document.body.classList.toggle("is-platform-authenticated", !show);
+    var links = document.querySelectorAll(".nav-links > a, .js-start-cta");
+    links.forEach(function (node) {
+      if (node.closest("#platform-account")) {
+        return;
+      }
+      var text = (node.textContent || "").replace(/\s+/g, " ").trim();
+      var href = node.getAttribute("href") || "";
+      var isStart =
+        node.classList.contains("js-start-cta") ||
+        text === "ابدأ الآن" ||
+        (node.classList.contains("cta") && href.indexOf("subscribe") !== -1);
+      if (!isStart) {
+        return;
+      }
+      if (show) {
+        node.removeAttribute("hidden");
+        node.style.removeProperty("display");
+      } else {
+        node.setAttribute("hidden", "hidden");
+        node.style.setProperty("display", "none", "important");
+      }
     });
   }
 

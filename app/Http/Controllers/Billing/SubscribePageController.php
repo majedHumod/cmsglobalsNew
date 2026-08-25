@@ -53,6 +53,7 @@ class SubscribePageController extends Controller
                 'name' => $contact->name ?? $tenant?->name ?? $session['name'] ?? '',
                 'mobile' => $tenant?->phone ?? '',
             ],
+            'marketingUrl' => rtrim((string) config('platform.marketing_url'), '/') ?: 'https://etoscoach.com',
         ]);
     }
 }
