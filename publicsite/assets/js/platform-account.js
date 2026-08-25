@@ -14,7 +14,14 @@
     return wrap.firstElementChild;
   }
 
+  function setStartCtasVisible(show) {
+    document.querySelectorAll(".js-start-cta").forEach(function (node) {
+      node.style.display = show ? "" : "none";
+    });
+  }
+
   function renderGuest(slot) {
+    setStartCtasVisible(true);
     slot.innerHTML = "";
     slot.appendChild(
       el(
@@ -26,6 +33,7 @@
   }
 
   function renderUser(slot, data) {
+    setStartCtasVisible(false);
     var name = data.name || data.email || "حسابك";
     var club = data.club ? '<span class="account-club">' + escapeHtml(data.club) + "</span>" : "";
     var dash = data.dashboard_url || SUBSCRIBE;

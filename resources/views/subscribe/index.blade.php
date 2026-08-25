@@ -1,7 +1,25 @@
 <x-guest-layout>
 <div class="max-w-3xl mx-auto px-4 py-10">
-    <h1 class="text-3xl font-extrabold mb-3">الاشتراك عبر سب-دومين</h1>
-    <p class="text-gray-600 mb-8">اختر الخطة، ثم أدخل بياناتك الأساسية. سيتم تحويلك إلى Paylink لإتمام الدفع، ولن يتم تفعيل نسختك إلا بعد تأكيد السداد.</p>
+    <h1 class="text-3xl font-extrabold mb-3">{{ $renewal ? 'تجديد الاشتراك' : 'الاشتراك عبر سب-دومين' }}</h1>
+    <p class="text-gray-600 mb-8">
+        @if($renewal)
+            بيانات ناديك جاهزة أدناه. اختر الخطة ثم أكمل الدفع لتجديد نفس الحساب دون إنشاء مركز جديد.
+        @else
+            اختر الخطة، ثم أدخل بياناتك الأساسية. سيتم تحويلك إلى Paylink لإتمام الدفع، ولن يتم تفعيل نسختك إلا بعد تأكيد السداد.
+        @endif
+    </p>
+
+    @if($renewal && $tenant)
+        <div class="p-4 mb-6 rounded bg-teal-50 text-teal-900 text-sm">
+            <div><strong>النادي:</strong> {{ $tenant->name }}</div>
+            @if(!empty($prefill['email']))
+                <div><strong>البريد:</strong> {{ $prefill['email'] }}</div>
+            @endif
+            @if(!empty($prefill['subdomain']))
+                <div><strong>الرابط:</strong> {{ $prefill['subdomain'] }}.{{ config('app.domain', 'etoscoach.com') }}</div>
+            @endif
+        </div>
+    @endif
 
     @if (session('status'))
         <div class="p-4 mb-6 rounded bg-green-100 text-green-800">
@@ -40,23 +58,29 @@
                 <div class="grid md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-semibold mb-1">السب-دومين المطلوب</label>
-                        <input type="text" name="subdomain" class="w-full border rounded px-3 py-2" placeholder="example" required>
-                        <p class="text-xs text-gray-500 mt-1">أحرف صغيرة/أرقام/— فقط. مثال: example. سيصبح رابطك example.{{ config('app.domain', 'yourdomain.com') }}</p>
+                        <input type="text" name="subdomain" class="w-full border rounded px-3 py-2" placeholder="example" value="{{ old('subdomain', $prefill['subdomain'] ?? '') }}" required @if($renewal) readonly @endif>
+                        <p class="text-xs text-gray-500 mt-1">
+                            @if($renewal)
+                                لا يمكن تغيير سب-دومين النادي الحالي عند التجديد.
+                            @else
+                                أحرف صغيرة/أرقام/— فقط. مثال: example. سيصبح رابطك example.{{ config('app.domain', 'yourdomain.com') }}
+                            @endif
+                        </p>
                     </div>
                     <div>
                         <label class="block text-sm font-semibold mb-1">البريد الإلكتروني للتواصل</label>
-                        <input type="email" name="email" class="w-full border rounded px-3 py-2" placeholder="you@example.com" required>
+                        <input type="email" name="email" class="w-full border rounded px-3 py-2" placeholder="you@example.com" value="{{ old('email', $prefill['email'] ?? '') }}" required @if($renewal) readonly @endif>
                     </div>
                 </div>
 
                 <div class="grid md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-semibold mb-1">الاسم (اختياري)</label>
-                        <input type="text" name="name" class="w-full border rounded px-3 py-2" placeholder="اسم المالك/المسؤول">
+                        <input type="text" name="name" class="w-full border rounded px-3 py-2" placeholder="اسم المالك/المسؤول" value="{{ old('name', $prefill['name'] ?? '') }}">
                     </div>
                     <div>
                         <label class="block text-sm font-semibold mb-1">رقم الجوال</label>
-                        <input type="text" name="mobile" class="w-full border rounded px-3 py-2" placeholder="05xxxxxxxx" required>
+                        <input type="text" name="mobile" class="w-full border rounded px-3 py-2" placeholder="05xxxxxxxx" value="{{ old('mobile', $prefill['mobile'] ?? '') }}" required>
                         <p class="text-xs text-gray-500 mt-1">مطلوب لدى Paylink لإصدار رابط الدفع.</p>
                     </div>
                 </div>
@@ -66,7 +90,7 @@
 
                 <div class="flex gap-3">
                     <button type="submit" class="px-4 py-2 rounded bg-emerald-600 text-white font-bold hover:bg-emerald-700">
-                        متابعة إلى صفحة الدفع
+                        {{ $renewal ? 'تجديد الاشتراك والدفع' : 'متابعة إلى صفحة الدفع' }}
                     </button>
                     <a href="/" class="px-4 py-2 rounded border">العودة</a>
                 </div>

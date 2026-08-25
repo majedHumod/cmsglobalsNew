@@ -2,6 +2,7 @@
 
 namespace App\Services\Platform;
 
+use App\Models\Billing\Plan;
 use App\Models\Billing\Subscription;
 use App\Models\Tenant;
 use Carbon\CarbonInterface;
@@ -63,6 +64,39 @@ class TenantAccessService
         $tenant->save();
 
         return $tenant;
+    }
+
+    public function applyPaidRenewal(Tenant $tenant, Plan $plan, string $provider, string $orderNumber): Tenant
+    {
+        $periodEnd = $plan->interval === 'yearly' ? now()->addYear() : now()->addMonth();
+
+        $subscription = Subscription::query()
+            ->where('tenant_id', $tenant->id)
+            ->latest('id')
+            ->first();
+
+        $payload = [
+            'plan_id' => $plan->id,
+            'provider' => $provider,
+            'provider_customer_id' => $tenant->email,
+            'provider_subscription_id' => $orderNumber,
+            'status' => 'active',
+            'current_period_start' => now(),
+            'current_period_end' => $periodEnd,
+            'cancel_at_period_end' => false,
+            'trial_ends_at' => null,
+        ];
+
+        if ($subscription) {
+            $subscription->fill($payload)->save();
+        } else {
+            Subscription::create(['tenant_id' => $tenant->id] + $payload);
+        }
+
+        $tenant->suspended_at = null;
+        $tenant->archived_at = null;
+
+        return $this->sync($tenant);
     }
 
     public function canUseWorkspace(Tenant $tenant): bool

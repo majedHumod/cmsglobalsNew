@@ -9,6 +9,7 @@ use App\Models\Billing\Payment;
 use App\Models\Billing\Plan;
 use App\Models\Tenant;
 use App\Services\Billing\PaylinkService;
+use App\Services\Platform\PlatformAccountCookie;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
@@ -18,6 +19,7 @@ class CheckoutController extends Controller
 {
     public function __construct(
         private readonly PaylinkService $paylink,
+        private readonly PlatformAccountCookie $cookie,
     ) {
     }
 
@@ -39,6 +41,17 @@ class CheckoutController extends Controller
 
         $data = $validator->validated();
         $slug = strtolower($data['subdomain']);
+        $renewTenant = $this->renewalTenant($request);
+        if ($renewTenant) {
+            $slug = strtolower((string) ($renewTenant->subdomain ?: explode('.', (string) $renewTenant->domain)[0]));
+            $data['subdomain'] = $slug;
+            if (empty($data['email'])) {
+                $data['email'] = (string) $renewTenant->email;
+            }
+            if (empty($data['name'])) {
+                $data['name'] = (string) $renewTenant->name;
+            }
+        }
 
         // Prevent reserved subdomains
         $reserved = ['www','admin','api','demo','test','pay','billing','support'];
@@ -47,8 +60,14 @@ class CheckoutController extends Controller
         }
 
         // Check availability against system.tenants
-        $exists = Tenant::on('system')->where('subdomain', $slug)->orWhere('domain', $slug.'.'.config('app.domain', 'yourdomain.com'))->exists();
-        if ($exists) {
+        $exists = Tenant::on('system')->where(function ($query) use ($slug) {
+            $query->where('subdomain', $slug)
+                ->orWhere('domain', $slug.'.'.config('app.domain', 'yourdomain.com'));
+        });
+        if ($renewTenant) {
+            $exists->where('id', '!=', $renewTenant->id);
+        }
+        if ($exists->exists()) {
             return response()->json(['error' => 'This subdomain is already taken.'], 422);
         }
 
@@ -59,7 +78,7 @@ class CheckoutController extends Controller
             return response()->json(['error' => 'Paylink requires a minimum invoice amount of 5 SAR.'], 422);
         }
 
-        $orderNumber = 'signup-' . Str::lower((string) Str::ulid());
+        $orderNumber = ($renewTenant ? 'renew-' : 'signup-') . Str::lower((string) Str::ulid());
         $callbackUrl = config('services.paylink.callback_url') ?: route('billing.paylink.callback');
         $cancelUrl = config('services.paylink.cancel_url') ?: route('subscribe');
         $products = [[
@@ -83,7 +102,7 @@ class CheckoutController extends Controller
                 'products' => $products,
                 'supportedCardBrands' => config('services.paylink.supported_card_brands', []),
                 'displayPending' => true,
-                'note' => 'Tenant signup for ' . $slug,
+                'note' => ($renewTenant ? 'Tenant renewal for ' : 'Tenant signup for ') . $slug,
             ]);
         } catch (\Throwable $e) {
             return response()->json(['error' => $e->getMessage()], 422);
@@ -91,9 +110,19 @@ class CheckoutController extends Controller
 
         $transactionNo = (string) ($paylinkResponse['transactionNo'] ?? '');
 
-        DB::connection('system')->transaction(function () use ($plan, $data, $slug, $amount, $orderNumber, $products, $paylinkResponse, $transactionNo) {
+        DB::connection('system')->transaction(function () use ($plan, $data, $slug, $amount, $orderNumber, $products, $paylinkResponse, $transactionNo, $renewTenant) {
+            $signup = [
+                'slug' => $slug,
+                'plan_code' => $plan->code,
+                'email' => $data['email'],
+                'name' => $data['name'] ?? null,
+                'mobile' => $data['mobile'],
+                'renew' => (bool) $renewTenant,
+                'tenant_id' => $renewTenant?->id,
+            ];
+
             Invoice::create([
-                'tenant_id' => null,
+                'tenant_id' => $renewTenant?->id,
                 'number' => $orderNumber,
                 'provider_invoice_id' => $transactionNo,
                 'amount_due' => $amount,
@@ -108,18 +137,12 @@ class CheckoutController extends Controller
                 'period_end' => null,
                 'line_items' => [
                     'products' => $products,
-                    'signup' => [
-                        'slug' => $slug,
-                        'plan_code' => $plan->code,
-                        'email' => $data['email'],
-                        'name' => $data['name'] ?? null,
-                        'mobile' => $data['mobile'],
-                    ],
+                    'signup' => $signup,
                 ],
             ]);
 
             Payment::create([
-                'tenant_id' => null,
+                'tenant_id' => $renewTenant?->id,
                 'provider_payment_intent_id' => $transactionNo,
                 'amount' => $amount,
                 'currency' => $plan->currency ?: config('services.paylink.currency', 'SAR'),
@@ -130,21 +153,15 @@ class CheckoutController extends Controller
                     'order_number' => $orderNumber,
                     'mobile_url' => $paylinkResponse['mobileUrl'] ?? null,
                     'check_url' => $paylinkResponse['checkUrl'] ?? null,
-                    'signup' => [
-                        'slug' => $slug,
-                        'plan_code' => $plan->code,
-                        'email' => $data['email'],
-                        'name' => $data['name'] ?? null,
-                        'mobile' => $data['mobile'],
-                    ],
+                    'signup' => $signup,
                 ],
                 'receipt_url' => null,
             ]);
 
             Event::create([
-                'tenant_id' => null,
+                'tenant_id' => $renewTenant?->id,
                 'provider_event_id' => 'checkout:' . $orderNumber,
-                'type' => 'paylink.invoice.created',
+                'type' => $renewTenant ? 'paylink.invoice.renewal_created' : 'paylink.invoice.created',
                 'payload' => [
                     'provider' => 'paylink',
                     'order_number' => $orderNumber,
@@ -154,6 +171,8 @@ class CheckoutController extends Controller
                     'email' => $data['email'],
                     'name' => $data['name'] ?? null,
                     'mobile' => $data['mobile'],
+                    'renew' => (bool) $renewTenant,
+                    'tenant_id' => $renewTenant?->id,
                     'paylink_response' => $paylinkResponse,
                 ],
                 'processed_at' => now(),
@@ -173,6 +192,16 @@ class CheckoutController extends Controller
         }
 
         return redirect()->away($paylinkResponse['url'] ?? route('subscribe'));
+    }
+
+    private function renewalTenant(Request $request): ?Tenant
+    {
+        $session = $this->cookie->read($request);
+        if (! $session || $session['is_owner'] || empty($session['tenant_id'])) {
+            return null;
+        }
+
+        return Tenant::on('system')->find($session['tenant_id']);
     }
 }
 

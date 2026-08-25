@@ -43,6 +43,9 @@ class SessionApiController extends Controller
 
         $this->access->sync($tenant);
 
+        $needsRenew = ! $this->access->canUseWorkspace($tenant);
+        $app = rtrim((string) config('platform.app_url'), '/') ?: 'https://app.etoscoach.com';
+
         return $this->sessionJson($request, [
             'authenticated' => true,
             'is_owner' => false,
@@ -51,10 +54,10 @@ class SessionApiController extends Controller
             'club' => $tenant->name,
             'access_status' => $tenant->access_status,
             'message' => $this->access->message($tenant),
-            'dashboard_url' => $this->access->canUseWorkspace($tenant)
-                ? $this->access->dashboardUrl($tenant)
-                : rtrim((string) config('platform.app_url'), '/').'/account/expired',
-            'dashboard_label' => $this->access->canUseWorkspace($tenant) ? 'لوحة التحكم' : 'تجديد الاشتراك',
+            'dashboard_url' => $needsRenew
+                ? $app.'/subscribe'
+                : $this->access->dashboardUrl($tenant),
+            'dashboard_label' => $needsRenew ? 'تجديد الاشتراك' : 'لوحة التحكم',
             'login_url' => $this->access->loginUrl($tenant),
         ]);
     }

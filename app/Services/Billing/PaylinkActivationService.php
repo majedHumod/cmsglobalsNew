@@ -6,10 +6,17 @@ use App\Jobs\Tenant\ProvisionTenantJob;
 use App\Models\Billing\Event;
 use App\Models\Billing\Invoice;
 use App\Models\Billing\Payment;
+use App\Models\Billing\Plan;
 use App\Models\Tenant;
+use App\Services\Platform\TenantAccessService;
 
 class PaylinkActivationService
 {
+    public function __construct(
+        private readonly TenantAccessService $access,
+    ) {
+    }
+
     public function activatePaidInvoice(string $transactionNo, ?string $orderNumber = null, string $source = 'callback'): array
     {
         $invoice = Invoice::query()
@@ -38,15 +45,19 @@ class PaylinkActivationService
         $signup = $checkoutEvent->payload ?? [];
         $slug = $signup['slug'] ?? null;
         $domain = $slug ? ($slug . '.' . config('app.domain', 'yourdomain.com')) : null;
+        $renewTenantId = (int) ($signup['tenant_id'] ?? 0);
+        $isRenewal = ! empty($signup['renew']) && $renewTenantId > 0;
 
         if (!$slug || empty($signup['plan_code']) || empty($signup['email'])) {
             return ['status' => 'invalid_signup_payload', 'invoice' => $invoice];
         }
 
-        $tenant = Tenant::on('system')
-            ->where('subdomain', $slug)
-            ->orWhere('domain', $domain)
-            ->first();
+        $tenant = $isRenewal
+            ? Tenant::on('system')->find($renewTenantId)
+            : Tenant::on('system')
+                ->where('subdomain', $slug)
+                ->orWhere('domain', $domain)
+                ->first();
 
         $eventId = $source . ':paylink:' . $transactionNo . ':paid';
         if (Event::query()->where('provider_event_id', $eventId)->exists()) {
@@ -85,6 +96,15 @@ class PaylinkActivationService
             ],
             'processed_at' => now(),
         ]);
+
+        if ($isRenewal && $tenant) {
+            $plan = Plan::where('code', $signup['plan_code'])->first();
+            if ($plan) {
+                $this->access->applyPaidRenewal($tenant, $plan, 'paylink', $invoice->number);
+            }
+
+            return ['status' => 'renewed', 'invoice' => $invoice, 'tenant' => $tenant];
+        }
 
         if ($tenant) {
             return ['status' => 'already_provisioned', 'invoice' => $invoice, 'tenant' => $tenant];
