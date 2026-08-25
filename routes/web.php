@@ -8,6 +8,7 @@ use App\Http\Controllers\Billing\PlanController;
 use App\Http\Controllers\Billing\SubscribePageController;
 use App\Http\Controllers\Platform\AccountController;
 use App\Http\Controllers\Platform\CustomerDirectoryController;
+use App\Http\Controllers\Platform\SessionApiController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Session;
@@ -397,6 +398,7 @@ Route::prefix('account')->name('platform.account.')->group(function () {
     Route::get('/forgot', [AccountController::class, 'forgotForm'])->name('forgot');
     Route::post('/forgot', [AccountController::class, 'forgot'])->name('forgot.store');
     Route::get('/expired', [AccountController::class, 'expired'])->name('expired');
+    Route::get('/session', [SessionApiController::class, 'show'])->name('session');
 });
 
 Route::get('/platform/customers', [CustomerDirectoryController::class, 'index'])->name('platform.customers');

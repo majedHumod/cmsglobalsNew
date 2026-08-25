@@ -21,16 +21,16 @@ class SessionApiController extends Controller
     {
         $payload = $this->cookie->read($request);
         if (! $payload) {
-            return response()->json(['authenticated' => false]);
+            return $this->sessionJson($request, ['authenticated' => false]);
         }
 
         if ($payload['is_owner']) {
-            return response()->json([
+            return $this->sessionJson($request, [
                 'authenticated' => true,
                 'is_owner' => true,
                 'name' => $payload['name'] ?: 'مالك المنصة',
                 'email' => $payload['email'],
-                'dashboard_url' => config('platform.app_url').'/platform/customers',
+                'dashboard_url' => rtrim((string) config('platform.app_url'), '/').'/platform/customers',
                 'dashboard_label' => 'لوحة الإدارة',
                 'access_status' => 'active',
             ]);
@@ -38,12 +38,12 @@ class SessionApiController extends Controller
 
         $tenant = Tenant::on('system')->find($payload['tenant_id']);
         if (! $tenant) {
-            return response()->json(['authenticated' => false]);
+            return $this->sessionJson($request, ['authenticated' => false]);
         }
 
         $this->access->sync($tenant);
 
-        return response()->json([
+        return $this->sessionJson($request, [
             'authenticated' => true,
             'is_owner' => false,
             'name' => $payload['name'] ?: $tenant->name,
@@ -53,9 +53,23 @@ class SessionApiController extends Controller
             'message' => $this->access->message($tenant),
             'dashboard_url' => $this->access->canUseWorkspace($tenant)
                 ? $this->access->dashboardUrl($tenant)
-                : url('/account/expired'),
+                : rtrim((string) config('platform.app_url'), '/').'/account/expired',
             'dashboard_label' => $this->access->canUseWorkspace($tenant) ? 'لوحة التحكم' : 'تجديد الاشتراك',
             'login_url' => $this->access->loginUrl($tenant),
         ]);
+    }
+
+    private function sessionJson(Request $request, array $data): JsonResponse
+    {
+        $response = response()->json($data);
+        $origin = rtrim((string) $request->headers->get('Origin'), '/');
+        $allowed = config('cors.allowed_origins', []);
+        if ($origin !== '' && in_array($origin, $allowed, true)) {
+            $response->headers->set('Access-Control-Allow-Origin', $origin);
+            $response->headers->set('Access-Control-Allow-Credentials', 'true');
+            $response->headers->set('Vary', 'Origin');
+        }
+
+        return $response;
     }
 }

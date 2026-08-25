@@ -6,12 +6,21 @@
             <p class="text-sm text-gray-600">
                 لا يتم حذف بيانات النادي أو المتدربين تلقائياً. بعد التجديد يعود الوصول كما كان.
             </p>
+            @if(!empty($accountName) || !empty($accountEmail))
+                <p class="text-sm">
+                    <strong>الحساب:</strong>
+                    {{ $accountName ?: $accountEmail }}
+                    @if($accountEmail && $accountName)
+                        <span class="text-gray-500">({{ $accountEmail }})</span>
+                    @endif
+                </p>
+            @endif
             @if($tenant)
                 <p class="text-sm"><strong>النادي:</strong> {{ $tenant->name }}</p>
             @endif
             <div class="flex flex-wrap gap-3 pt-2">
                 <a href="{{ $subscribeUrl }}" class="inline-flex px-4 py-2 rounded-lg bg-teal-700 text-white font-bold">تجديد الاشتراك</a>
-                <a href="{{ config('platform.marketing_url') }}" class="inline-flex px-4 py-2 rounded-lg border">الموقع الرئيسي</a>
+                <a href="{{ $marketingUrl }}" class="inline-flex px-4 py-2 rounded-lg border">الموقع الرئيسي</a>
             </div>
         </div>
     </div>

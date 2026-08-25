@@ -1,6 +1,9 @@
 (function () {
   var APP = "https://app.etoscoach.com";
-  var MARKETING = "https://etoscoach.com";
+  var MARKETING =
+    location.hostname === "etoscoach.com" || location.hostname === "www.etoscoach.com"
+      ? location.origin
+      : "https://etoscoach.com";
   var LOGIN = APP + "/account/login?redirect=" + encodeURIComponent(MARKETING + "/");
   var LOGOUT = APP + "/account/logout?redirect=" + encodeURIComponent(MARKETING + "/");
   var SUBSCRIBE = APP + "/subscribe";
@@ -62,7 +65,7 @@
     var slot = document.getElementById("platform-account");
     if (!slot) return;
     renderGuest(slot);
-    fetch(APP + "/api/platform/session", {
+    fetch(APP + "/account/session", {
       credentials: "include",
       headers: { Accept: "application/json" },
     })
@@ -74,7 +77,19 @@
           renderUser(slot, data);
         }
       })
-      .catch(function () {});
+      .catch(function () {
+        return fetch(APP + "/api/platform/session", {
+          credentials: "include",
+          headers: { Accept: "application/json" },
+        }).then(function (res) {
+          return res.json();
+        });
+      })
+      .then(function (data) {
+        if (data && data.authenticated) {
+          renderUser(slot, data);
+        }
+      });
   }
 
   function loadPlans() {
