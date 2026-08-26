@@ -18,9 +18,21 @@
             @if($tenant)
                 <p class="text-sm"><strong>النادي:</strong> {{ $tenant->name }}</p>
             @endif
+            @if(!empty($subscriptionEndsAt))
+                <p class="text-sm">
+                    <strong>تاريخ انتهاء الاشتراك:</strong>
+                    {{ $subscriptionEndsAt->timezone(config('app.timezone'))->locale(app()->getLocale())->translatedFormat('l j F Y') }}
+                </p>
+            @endif
+            @if(!empty($graceEndsAt) && ($accessStatus ?? '') === 'grace')
+                <p class="text-sm text-amber-800">
+                    <strong>فترة السماح حتى:</strong>
+                    {{ $graceEndsAt->timezone(config('app.timezone'))->locale(app()->getLocale())->translatedFormat('l j F Y') }}
+                </p>
+            @endif
             <div class="flex flex-wrap gap-3 pt-2">
                 <a href="{{ $subscribeUrl }}" class="inline-flex px-4 py-2 rounded-lg bg-teal-700 text-white font-bold">تجديد الاشتراك</a>
-                <a href="{{ $marketingUrl }}" class="inline-flex px-4 py-2 rounded-lg border">الموقع الرئيسي</a>
+                <a href="{{ $marketingUrl ?? config('platform.marketing_url', 'https://etoscoach.com') }}" class="inline-flex px-4 py-2 rounded-lg border">الموقع الرئيسي</a>
             </div>
         </div>
     </div>

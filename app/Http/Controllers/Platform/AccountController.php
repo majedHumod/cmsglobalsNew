@@ -143,7 +143,13 @@ class AccountController extends Controller
         $tenant = $tenantId ? Tenant::on('system')->find($tenantId) : null;
 
         if ($tenant) {
-            $this->access->sync($tenant);
+            $expiredContext = $this->access->expiredPageContext($tenant);
+        } else {
+            $expiredContext = [
+                'subscriptionEndsAt' => null,
+                'graceEndsAt' => null,
+                'accessStatus' => '',
+            ];
         }
 
         return view('platform.account.expired', [
@@ -153,6 +159,9 @@ class AccountController extends Controller
             'message' => $tenant ? ($this->access->message($tenant) ?: 'الاشتراك غير نشط حالياً.') : 'انتهت صلاحية الوصول.',
             'subscribeUrl' => $this->subscribeUrl(),
             'marketingUrl' => $this->marketingUrl(),
+            'subscriptionEndsAt' => $expiredContext['subscriptionEndsAt'],
+            'graceEndsAt' => $expiredContext['graceEndsAt'],
+            'accessStatus' => $expiredContext['accessStatus'],
         ]);
     }
 

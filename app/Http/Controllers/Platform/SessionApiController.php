@@ -56,7 +56,7 @@ class SessionApiController extends Controller
             'message' => $this->access->message($tenant),
             'dashboard_url' => $needsRenew
                 ? $app.'/subscribe'
-                : $this->access->dashboardUrl($tenant),
+                : $this->access->workspaceEnterUrl($tenant),
             'dashboard_label' => $needsRenew ? 'تجديد الاشتراك' : 'لوحة التحكم',
             'login_url' => $this->access->loginUrl($tenant),
         ]);

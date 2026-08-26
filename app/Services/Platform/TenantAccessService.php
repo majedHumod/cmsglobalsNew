@@ -108,11 +108,16 @@ class TenantAccessService
 
     public function dashboardUrl(Tenant $tenant): string
     {
+        return $this->workspaceEnterUrl($tenant);
+    }
+
+    public function workspaceEnterUrl(Tenant $tenant): string
+    {
         $host = $tenant->domain ?: ($tenant->subdomain.'.'.config('app.domain'));
         $scheme = app()->environment('local') ? 'http' : 'https';
         $port = app()->environment('local') ? ':8000' : '';
 
-        return $scheme.'://'.$host.$port.'/dashboard';
+        return $scheme.'://'.$host.$port.'/platform/enter';
     }
 
     public function loginUrl(Tenant $tenant): string
@@ -138,5 +143,23 @@ class TenantAccessService
     {
         return $tenant->subscription_ends_at
             ?: Subscription::query()->where('tenant_id', $tenant->id)->latest('id')->value('current_period_end');
+    }
+
+    /**
+     * @return array{
+     *     subscriptionEndsAt: ?CarbonInterface,
+     *     graceEndsAt: ?CarbonInterface,
+     *     accessStatus: string
+     * }
+     */
+    public function expiredPageContext(Tenant $tenant): array
+    {
+        $this->sync($tenant);
+
+        return [
+            'subscriptionEndsAt' => $this->periodEnd($tenant),
+            'graceEndsAt' => $tenant->grace_ends_at,
+            'accessStatus' => (string) ($tenant->access_status ?: self::ACTIVE),
+        ];
     }
 }

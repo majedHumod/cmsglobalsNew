@@ -8,6 +8,7 @@ use App\Http\Controllers\Billing\PlanController;
 use App\Http\Controllers\Billing\SubscribePageController;
 use App\Http\Controllers\Platform\AccountController;
 use App\Http\Controllers\Platform\CustomerDirectoryController;
+use App\Http\Controllers\Platform\PlatformEnterController;
 use App\Http\Controllers\Platform\SessionApiController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\App;
@@ -402,6 +403,7 @@ Route::prefix('account')->name('platform.account.')->group(function () {
 });
 
 Route::get('/platform/customers', [CustomerDirectoryController::class, 'index'])->name('platform.customers');
+Route::get('/platform/enter', PlatformEnterController::class)->name('platform.enter');
 
 // ------------------------------
 // Tenant Admin - Billing page (read-only for now)

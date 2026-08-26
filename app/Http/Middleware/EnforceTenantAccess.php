@@ -43,11 +43,14 @@ class EnforceTenantAccess
             ], 402);
         }
 
-        return response()->view('platform.account.expired', [
+        return response()->view('platform.account.expired', array_merge([
             'tenant' => $tenant,
             'message' => $this->access->message($tenant),
-            'subscribeUrl' => config('platform.app_url').'/subscribe',
-        ], 402);
+            'subscribeUrl' => rtrim((string) config('platform.app_url'), '/').'/subscribe',
+            'marketingUrl' => rtrim((string) config('platform.marketing_url'), '/') ?: 'https://etoscoach.com',
+            'accountName' => null,
+            'accountEmail' => null,
+        ], $this->access->expiredPageContext($tenant)), 402);
     }
 
     private function isExempt(Request $request): bool
@@ -65,6 +68,7 @@ class EnforceTenantAccess
             'billing/*',
             'subscribe',
             'checkout/*',
+            'platform/enter',
             'account/*',
             'livewire/*',
             'sanctum/*',
