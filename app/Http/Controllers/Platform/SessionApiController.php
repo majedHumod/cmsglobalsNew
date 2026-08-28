@@ -35,6 +35,7 @@ class SessionApiController extends Controller
                 'dashboard_url' => rtrim((string) config('platform.app_url'), '/').'/platform/customers',
                 'dashboard_label' => 'لوحة الإدارة',
                 'access_status' => 'active',
+                'needs_renewal' => false,
             ]);
         }
 
@@ -44,24 +45,40 @@ class SessionApiController extends Controller
         }
 
         $this->access->sync($tenant);
-
-        $needsRenew = ! $this->access->canUseWorkspace($tenant);
+        $status = (string) ($tenant->access_status ?: TenantAccessService::ACTIVE);
         $app = rtrim((string) config('platform.app_url'), '/') ?: 'https://app.etoscoach.com';
+        $subscribeUrl = $app.'/subscribe';
+        $handoffUrl = $this->handoff->handoffUrl();
 
-        return $this->sessionJson($request, [
+        $data = [
             'authenticated' => true,
             'is_owner' => false,
             'name' => $payload['name'] ?: $tenant->name,
             'email' => $payload['email'],
             'club' => $tenant->name,
-            'access_status' => $tenant->access_status,
+            'access_status' => $status,
+            'needs_renewal' => $status !== TenantAccessService::ACTIVE,
             'message' => $this->access->message($tenant),
-            'dashboard_url' => $needsRenew
-                ? $app.'/subscribe'
-                : $this->handoff->handoffUrl(),
-            'dashboard_label' => $needsRenew ? 'تجديد الاشتراك' : 'لوحة التحكم',
             'login_url' => $this->access->loginUrl($tenant),
-        ]);
+            'subscribe_url' => $subscribeUrl,
+        ];
+
+        if ($status === TenantAccessService::ACTIVE) {
+            $data['dashboard_url'] = $handoffUrl;
+            $data['dashboard_label'] = 'لوحة التحكم';
+        } elseif ($status === TenantAccessService::GRACE) {
+            $data['dashboard_url'] = $subscribeUrl;
+            $data['dashboard_label'] = 'تجديد الاشتراك';
+            $data['secondary_url'] = $handoffUrl;
+            $data['secondary_label'] = 'لوحة التحكم';
+            $data['status_hint'] = 'انتهى الاشتراك — فترة سماح';
+        } else {
+            $data['dashboard_url'] = $subscribeUrl;
+            $data['dashboard_label'] = 'تجديد الاشتراك';
+            $data['status_hint'] = 'اشتراك منتهٍ';
+        }
+
+        return $this->sessionJson($request, $data);
     }
 
     private function sessionJson(Request $request, array $data): JsonResponse

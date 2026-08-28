@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Tenant;
 use App\Services\Platform\TenantAccessService;
 use Closure;
 use Illuminate\Http\Request;
@@ -21,13 +22,9 @@ class EnforceTenantAccess
         }
 
         $this->access->sync($tenant);
-        $status = $tenant->access_status ?: TenantAccessService::ACTIVE;
+        $status = (string) ($tenant->access_status ?: TenantAccessService::ACTIVE);
 
-        if (in_array($status, [TenantAccessService::ACTIVE, TenantAccessService::GRACE], true)) {
-            if ($status === TenantAccessService::GRACE) {
-                $request->attributes->set('tenant_access_banner', $this->access->message($tenant));
-            }
-
+        if ($status === TenantAccessService::ACTIVE) {
             return $next($request);
         }
 
@@ -35,22 +32,74 @@ class EnforceTenantAccess
             return $next($request);
         }
 
+        if ($status === TenantAccessService::GRACE && $this->isCoachWorkspaceRoute($request) && $this->isCoachUser($request)) {
+            $request->attributes->set('tenant_access_banner', $this->ownerGraceMessage($tenant));
+
+            return $next($request);
+        }
+
+        $audience = $this->isCoachUser($request) ? 'owner' : 'public';
+
+        return $this->blockedResponse($request, $tenant, $status, $audience);
+    }
+
+    private function blockedResponse(Request $request, Tenant $tenant, string $status, string $audience): Response
+    {
         if ($request->expectsJson() || $request->is('api/*')) {
             return response()->json([
-                'message' => $this->access->message($tenant),
+                'message' => $audience === 'owner'
+                    ? $this->access->message($tenant)
+                    : $this->publicUnavailableMessage($tenant),
                 'error' => 'subscription_inactive',
                 'access_status' => $status,
+                'audience' => $audience,
             ], 402);
         }
 
-        return response()->view('platform.account.expired', array_merge([
+        $view = $audience === 'owner'
+            ? 'platform.tenant.owner-renewal-required'
+            : 'platform.tenant.public-unavailable';
+
+        return response()->view($view, array_merge([
             'tenant' => $tenant,
-            'message' => $this->access->message($tenant),
+            'accessStatus' => $status,
             'subscribeUrl' => rtrim((string) config('platform.app_url'), '/').'/subscribe',
             'marketingUrl' => rtrim((string) config('platform.marketing_url'), '/') ?: 'https://etoscoach.com',
-            'accountName' => null,
-            'accountEmail' => null,
+            'ownerMessage' => $this->access->message($tenant),
+            'publicMessage' => $this->publicUnavailableMessage($tenant),
         ], $this->access->expiredPageContext($tenant)), 402);
+    }
+
+    private function ownerGraceMessage(Tenant $tenant): string
+    {
+        return 'تنبيه للنادي/المدرب: '.$this->access->message($tenant);
+    }
+
+    private function publicUnavailableMessage(Tenant $tenant): string
+    {
+        return 'موقع '.$tenant->name.' غير متاح مؤقتاً. يرجى التواصل مع النادي أو المدرب لاحقاً.';
+    }
+
+    private function isCoachUser(Request $request): bool
+    {
+        $user = $request->user();
+
+        return $user && $user->hasAnyRole(['admin', 'coach']);
+    }
+
+    private function isCoachWorkspaceRoute(Request $request): bool
+    {
+        return $request->is([
+            'dashboard',
+            'dashboard/*',
+            'admin',
+            'admin/*',
+            'admin-cms',
+            'admin-cms/*',
+            'coach',
+            'coach/*',
+            'livewire/*',
+        ]);
     }
 
     private function isExempt(Request $request): bool

@@ -48,7 +48,17 @@ class PlatformEnterController extends Controller
         Auth::login($user);
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard'));
+        $response = redirect()->intended(route('dashboard'));
+
+        if (! empty($payload['email'])) {
+            $response->withCookie($this->cookie->put(
+                $tenant,
+                (string) $payload['email'],
+                (string) ($user->name ?: $tenant->name)
+            ));
+        }
+
+        return $response;
     }
 
     /**

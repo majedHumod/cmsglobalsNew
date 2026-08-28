@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Billing\Invoice;
 use App\Services\Billing\PaylinkActivationService;
 use App\Services\Billing\PaylinkService;
+use App\Services\Platform\PlatformHandoffService;
 use Illuminate\Http\Request;
 
 class PaylinkCallbackController extends Controller
@@ -13,11 +14,15 @@ class PaylinkCallbackController extends Controller
     public function __construct(
         private readonly PaylinkService $paylink,
         private readonly PaylinkActivationService $activation,
+        private readonly PlatformHandoffService $handoff,
     ) {
     }
 
     public function __invoke(Request $request)
     {
+        $marketingUrl = rtrim((string) config('platform.marketing_url'), '/') ?: 'https://etoscoach.com';
+        $handoffUrl = $this->handoff->handoffUrl();
+
         $transactionNo = $request->query('transactionNo')
             ?: $request->query('TransactionNo')
             ?: $request->query('transaction_no');
@@ -28,6 +33,8 @@ class PaylinkCallbackController extends Controller
         $invoice = null;
         $status = 'pending';
         $message = 'تمت العودة من صفحة الدفع. ننتظر تأكيد عملية السداد من Paylink.';
+        $isRenewal = false;
+        $activationStatus = null;
 
         if ($transactionNo) {
             try {
@@ -36,11 +43,14 @@ class PaylinkCallbackController extends Controller
 
                 if ($normalizedStatus === 'PAID') {
                     $activation = $this->activation->activatePaidInvoice((string) $transactionNo, $orderNumber, 'callback');
+                    $activationStatus = $activation['status'] ?? null;
                     $status = 'paid';
-                    $message = match ($activation['status'] ?? null) {
-                        'queued' => 'تم التحقق من الدفع بنجاح، وبدأ الآن تجهيز نسختك تلقائيا.',
+                    $isRenewal = $activationStatus === 'renewed';
+                    $message = match ($activationStatus) {
+                        'renewed' => 'تم تجديد اشتراكك بنجاح. يمكنك العودة إلى لوحة التحكم الآن.',
+                        'queued' => 'تم التحقق من الدفع بنجاح، وبدأ الآن تجهيز نسختك تلقائياً.',
                         'already_provisioned' => 'تم الدفع وهذه النسخة مفعلة بالفعل.',
-                        'duplicate' => 'تم تسجيل الدفعة مسبقا ونسختك قيد التجهيز أو مفعلة بالفعل.',
+                        'duplicate' => 'تم تسجيل الدفعة مسبقاً ونسختك قيد التجهيز أو مفعلة بالفعل.',
                         default => 'تم استلام عملية الدفع، وسيتم تفعيل النسخة بعد التحقق النهائي خلال لحظات.',
                     };
                 } elseif ($normalizedStatus === 'CANCELED') {
@@ -49,7 +59,7 @@ class PaylinkCallbackController extends Controller
                 }
             } catch (\Throwable $e) {
                 $status = 'pending';
-                $message = 'تمت العودة من Paylink لكن تعذر التحقق من حالة الفاتورة حاليا. يرجى المحاولة بعد قليل.';
+                $message = 'تمت العودة من Paylink لكن تعذر التحقق من حالة الفاتورة حالياً. يرجى المحاولة بعد قليل.';
             }
         }
 
@@ -69,6 +79,19 @@ class PaylinkCallbackController extends Controller
                 ->first();
         }
 
-        return view('billing.paylink-callback', compact('status', 'message', 'invoice'));
+        if (! $isRenewal && $invoice) {
+            $signup = data_get($invoice->line_items, 'signup', []);
+            $isRenewal = ! empty($signup['renew']);
+        }
+
+        return view('billing.paylink-callback', [
+            'status' => $status,
+            'message' => $message,
+            'invoice' => $invoice,
+            'isRenewal' => $isRenewal,
+            'marketingUrl' => $marketingUrl,
+            'handoffUrl' => $handoffUrl,
+            'activationStatus' => $activationStatus,
+        ]);
     }
 }

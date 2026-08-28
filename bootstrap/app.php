@@ -44,6 +44,7 @@ return Application::configure(basePath: dirname(__DIR__))
             $middleware->prependToGroup('web', \App\Http\Middleware\TenantsMiddleware::class);
             $middleware->prependToGroup('api', \App\Http\Middleware\TenantsMiddleware::class);
             $middleware->appendToGroup('web', \App\Http\Middleware\EnforceTenantAccess::class);
+            $middleware->appendToGroup('web', \App\Http\Middleware\EnsurePlatformAccountCookie::class);
             $middleware->appendToGroup('api', \Illuminate\Cookie\Middleware\EncryptCookies::class);
             $middleware->appendToGroup('api', \App\Http\Middleware\EnforceTenantAccess::class);
             $middleware->appendToGroup('api', \App\Http\Middleware\SetRequestLocale::class);

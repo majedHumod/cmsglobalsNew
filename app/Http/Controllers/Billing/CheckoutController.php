@@ -10,6 +10,7 @@ use App\Models\Billing\Plan;
 use App\Models\Tenant;
 use App\Services\Billing\PaylinkService;
 use App\Services\Platform\PlatformAccountCookie;
+use App\Services\Platform\TenantAccessService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
@@ -20,6 +21,7 @@ class CheckoutController extends Controller
     public function __construct(
         private readonly PaylinkService $paylink,
         private readonly PlatformAccountCookie $cookie,
+        private readonly TenantAccessService $access,
     ) {
     }
 
@@ -43,6 +45,13 @@ class CheckoutController extends Controller
         $slug = strtolower($data['subdomain']);
         $renewTenant = $this->renewalTenant($request);
         if ($renewTenant) {
+            $this->access->sync($renewTenant);
+            if ($this->access->canUseWorkspace($renewTenant)) {
+                return response()->json([
+                    'error' => 'اشتراكك ساري حالياً. لا حاجة للتجديد الآن — يمكنك الدخول إلى لوحة التحكم مباشرة.',
+                ], 422);
+            }
+
             $slug = strtolower((string) ($renewTenant->subdomain ?: explode('.', (string) $renewTenant->domain)[0]));
             $data['subdomain'] = $slug;
             if (empty($data['email'])) {
