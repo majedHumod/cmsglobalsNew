@@ -18,9 +18,13 @@ class EnsurePlatformAccountCookie
         $response = $next($request);
 
         $tenant = $request->attributes->get('tenant');
+        if (! $tenant) {
+            return $response;
+        }
+
         $user = $request->user();
 
-        if (! $tenant || ! $user || ! $user->hasAnyRole(['admin', 'coach'])) {
+        if (! $user || ! $user->hasAnyRole(['admin', 'coach'])) {
             return $response;
         }
 
