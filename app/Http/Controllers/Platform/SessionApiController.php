@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Platform;
 use App\Http\Controllers\Controller;
 use App\Models\Tenant;
 use App\Services\Platform\PlatformAccountCookie;
+use App\Services\Platform\PlatformHandoffService;
 use App\Services\Platform\TenantAccessService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -14,6 +15,7 @@ class SessionApiController extends Controller
     public function __construct(
         private readonly PlatformAccountCookie $cookie,
         private readonly TenantAccessService $access,
+        private readonly PlatformHandoffService $handoff,
     ) {
     }
 
@@ -56,7 +58,7 @@ class SessionApiController extends Controller
             'message' => $this->access->message($tenant),
             'dashboard_url' => $needsRenew
                 ? $app.'/subscribe'
-                : $this->access->workspaceEnterUrl($tenant),
+                : $this->handoff->handoffUrl(),
             'dashboard_label' => $needsRenew ? 'تجديد الاشتراك' : 'لوحة التحكم',
             'login_url' => $this->access->loginUrl($tenant),
         ]);

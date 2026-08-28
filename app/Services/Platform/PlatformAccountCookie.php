@@ -33,7 +33,7 @@ class PlatformAccountCookie
             ! app()->environment('local'),
             true,
             false,
-            'lax'
+            $this->cookieSameSite()
         );
     }
 
@@ -78,5 +78,10 @@ class PlatformAccountCookie
         }
 
         return $domain;
+    }
+
+    private function cookieSameSite(): string
+    {
+        return app()->environment('local') ? 'lax' : 'none';
     }
 }

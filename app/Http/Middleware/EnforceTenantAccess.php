@@ -68,6 +68,7 @@ class EnforceTenantAccess
             'billing/*',
             'subscribe',
             'checkout/*',
+            'platform/handoff',
             'platform/enter',
             'account/*',
             'livewire/*',
