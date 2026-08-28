@@ -2,7 +2,7 @@
     $marketingUrl = rtrim((string) ($marketingUrl ?? config('platform.marketing_url', 'https://etoscoach.com')), '/');
     $appUrl = rtrim((string) ($appUrl ?? config('platform.app_url', 'https://app.etoscoach.com')), '/');
     $assetBase = rtrim($appUrl, '/').'/marketing/assets';
-    $assetVer = '6';
+    $assetVer = '7';
     $pageTitle = $pageTitle ?? 'EtosCoach';
 @endphp
 <!doctype html>

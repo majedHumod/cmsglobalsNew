@@ -5,11 +5,12 @@ use App\Http\Controllers\Billing\PaylinkCallbackController;
 use App\Http\Controllers\Billing\PaylinkWebhookController;
 use App\Http\Controllers\Billing\StripeWebhookController;
 use App\Http\Controllers\Billing\PlanController;
+use App\Http\Controllers\Billing\SubdomainCheckController;
 use App\Http\Controllers\Billing\SubscribePageController;
 use App\Http\Controllers\Platform\AccountController;
 use App\Http\Controllers\Platform\CustomerDirectoryController;
 use App\Http\Controllers\Platform\PlatformHandoffController;
-use App\Http\Controllers\Platform\PlatformEnterController;
+use App\Http\Controllers\Platform\PlatformSignOutController;
 use App\Http\Controllers\Platform\SessionApiController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\App;
@@ -392,6 +393,7 @@ Route::post('/webhooks/stripe', StripeWebhookController::class)->middleware('ten
 
 // Subscribe landing/form (coach/club purchase — not trainee register)
 Route::get('/subscribe', [SubscribePageController::class, 'index'])->name('subscribe');
+Route::get('/subscribe/check-subdomain', SubdomainCheckController::class)->name('subscribe.check-subdomain');
 
 Route::prefix('account')->name('platform.account.')->group(function () {
     Route::get('/login', [AccountController::class, 'loginForm'])->name('login');
@@ -406,6 +408,7 @@ Route::prefix('account')->name('platform.account.')->group(function () {
 Route::get('/platform/customers', [CustomerDirectoryController::class, 'index'])->name('platform.customers');
 Route::get('/platform/handoff', PlatformHandoffController::class)->name('platform.handoff');
 Route::get('/platform/enter', PlatformEnterController::class)->name('platform.enter');
+Route::get('/platform/sign-out', PlatformSignOutController::class)->name('platform.sign-out');
 
 // ------------------------------
 // Tenant Admin - Billing page (read-only for now)

@@ -11,10 +11,10 @@ use App\Models\Tenant;
 use App\Services\Billing\PaylinkService;
 use App\Services\Platform\PlatformAccountCookie;
 use App\Services\Platform\TenantAccessService;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 
 class CheckoutController extends Controller
 {
@@ -34,7 +34,23 @@ class CheckoutController extends Controller
             'name' => 'nullable|string|max:120',
             'mobile' => 'required|string|min:8|max:20',
         ], [
-            'subdomain.regex' => 'Subdomain must contain lowercase letters, numbers, and dashes only.',
+            'plan_code.required' => 'يرجى اختيار خطة الاشتراك.',
+            'plan_code.exists' => 'الخطة المختارة غير متاحة.',
+            'subdomain.required' => 'سب-دومين النادي مطلوب.',
+            'subdomain.min' => 'يجب أن يكون السب-دومين 3 أحرف على الأقل.',
+            'subdomain.max' => 'السب-دومين طويل جداً (30 حرفاً كحد أقصى).',
+            'subdomain.regex' => 'استخدم أحرفاً صغيرة وأرقاماً وشرطة (-) فقط.',
+            'email.required' => 'البريد الإلكتروني مطلوب.',
+            'email.email' => 'أدخل بريداً إلكترونياً صالحاً.',
+            'mobile.required' => 'رقم الجوال مطلوب لإتمام الدفع عبر Paylink.',
+            'mobile.min' => 'رقم الجوال قصير جداً.',
+            'mobile.max' => 'رقم الجوال طويل جداً.',
+        ], [
+            'plan_code' => 'الخطة',
+            'subdomain' => 'السب-دومين',
+            'email' => 'البريد الإلكتروني',
+            'name' => 'الاسم',
+            'mobile' => 'رقم الجوال',
         ]);
 
         if ($validator->fails()) {
@@ -62,13 +78,11 @@ class CheckoutController extends Controller
             }
         }
 
-        // Prevent reserved subdomains
-        $reserved = ['www','admin','api','demo','test','pay','billing','support'];
+        $reserved = ['www', 'admin', 'api', 'demo', 'test', 'pay', 'billing', 'support', 'app', 'mail', 'ftp'];
         if (in_array($slug, $reserved, true)) {
-            return response()->json(['error' => 'This subdomain is reserved.'], 422);
+            return response()->json(['error' => 'هذا السب-دومين محجوز ولا يمكن استخدامه.'], 422);
         }
 
-        // Check availability against system.tenants
         $exists = Tenant::on('system')->where(function ($query) use ($slug) {
             $query->where('subdomain', $slug)
                 ->orWhere('domain', $slug.'.'.config('app.domain', 'yourdomain.com'));
@@ -77,24 +91,24 @@ class CheckoutController extends Controller
             $exists->where('id', '!=', $renewTenant->id);
         }
         if ($exists->exists()) {
-            return response()->json(['error' => 'This subdomain is already taken.'], 422);
+            return response()->json(['error' => 'هذا السب-دومين مستخدم بالفعل. جرّب اسماً آخر.'], 422);
         }
 
         $plan = Plan::where('code', $data['plan_code'])->where('active', true)->firstOrFail();
         $amount = (float) $plan->price;
 
         if ($amount < 5) {
-            return response()->json(['error' => 'Paylink requires a minimum invoice amount of 5 SAR.'], 422);
+            return response()->json(['error' => 'يتطلب Paylink حداً أدنى للفاتورة 5 ريال.'], 422);
         }
 
-        $orderNumber = ($renewTenant ? 'renew-' : 'signup-') . Str::lower((string) Str::ulid());
+        $orderNumber = ($renewTenant ? 'renew-' : 'signup-').Str::lower((string) Str::ulid());
         $callbackUrl = config('services.paylink.callback_url') ?: route('billing.paylink.callback');
         $cancelUrl = config('services.paylink.cancel_url') ?: route('subscribe');
         $products = [[
             'title' => $plan->name,
             'price' => $amount,
             'qty' => 1,
-            'description' => 'Tenant subscription plan ' . $plan->code,
+            'description' => 'Tenant subscription plan '.$plan->code,
             'isDigital' => true,
         ]];
 
@@ -111,10 +125,10 @@ class CheckoutController extends Controller
                 'products' => $products,
                 'supportedCardBrands' => config('services.paylink.supported_card_brands', []),
                 'displayPending' => true,
-                'note' => ($renewTenant ? 'Tenant renewal for ' : 'Tenant signup for ') . $slug,
+                'note' => ($renewTenant ? 'Tenant renewal for ' : 'Tenant signup for ').$slug,
             ]);
         } catch (\Throwable $e) {
-            return response()->json(['error' => $e->getMessage()], 422);
+            return response()->json(['error' => 'تعذر إنشاء فاتورة الدفع. حاول لاحقاً أو تواصل مع الدعم.'], 422);
         }
 
         $transactionNo = (string) ($paylinkResponse['transactionNo'] ?? '');
@@ -169,7 +183,7 @@ class CheckoutController extends Controller
 
             Event::create([
                 'tenant_id' => $renewTenant?->id,
-                'provider_event_id' => 'checkout:' . $orderNumber,
+                'provider_event_id' => 'checkout:'.$orderNumber,
                 'type' => $renewTenant ? 'paylink.invoice.renewal_created' : 'paylink.invoice.created',
                 'payload' => [
                     'provider' => 'paylink',
@@ -190,9 +204,9 @@ class CheckoutController extends Controller
 
         if ($request->expectsJson() || str_contains($request->header('Accept', ''), 'application/json')) {
             return response()->json([
-                'message' => 'Invoice created successfully. Redirecting to Paylink.',
+                'message' => 'تم إنشاء الفاتورة بنجاح. سيتم تحويلك إلى Paylink.',
                 'subdomain' => $slug,
-                'plan' => $plan->only(['code','name','price','interval','currency']),
+                'plan' => $plan->only(['code', 'name', 'price', 'interval', 'currency']),
                 'redirect_url' => $paylinkResponse['url'] ?? null,
                 'mobile_url' => $paylinkResponse['mobileUrl'] ?? null,
                 'transaction_no' => $transactionNo,
@@ -213,4 +227,3 @@ class CheckoutController extends Controller
         return Tenant::on('system')->find($session['tenant_id']);
     }
 }
-

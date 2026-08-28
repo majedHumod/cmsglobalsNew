@@ -3,9 +3,8 @@
 namespace App\Http\Responses;
 
 use App\Services\Platform\PlatformAccountCookie;
-use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Laravel\Fortify\Contracts\LoginResponse as LoginResponseContract;
-use Symfony\Component\HttpFoundation\Response;
 
 class SyncPlatformLoginResponse implements LoginResponseContract
 {
@@ -13,7 +12,7 @@ class SyncPlatformLoginResponse implements LoginResponseContract
     {
     }
 
-    public function toResponse(Request $request): Response
+    public function toResponse($request)
     {
         $redirect = redirect()->intended(config('fortify.home', '/dashboard'));
 

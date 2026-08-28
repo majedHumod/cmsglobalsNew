@@ -119,6 +119,7 @@ class EnforceTenantAccess
             'checkout/*',
             'platform/handoff',
             'platform/enter',
+            'platform/sign-out',
             'account/*',
             'livewire/*',
             'sanctum/*',

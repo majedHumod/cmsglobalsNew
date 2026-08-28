@@ -96,9 +96,23 @@ class AccountController extends Controller
 
     public function logout(Request $request)
     {
+        $session = $this->cookie->read($request);
         $redirect = $this->safeRedirect($request->query('redirect')) ?: $this->marketingUrl();
+        $forgetCookie = $this->cookie->forget();
 
-        return redirect()->to($redirect)->withCookie($this->cookie->forget());
+        if ($session && empty($session['is_owner']) && ! empty($session['tenant_id'])) {
+            $tenant = Tenant::on('system')->find($session['tenant_id']);
+            if ($tenant) {
+                $subdomain = $tenant->subdomain ?: explode('.', (string) $tenant->domain)[0];
+                $domain = config('app.domain', 'etoscoach.com');
+                $scheme = app()->environment('local') ? 'http' : 'https';
+                $tenantLogout = $scheme.'://'.$subdomain.'.'.$domain.'/platform/sign-out?redirect='.urlencode($redirect);
+
+                return redirect()->away($tenantLogout)->withCookie($forgetCookie);
+            }
+        }
+
+        return redirect()->to($redirect)->withCookie($forgetCookie);
     }
 
     public function forgotForm(): View
