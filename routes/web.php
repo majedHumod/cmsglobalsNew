@@ -10,6 +10,7 @@ use App\Http\Controllers\Billing\SubscribePageController;
 use App\Http\Controllers\Platform\AccountController;
 use App\Http\Controllers\Platform\CustomerDirectoryController;
 use App\Http\Controllers\Platform\PlatformHandoffController;
+use App\Http\Controllers\Platform\PlatformEnterController;
 use App\Http\Controllers\Platform\PlatformSignOutController;
 use App\Http\Controllers\Platform\SessionApiController;
 use Illuminate\Support\Facades\Route;
