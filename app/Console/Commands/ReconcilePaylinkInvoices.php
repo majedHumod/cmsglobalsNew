@@ -94,7 +94,7 @@ class ReconcilePaylinkInvoices extends Command
         $result = $activation->activatePaidInvoice($transactionNo, $invoice->number, 'reconcile');
         $status = $result['status'] ?? 'unknown';
 
-        if ($status === 'queued') {
+        if ($status === 'queued' || $status === 'requeued') {
             $this->info("Provision queued: {$invoice->number}");
             return;
         }

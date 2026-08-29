@@ -76,7 +76,7 @@ class TenantProvisioner
                 $tenant->setConnection('system');
             }
 
-            $tenant->name = $tenant->name ?: ($contactName ?: Str::title(str_replace('-', ' ', $slug)));
+            $tenant->name = $tenant->name ?: $this->resolveTenantDisplayName($contactName, $slug);
             $tenant->slug = $slug;
             $tenant->domain = $domain;
             $tenant->subdomain = $slug;
@@ -265,6 +265,25 @@ class TenantProvisioner
         return $plan->interval === 'yearly'
             ? now()->addYear()
             : now()->addMonth();
+    }
+
+    private function resolveTenantDisplayName(?string $contactName, string $slug): string
+    {
+        $base = trim((string) ($contactName ?: Str::title(str_replace('-', ' ', $slug))));
+        if ($base === '') {
+            $base = Str::title(str_replace('-', ' ', $slug));
+        }
+
+        if (! Tenant::on('system')->where('name', $base)->exists()) {
+            return $base;
+        }
+
+        $withSlug = $base.' ('.$slug.')';
+        if (! Tenant::on('system')->where('name', $withSlug)->exists()) {
+            return $withSlug;
+        }
+
+        return $withSlug.' #'.Str::lower(Str::random(4));
     }
 
     private function tenantHasRoles(): bool

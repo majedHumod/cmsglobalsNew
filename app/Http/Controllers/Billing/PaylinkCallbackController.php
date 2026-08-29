@@ -48,7 +48,7 @@ class PaylinkCallbackController extends Controller
                     $isRenewal = $activationStatus === 'renewed';
                     $message = match ($activationStatus) {
                         'renewed' => 'تم تجديد اشتراكك بنجاح. يمكنك العودة إلى لوحة التحكم الآن.',
-                        'queued' => 'تم التحقق من الدفع بنجاح، وبدأ الآن تجهيز نسختك تلقائياً.',
+                        'queued', 'requeued' => 'تم التحقق من الدفع بنجاح، وبدأ الآن تجهيز نسختك تلقائياً.',
                         'already_provisioned' => 'تم الدفع وهذه النسخة مفعلة بالفعل.',
                         'duplicate' => 'تم تسجيل الدفعة مسبقاً ونسختك قيد التجهيز أو مفعلة بالفعل.',
                         default => 'تم استلام عملية الدفع، وسيتم تفعيل النسخة بعد التحقق النهائي خلال لحظات.',

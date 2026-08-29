@@ -59,8 +59,12 @@ class PaylinkActivationService
                 ->orWhere('domain', $domain)
                 ->first();
 
-        $eventId = $source . ':paylink:' . $transactionNo . ':paid';
+        $eventId = $source.':paylink:'.$transactionNo.':paid';
         if (Event::query()->where('provider_event_id', $eventId)->exists()) {
+            if (! $isRenewal && ! $tenant) {
+                return $this->queueProvision($signup, $transactionNo, $invoice, 'requeued');
+            }
+
             return ['status' => 'duplicate', 'invoice' => $invoice, 'tenant' => $tenant];
         }
 
@@ -110,6 +114,15 @@ class PaylinkActivationService
             return ['status' => 'already_provisioned', 'invoice' => $invoice, 'tenant' => $tenant];
         }
 
+        return $this->queueProvision($signup, $transactionNo, $invoice, 'queued');
+    }
+
+    /**
+     * @param  array<string, mixed>  $signup
+     * @return array{status: string, invoice: Invoice}
+     */
+    private function queueProvision(array $signup, string $transactionNo, Invoice $invoice, string $status): array
+    {
         ProvisionTenantJob::dispatch(
             $signup['slug'],
             $signup['plan_code'],
@@ -120,6 +133,6 @@ class PaylinkActivationService
             $invoice->number
         );
 
-        return ['status' => 'queued', 'invoice' => $invoice];
+        return ['status' => $status, 'invoice' => $invoice];
     }
 }
