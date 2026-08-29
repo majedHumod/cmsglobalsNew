@@ -1,23 +1,26 @@
 @component('mail::message')
-{{ __('You have been invited to join the :team team!', ['team' => $invitation->team->name]) }}
+# دعوة للانضمام إلى الفريق
 
 @if (Laravel\Fortify\Features::enabled(Laravel\Fortify\Features::registration()))
-{{ __('If you do not have an account, you may create one by clicking the button below. After creating an account, you may click the invitation acceptance button in this email to accept the team invitation:') }}
+إذا لم يكن لديك حساب، يمكنك إنشاء حساب من الزر أدناه. بعد إنشاء الحساب، استخدم زر قبول الدعوة في هذا البريد:
 
 @component('mail::button', ['url' => route('register')])
-{{ __('Create Account') }}
+إنشاء حساب
 @endcomponent
-
-{{ __('If you already have an account, you may accept this invitation by clicking the button below:') }}
-
-@else
-{{ __('You may accept this invitation by clicking the button below:') }}
 @endif
 
+@if ($team->hasUserWithEmail($email))
+تمت دعوتك للانضمام إلى فريق **{{ $team->name }}** على {{ config('app.name') }}.
+@else
+تمت دعوتك للانضمام إلى فريق **{{ $team->name }}** على {{ config('app.name') }}.
+@endif
 
 @component('mail::button', ['url' => $acceptUrl])
-{{ __('Accept Invitation') }}
+قبول الدعوة
 @endcomponent
 
-{{ __('If you did not expect to receive an invitation to this team, you may discard this email.') }}
+إذا لم تكن تتوقع هذه الدعوة، يمكنك تجاهل هذا البريد.
+
+مع التحية،<br>
+{{ config('app.name') }}
 @endcomponent

@@ -233,18 +233,19 @@ class TenantProvisioner
             }
         }
 
-        // 7) Send welcome email with password reset link (queued)
+        // 7) Send welcome email with password reset link
         try {
             $planArr = $plan ? $plan->only(['code','name','price','interval','currency']) : null;
-            Mail::to($contactEmail)->queue(new WelcomeTenantMail(
+            Mail::to($contactEmail)->send(new WelcomeTenantMail(
                 tenantName: $tenant->name ?? $slug,
                 tenantDomainUrl: $tenantUrl ?? '',
                 contactEmail: $contactEmail,
                 plan: $planArr,
-                passwordResetUrl: $resetUrl
+                passwordResetUrl: $resetUrl,
+                contactName: $contactName,
             ));
         } catch (\Throwable $e) {
-            // swallow mail errors to not interrupt provisioning
+            report($e);
         }
 
         return $tenant;

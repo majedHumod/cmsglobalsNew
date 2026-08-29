@@ -27,6 +27,8 @@ use App\Listeners\SendMembershipLifecycleNotifications;
 use App\Listeners\SendHabitLogNotifications;
 use App\Listeners\AwardHabitGamification;
 use App\Listeners\AwardCheckInGamification;
+use App\Listeners\ApplyTenantMailBranding;
+use Illuminate\Mail\Events\MessageSending;
 use App\Services\Communication\CommunicationGatewayInterface;
 use App\Services\Communication\WebhookCommunicationGateway;
 
@@ -51,6 +53,7 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(MembershipLifecycleChanged::class, SendMembershipLifecycleNotifications::class);
         Event::listen(HabitLogRecorded::class, SendHabitLogNotifications::class);
         Event::listen(HabitLogRecorded::class, AwardHabitGamification::class);
+        Event::listen(MessageSending::class, ApplyTenantMailBranding::class);
 
         // Align generated asset URLs with the current tenant host (APP_URL often differs).
         $this->configureRequestAwareStorageUrls();
