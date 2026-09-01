@@ -22,6 +22,7 @@ class WelcomeTenantMail extends Mailable
         public ?string $contactName = null,
     ) {
         config(['app.name' => $tenantName]);
+        app()->setLocale('ar');
     }
 
     public function envelope(): Envelope

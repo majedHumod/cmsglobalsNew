@@ -1,0 +1,12 @@
+{
+    "Hello!": "مرحباً!",
+    "Regards,": "مع التحية،",
+    "Whoops!": "عذراً!",
+    "All rights reserved.": "جميع الحقوق محفوظة.",
+    "If you're having trouble clicking the \":actionText\" button, copy and paste the URL below into your web browser:": "إذا واجهت مشكلة في الضغط على زر «:actionText»، انسخ الرابط التالي والصقه في المتصفح:",
+    "Reset Password Notification": "إشعار إعادة تعيين كلمة المرور",
+    "You are receiving this email because we received a password reset request for your account.": "تلقّينا طلباً لإعادة تعيين كلمة المرور لحسابك.",
+    "Reset Password": "تعيين كلمة المرور",
+    "This password reset link will expire in :count minutes.": "رابط إعادة التعيين صالح لمدة :count دقيقة.",
+    "If you did not request a password reset, no further action is required.": "إذا لم تطلب إعادة تعيين كلمة المرور، يمكنك تجاهل هذا البريد."
+}
