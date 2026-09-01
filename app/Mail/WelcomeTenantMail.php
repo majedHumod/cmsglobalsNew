@@ -20,7 +20,9 @@ class WelcomeTenantMail extends Mailable
         public ?array $plan = null,
         public ?string $passwordResetUrl = null,
         public ?string $contactName = null,
-    ) {}
+    ) {
+        config(['app.name' => $tenantName]);
+    }
 
     public function envelope(): Envelope
     {
@@ -35,7 +37,7 @@ class WelcomeTenantMail extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'emails.welcome-tenant',
+            markdown: 'emails.welcome-tenant',
             with: [
                 'tenantName' => $this->tenantName,
                 'tenantDomainUrl' => $this->tenantDomainUrl,
@@ -43,7 +45,6 @@ class WelcomeTenantMail extends Mailable
                 'contactName' => $this->contactName,
                 'plan' => $this->plan,
                 'passwordResetUrl' => $this->passwordResetUrl,
-                'siteName' => $this->tenantName,
             ],
         );
     }
