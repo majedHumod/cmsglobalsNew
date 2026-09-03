@@ -1,9 +1,5 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-@php
-    $locale = str_replace('_', '-', app()->getLocale());
-    $isRtl = in_array(app()->getLocale(), ['ar', 'he', 'fa', 'ur'], true);
-@endphp
-<html xmlns="http://www.w3.org/1999/xhtml" lang="{{ $locale }}" dir="{{ $isRtl ? 'rtl' : 'ltr' }}">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ar" dir="rtl">
 <head>
 <title>{{ config('app.name') }}</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -29,21 +25,21 @@ width: 100% !important;
 </style>
 {!! $head ?? '' !!}
 </head>
-<body dir="{{ $isRtl ? 'rtl' : 'ltr' }}">
+<body dir="rtl">
 
-<table class="wrapper" width="100%" cellpadding="0" cellspacing="0" role="presentation" dir="{{ $isRtl ? 'rtl' : 'ltr' }}">
+<table class="wrapper" width="100%" cellpadding="0" cellspacing="0" role="presentation" dir="rtl">
 <tr>
 <td align="center">
-<table class="content" width="100%" cellpadding="0" cellspacing="0" role="presentation" dir="{{ $isRtl ? 'rtl' : 'ltr' }}">
+<table class="content" width="100%" cellpadding="0" cellspacing="0" role="presentation" dir="rtl">
 {!! $header ?? '' !!}
 
 <!-- Email Body -->
 <tr>
 <td class="body" width="100%" cellpadding="0" cellspacing="0" style="border: hidden !important;">
-<table class="inner-body" align="center" width="570" cellpadding="0" cellspacing="0" role="presentation" dir="{{ $isRtl ? 'rtl' : 'ltr' }}">
+<table class="inner-body" align="center" width="570" cellpadding="0" cellspacing="0" role="presentation" dir="rtl">
 <!-- Body content -->
 <tr>
-<td class="content-cell" style="{{ $isRtl ? 'direction: rtl; text-align: right;' : '' }}">
+<td class="content-cell" dir="rtl" align="right" style="direction: rtl; text-align: right;">
 {!! Illuminate\Mail\Markdown::parse($slot) !!}
 
 {!! $subcopy ?? '' !!}

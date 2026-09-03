@@ -10,6 +10,8 @@ class ResetPasswordNotification extends BaseResetPassword
 {
     protected function buildMailMessage($url): MailMessage
     {
+        app()->setLocale('ar');
+
         $branding = app(TenantMailBrandingService::class);
         $siteName = $branding->displayName();
         $expire = (int) config('auth.passwords.'.config('auth.defaults.passwords').'.expire', 60);

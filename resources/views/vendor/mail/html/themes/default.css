@@ -24,7 +24,8 @@ ul,
 ol,
 blockquote {
     line-height: 1.4;
-    text-align: start;
+    direction: rtl;
+    text-align: right;
 }
 
 a {
@@ -42,28 +43,32 @@ h1 {
     font-size: 18px;
     font-weight: bold;
     margin-top: 0;
-    text-align: start;
+    direction: rtl;
+    text-align: right;
 }
 
 h2 {
     font-size: 16px;
     font-weight: bold;
     margin-top: 0;
-    text-align: start;
+    direction: rtl;
+    text-align: right;
 }
 
 h3 {
     font-size: 14px;
     font-weight: bold;
     margin-top: 0;
-    text-align: left;
+    direction: rtl;
+    text-align: right;
 }
 
 p {
     font-size: 16px;
     line-height: 1.5em;
     margin-top: 0;
-    text-align: left;
+    direction: rtl;
+    text-align: right;
 }
 
 p.sub {
@@ -161,6 +166,8 @@ img {
 
 .subcopy p {
     font-size: 14px;
+    direction: rtl;
+    text-align: right;
 }
 
 /* Footer */
@@ -213,6 +220,8 @@ img {
 .content-cell {
     max-width: 100vw;
     padding: 32px;
+    direction: rtl;
+    text-align: right;
 }
 
 /* Buttons */
@@ -267,7 +276,7 @@ img {
 /* Panels */
 
 .panel {
-    border-left: #18181b solid 4px;
+    border-right: #18181b solid 4px;
     margin: 21px 0;
 }
 
@@ -296,25 +305,14 @@ img {
     word-break: break-all;
 }
 
-/* Arabic / RTL */
-
-html[dir="rtl"] body,
-html[dir="rtl"] .content-cell,
-html[dir="rtl"] p,
-html[dir="rtl"] h1,
-html[dir="rtl"] h2,
-html[dir="rtl"] h3,
-html[dir="rtl"] ul,
-html[dir="rtl"] ol,
-html[dir="rtl"] blockquote,
-html[dir="rtl"] .subcopy,
-html[dir="rtl"] .subcopy td {
-    direction: rtl;
-    text-align: right;
+body,
+p,
+h1,
+h2,
+h3,
+ul,
+ol,
+blockquote,
+.content-cell {
     font-family: Tahoma, Arial, sans-serif;
-}
-
-html[dir="rtl"] .panel {
-    border-left: 0;
-    border-right: #18181b solid 4px;
 }

@@ -287,6 +287,7 @@ class User extends Authenticatable implements FilamentUser
 
     public function sendPasswordResetNotification(#[\SensitiveParameter] $token): void
     {
+        app()->setLocale('ar');
         $this->notify(new ResetPasswordNotification($token));
     }
 }
