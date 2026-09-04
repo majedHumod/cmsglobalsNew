@@ -37,8 +37,9 @@ class WelcomeTenantMail extends Mailable
 
     public function content(): Content
     {
+        // HTML (not markdown) so RTL inline styles are never overridden by the mail CSS inliner.
         return new Content(
-            markdown: 'emails.welcome-tenant',
+            html: 'emails.welcome-tenant',
             with: [
                 'tenantName' => $this->tenantName,
                 'tenantDomainUrl' => $this->tenantDomainUrl,
