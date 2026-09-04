@@ -57,6 +57,23 @@ class ManageSiteSettings extends Page implements HasForms
             'social_instagram' => SiteSetting::get('social_instagram', ''),
             'social_linkedin' => SiteSetting::get('social_linkedin', ''),
             'social_youtube' => SiteSetting::get('social_youtube', ''),
+            'app_android' => SiteSetting::get('app_android', ''),
+            'app_ios' => SiteSetting::get('app_ios', ''),
+            'maintenance_mode' => (bool) SiteSetting::get('maintenance_mode', false),
+            'maintenance_message' => SiteSetting::get('maintenance_message', ''),
+            'enable_registration' => (bool) SiteSetting::get('enable_registration', true),
+            'default_locale' => SiteSetting::get('default_locale', 'ar'),
+            'items_per_page' => (int) SiteSetting::get('items_per_page', 15),
+            'training_sessions_title' => SiteSetting::get('training_sessions_title', 'مدربونا الخبراء'),
+            'training_sessions_description' => SiteSetting::get('training_sessions_description', ''),
+            'training_sessions_count' => (int) SiteSetting::get('training_sessions_count', 4),
+            'training_sessions_enabled' => (bool) SiteSetting::get('training_sessions_enabled', true),
+            'testimonials_title' => SiteSetting::get('testimonials_title', 'ماذا يقول عملاؤنا'),
+            'testimonials_description' => SiteSetting::get('testimonials_description', ''),
+            'testimonials_count' => (int) SiteSetting::get('testimonials_count', 3),
+            'testimonials_enabled' => (bool) SiteSetting::get('testimonials_enabled', true),
+            'articles_enabled' => (bool) SiteSetting::get('articles_enabled', true),
+            'articles_count' => (int) SiteSetting::get('articles_count', 3),
         ]);
     }
 
@@ -111,8 +128,51 @@ class ManageSiteSettings extends Page implements HasForms
                                 Forms\Components\TextInput::make('social_instagram')->label('إنستغرام')->url(),
                                 Forms\Components\TextInput::make('social_linkedin')->label('لينكدإن')->url(),
                                 Forms\Components\TextInput::make('social_youtube')->label('يوتيوب')->url(),
+                                Forms\Components\TextInput::make('app_android')->label('رابط أندرويد')->url(),
+                                Forms\Components\TextInput::make('app_ios')->label('رابط iOS')->url(),
                             ])
                             ->columns(2),
+                        Forms\Components\Tabs\Tab::make('التطبيق')
+                            ->schema([
+                                Forms\Components\Toggle::make('enable_registration')->label('تفعيل التسجيل'),
+                                Forms\Components\Toggle::make('maintenance_mode')->label('وضع الصيانة'),
+                                Forms\Components\Textarea::make('maintenance_message')->label('رسالة الصيانة')->rows(2)->columnSpanFull(),
+                                Forms\Components\Select::make('default_locale')
+                                    ->label('اللغة الافتراضية')
+                                    ->options(['ar' => 'العربية', 'en' => 'English'])
+                                    ->native(false),
+                                Forms\Components\TextInput::make('items_per_page')
+                                    ->label('عدد العناصر في الصفحة')
+                                    ->numeric()
+                                    ->minValue(5)
+                                    ->maxValue(100),
+                            ])
+                            ->columns(2),
+                        Forms\Components\Tabs\Tab::make('الصفحة الرئيسية')
+                            ->schema([
+                                Forms\Components\Section::make('جلسات التدريب')
+                                    ->schema([
+                                        Forms\Components\Toggle::make('training_sessions_enabled')->label('تفعيل القسم'),
+                                        Forms\Components\TextInput::make('training_sessions_title')->label('العنوان')->maxLength(255),
+                                        Forms\Components\TextInput::make('training_sessions_count')->label('عدد العناصر')->numeric()->minValue(1)->maxValue(12),
+                                        Forms\Components\Textarea::make('training_sessions_description')->label('الوصف')->rows(2)->columnSpanFull(),
+                                    ])
+                                    ->columns(2),
+                                Forms\Components\Section::make('الشهادات')
+                                    ->schema([
+                                        Forms\Components\Toggle::make('testimonials_enabled')->label('تفعيل القسم'),
+                                        Forms\Components\TextInput::make('testimonials_title')->label('العنوان')->maxLength(255),
+                                        Forms\Components\TextInput::make('testimonials_count')->label('عدد العناصر')->numeric()->minValue(1)->maxValue(10),
+                                        Forms\Components\Textarea::make('testimonials_description')->label('الوصف')->rows(2)->columnSpanFull(),
+                                    ])
+                                    ->columns(2),
+                                Forms\Components\Section::make('المقالات')
+                                    ->schema([
+                                        Forms\Components\Toggle::make('articles_enabled')->label('تفعيل القسم'),
+                                        Forms\Components\TextInput::make('articles_count')->label('عدد المقالات')->numeric()->minValue(1)->maxValue(12),
+                                    ])
+                                    ->columns(2),
+                            ]),
                     ])
                     ->columnSpanFull(),
             ])
@@ -145,13 +205,43 @@ class ManageSiteSettings extends Page implements HasForms
         SiteSetting::set('social_linkedin', $data['social_linkedin'] ?? '', 'social', 'string', 'LinkedIn');
         SiteSetting::set('social_youtube', $data['social_youtube'] ?? '', 'social', 'string', 'YouTube');
 
+        SiteSetting::set('app_android', $data['app_android'] ?? '', 'app', 'string', 'Android app URL');
+        SiteSetting::set('app_ios', $data['app_ios'] ?? '', 'app', 'string', 'iOS app URL');
+        SiteSetting::set('maintenance_mode', (bool) ($data['maintenance_mode'] ?? false), 'app', 'boolean', 'Maintenance mode');
+        SiteSetting::set('maintenance_message', $data['maintenance_message'] ?? '', 'app', 'string', 'Maintenance message');
+        SiteSetting::set('enable_registration', (bool) ($data['enable_registration'] ?? false), 'app', 'boolean', 'Enable user registration');
+        SiteSetting::set('default_locale', $data['default_locale'] ?? 'ar', 'app', 'string', 'Default locale');
+        SiteSetting::set('items_per_page', (int) ($data['items_per_page'] ?? 15), 'app', 'integer', 'Items per page');
+
+        SiteSetting::set('training_sessions_title', $data['training_sessions_title'] ?? '', 'homepage', 'string', 'Training sessions section title');
+        SiteSetting::set('training_sessions_description', $data['training_sessions_description'] ?? '', 'homepage', 'string', 'Training sessions section description');
+        SiteSetting::set('training_sessions_count', (int) ($data['training_sessions_count'] ?? 4), 'homepage', 'integer', 'Number of training sessions to display');
+        SiteSetting::set('training_sessions_enabled', (bool) ($data['training_sessions_enabled'] ?? false), 'homepage', 'boolean', 'Enable training sessions section');
+        SiteSetting::set('testimonials_title', $data['testimonials_title'] ?? '', 'homepage', 'string', 'Testimonials section title');
+        SiteSetting::set('testimonials_description', $data['testimonials_description'] ?? '', 'homepage', 'string', 'Testimonials section description');
+        SiteSetting::set('testimonials_count', (int) ($data['testimonials_count'] ?? 3), 'homepage', 'integer', 'Number of testimonials to display');
+        SiteSetting::set('testimonials_enabled', (bool) ($data['testimonials_enabled'] ?? false), 'homepage', 'boolean', 'Enable testimonials section');
+        SiteSetting::set('articles_enabled', (bool) ($data['articles_enabled'] ?? false), 'homepage', 'boolean', 'Enable articles section');
+        SiteSetting::set('articles_count', (int) ($data['articles_count'] ?? 3), 'homepage', 'integer', 'Number of articles to display');
+
         SiteSetting::clearGroupCache('general');
         SiteSetting::clearGroupCache('contact');
         SiteSetting::clearGroupCache('social');
+        SiteSetting::clearGroupCache('app');
+        SiteSetting::clearGroupCache('homepage');
         Cache::forget(TenantCache::key('site_settings_general'));
+        Cache::forget(TenantCache::key('site_settings_app'));
+        Cache::forget(TenantCache::key('site_settings_homepage'));
         Cache::forget(TenantCache::key('setting_font_family'));
         Cache::forget(TenantCache::key('setting_primary_color'));
         Cache::forget(TenantCache::key('setting_secondary_color'));
+
+        try {
+            \App\Models\TrainingSession::clearCache();
+            \App\Models\Testimonial::clearCache();
+        } catch (\Throwable) {
+            // ignore if models/caches unavailable
+        }
 
         Notification::make()
             ->title('تم حفظ إعدادات الموقع')

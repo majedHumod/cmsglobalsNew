@@ -37,7 +37,7 @@ class PlatformEnterController extends Controller
 
         if (Auth::check()) {
             if ((int) Auth::id() === (int) $user->id) {
-                return redirect()->intended(route('dashboard'));
+                return redirect()->intended(\App\Support\LegacyAdminFilamentMap::PANEL);
             }
 
             Auth::logout();
@@ -48,7 +48,7 @@ class PlatformEnterController extends Controller
         Auth::login($user);
         $request->session()->regenerate();
 
-        $response = redirect()->intended(route('dashboard'));
+        $response = redirect()->intended(\App\Support\LegacyAdminFilamentMap::PANEL);
 
         if (! empty($payload['email'])) {
             $response->withCookie($this->cookie->put(

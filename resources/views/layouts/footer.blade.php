@@ -25,7 +25,7 @@
                 <h3 class="text-sm font-semibold text-gray-900 tracking-wider uppercase">روابط سريعة</h3>
                 <ul class="mt-4 space-y-4">
                     <li>
-                        <a href="{{ route('dashboard') }}" class="text-base text-gray-500 hover:text-indigo-600">
+                        <a href="{{ auth()->check() && auth()->user()->hasAnyRole(['admin', 'coach']) ? url('/admin-cms') : route('dashboard') }}" class="text-base text-gray-500 hover:text-indigo-600">
                             الرئيسية
                         </a>
                     </li>

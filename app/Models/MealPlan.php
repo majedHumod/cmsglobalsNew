@@ -98,6 +98,11 @@ class MealPlan extends Model
 
     public function canReplaceImage(User $user): bool
     {
+        // Library meals stay read-only for fields, but staff may refresh images during review.
+        if ($this->isFromLibrary()) {
+            return $user->hasAnyRole(['admin', 'coach']);
+        }
+
         return $this->canManage($user);
     }
 

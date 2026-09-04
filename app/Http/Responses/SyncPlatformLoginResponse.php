@@ -14,10 +14,16 @@ class SyncPlatformLoginResponse implements LoginResponseContract
 
     public function toResponse($request)
     {
-        $redirect = redirect()->intended(config('fortify.home', '/dashboard'));
+        $user = $request->user();
+        $home = config('fortify.home', '/dashboard');
+
+        if ($user && $user->hasAnyRole(['admin', 'coach'])) {
+            $home = \App\Support\LegacyAdminFilamentMap::PANEL;
+        }
+
+        $redirect = redirect()->intended($home);
 
         $tenant = $request->attributes->get('tenant');
-        $user = $request->user();
 
         if ($tenant && $user && $user->hasAnyRole(['admin', 'coach'])) {
             $redirect->withCookie($this->cookie->put(

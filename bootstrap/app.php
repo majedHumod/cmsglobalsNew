@@ -28,6 +28,7 @@ return Application::configure(basePath: dirname(__DIR__))
                  'trainee' => \App\Http\Middleware\EnsureTrainee::class,
                  'set_locale' => \App\Http\Middleware\SetRequestLocale::class,
                  'tenant.access' => \App\Http\Middleware\EnforceTenantAccess::class,
+                 'legacy_admin_filament' => \App\Http\Middleware\RedirectLegacyAdminToFilament::class,
             ]);
             $middleware->validateCsrfTokens(except: [
                 'webhooks/paylink',
@@ -45,6 +46,7 @@ return Application::configure(basePath: dirname(__DIR__))
             $middleware->prependToGroup('api', \App\Http\Middleware\TenantsMiddleware::class);
             $middleware->appendToGroup('web', \App\Http\Middleware\EnforceTenantAccess::class);
             $middleware->appendToGroup('web', \App\Http\Middleware\EnsurePlatformAccountCookie::class);
+            $middleware->appendToGroup('web', \App\Http\Middleware\RedirectLegacyAdminToFilament::class);
             $middleware->appendToGroup('api', \Illuminate\Cookie\Middleware\EncryptCookies::class);
             $middleware->appendToGroup('api', \App\Http\Middleware\EnforceTenantAccess::class);
             $middleware->appendToGroup('api', \App\Http\Middleware\SetRequestLocale::class);

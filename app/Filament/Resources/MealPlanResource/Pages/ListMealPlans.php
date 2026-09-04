@@ -13,6 +13,10 @@ class ListMealPlans extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
+            Actions\Action::make('libraryReview')
+                ->label('مراجعة المكتبة')
+                ->icon('heroicon-o-book-open')
+                ->url(MealPlanResource::getUrl('library-review')),
             Actions\CreateAction::make()->label('إضافة وجبة'),
         ];
     }

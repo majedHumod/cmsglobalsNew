@@ -292,6 +292,136 @@ class MealPlanResource extends Resource
     }
 
     /**
+     * Shared stock-image picker schema for Filament actions.
+     *
+     * @return array<int, Forms\Components\Component>
+     */
+    public static function stockImageFormSchema(?MealPlan $record = null): array
+    {
+        $defaultQuery = $record
+            ? ((string) ($record->name_en ?: $record->name))
+            : '';
+
+        return [
+            Forms\Components\TextInput::make('q')
+                ->label('كلمة البحث')
+                ->required()
+                ->minLength(2)
+                ->maxLength(120)
+                ->default($defaultQuery),
+            Forms\Components\Select::make('provider')
+                ->label('المصدر')
+                ->options(fn (): array => collect(app(\App\Services\OpenCommercialImageService::class)->availableProviders())
+                    ->mapWithKeys(fn ($enabled, $key) => $enabled ? [$key => ucfirst($key)] : [])
+                    ->all())
+                ->default('openverse')
+                ->required()
+                ->native(false),
+            Forms\Components\Actions::make([
+                Forms\Components\Actions\Action::make('runSearch')
+                    ->label('بحث عن صور')
+                    ->icon('heroicon-o-magnifying-glass')
+                    ->action(function (Forms\Get $get, Forms\Set $set): void {
+                        $q = trim((string) $get('q'));
+                        $provider = (string) ($get('provider') ?: 'openverse');
+                        if (strlen($q) < 2) {
+                            \Filament\Notifications\Notification::make()
+                                ->title('أدخل كلمة بحث من حرفين على الأقل')
+                                ->warning()
+                                ->send();
+
+                            return;
+                        }
+
+                        $results = app(\App\Services\OpenCommercialImageService::class)->search($q, $provider, 12);
+                        $options = [];
+                        $meta = [];
+                        foreach ($results as $row) {
+                            $url = (string) ($row['full_url'] ?? '');
+                            if ($url === '') {
+                                continue;
+                            }
+                            $thumb = e((string) ($row['thumb_url'] ?? $url));
+                            $label = e((string) ($row['attribution'] ?? $row['photographer'] ?? 'صورة'));
+                            $options[$url] = new HtmlString(
+                                '<span style="display:inline-flex;align-items:center;gap:8px;">'
+                                .'<img src="'.$thumb.'" alt="" width="40" height="40" style="width:40px;height:40px;object-fit:cover;border-radius:6px;" />'
+                                .'<span>'.$label.'</span></span>'
+                            );
+                            $meta[$url] = $row;
+                        }
+
+                        $set('result_options', $options);
+                        $set('result_meta', $meta);
+                        $set('image_url', null);
+
+                        if ($options === []) {
+                            \Filament\Notifications\Notification::make()
+                                ->title('لا توجد نتائج')
+                                ->warning()
+                                ->send();
+                        }
+                    }),
+            ]),
+            Forms\Components\Radio::make('image_url')
+                ->label('اختر صورة')
+                ->options(fn (Forms\Get $get): array => $get('result_options') ?? [])
+                ->allowHtml()
+                ->required()
+                ->visible(fn (Forms\Get $get): bool => filled($get('result_options')))
+                ->live()
+                ->afterStateUpdated(function (?string $state, Forms\Get $get, Forms\Set $set): void {
+                    $row = ($get('result_meta') ?? [])[$state] ?? null;
+                    if (! is_array($row)) {
+                        return;
+                    }
+                    $set('attribution', $row['attribution'] ?? null);
+                    $set('attribution_url', $row['attribution_url'] ?? null);
+                }),
+            Forms\Components\TextInput::make('attribution')
+                ->label('نسب الصورة')
+                ->maxLength(255)
+                ->visible(fn (Forms\Get $get): bool => filled($get('image_url'))),
+            Forms\Components\TextInput::make('attribution_url')
+                ->label('رابط النسب')
+                ->url()
+                ->maxLength(2048)
+                ->visible(fn (Forms\Get $get): bool => filled($get('image_url'))),
+        ];
+    }
+
+    /**
+     * Download a stock image and attach it to a meal plan.
+     */
+    public static function applyStockImageToMeal(MealPlan $record, array $data): bool
+    {
+        abort_unless($record->canReplaceImage(auth()->user()), 403);
+
+        $stored = app(\App\Services\OpenCommercialImageService::class)->downloadAndStore(
+            (string) ($data['image_url'] ?? ''),
+            ($record->external_id ?: 'meal-'.$record->id),
+            $data['attribution'] ?? ('Open stock image'.(! empty($data['provider']) ? ' ('.$data['provider'].')' : '')),
+            $data['attribution_url'] ?? null
+        );
+
+        if (! $stored) {
+            return false;
+        }
+
+        if ($record->image && ! str_starts_with((string) $record->image, 'http')) {
+            \Illuminate\Support\Facades\Storage::disk('public')->delete($record->image);
+        }
+
+        $record->update([
+            'image' => $stored['path'],
+            'image_attribution' => $stored['attribution'],
+            'image_attribution_url' => $stored['attribution_url'],
+        ]);
+
+        return true;
+    }
+
+    /**
      * @return array<int, Infolists\Components\Component>
      */
     public static function viewMealInfolist(MealPlan $record): array
@@ -446,6 +576,7 @@ class MealPlanResource extends Resource
     {
         return [
             'index' => Pages\ListMealPlans::route('/'),
+            'library-review' => Pages\LibraryReview::route('/library-review'),
             'create' => Pages\CreateMealPlan::route('/create'),
             'edit' => Pages\EditMealPlan::route('/{record}/edit'),
         ];

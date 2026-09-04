@@ -26,8 +26,8 @@ class DashboardController extends Controller
     {
         $user = auth()->user();
 
-        if ($user->hasRole('coach')) {
-            return $this->coachDashboard($user);
+        if ($user->hasAnyRole(['admin', 'coach'])) {
+            return redirect()->to(\App\Support\LegacyAdminFilamentMap::PANEL);
         }
 
         if ($user->hasTraineeRole()) {

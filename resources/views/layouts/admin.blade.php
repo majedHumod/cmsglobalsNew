@@ -368,7 +368,7 @@
                     : (auth()->check() ? auth()->user()->profile_photo_url : null);
             @endphp
             <div class="flex flex-shrink-0 items-center justify-between gap-2 px-4 py-5">
-                <a href="{{ route('dashboard') }}" class="flex min-w-0 flex-1 items-center gap-2.5" title="{{ $sidebarSiteName }}">
+                <a href="{{ url('/admin-cms') }}" class="flex min-w-0 flex-1 items-center gap-2.5" title="{{ $sidebarSiteName }}">
                     @if($sidebarBrandImage)
                         <img
                             src="{{ $sidebarBrandImage }}"
@@ -396,7 +396,7 @@
             <nav class="min-h-0 flex-1 overflow-y-auto overscroll-contain py-1" @click="if (window.innerWidth < 1024 && $event.target.closest('a')) closeSidebar()">
                 <div class="space-y-0.5 px-3 pb-6">
                     <p class="admin-section-label" style="padding-top:0.25rem">متابعة</p>
-                    <a href="{{ route('dashboard') }}" class="admin-nav-link {{ request()->routeIs('dashboard') ? 'is-active' : '' }}">
+                    <a href="{{ url('/admin-cms') }}" class="admin-nav-link {{ request()->routeIs('dashboard') ? 'is-active' : '' }}">
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 12l9-9 9 9M5 10v10a1 1 0 001 1h3m10-11v10a1 1 0 01-1 1h-3m-4 0h4"/></svg>
                         لوحة التحكم
                     </a>
@@ -405,7 +405,7 @@
                     <p class="admin-section-label">المحتوى</p>
 
                     @hasanyrole('admin|user|client')
-                    <a href="{{ route('notes.index') }}" class="admin-nav-link {{ request()->routeIs('notes.*') ? 'is-active' : '' }}">
+                    <a href="{{ url('/admin-cms/notes') }}" class="admin-nav-link {{ request()->routeIs('notes.*') ? 'is-active' : '' }}">
                         <svg class="w-5 h-5 ml-3" fill="currentColor" viewBox="0 0 20 20">
                             <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"></path>
                             <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"></path>
@@ -415,7 +415,7 @@
                     @endhasanyrole
 
                     @can('view pages')
-                    <a href="{{ route('pages.index') }}" class="admin-nav-link {{ request()->routeIs('pages.*') ? 'is-active' : '' }}">
+                    <a href="{{ url('/admin-cms/pages') }}" class="admin-nav-link {{ request()->routeIs('pages.*') ? 'is-active' : '' }}">
                         <svg class="w-5 h-5 ml-3" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd"></path>
                         </svg>
@@ -424,40 +424,33 @@
                     @endcan
 
                     @role('admin')
-                    <a href="{{ route('articles.index') }}" class="admin-nav-link {{ request()->routeIs('articles.*') ? 'is-active' : '' }}">
+                    <a href="{{ url('/admin-cms/articles') }}" class="admin-nav-link {{ request()->routeIs('articles.*') ? 'is-active' : '' }}">
                         <svg class="w-5 h-5 ml-3" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M2 5a2 2 0 012-2h8a2 2 0 012 2v10a2 2 0 002 2H4a2 2 0 01-2-2V5zm3 1h6v4H5V6zm6 6H5v2h6v-2z" clip-rule="evenodd"></path>
                         </svg>
                         المقالات
                     </a>
 
-                    <a href="{{ route('admin.landing-pages.index') }}" class="admin-nav-link {{ request()->routeIs('admin.landing-pages.*') ? 'is-active' : '' }}">
+                    <a href="{{ url('/admin-cms/landing-pages') }}" class="admin-nav-link {{ request()->routeIs('admin.landing-pages.*') ? 'is-active' : '' }}">
                         <svg class="w-5 h-5 ml-3" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" clip-rule="evenodd"></path>
                         </svg>
                         الصفحة الرئيسية
                     </a>
 
-                    <a href="{{ route('admin.faqs.index') }}" class="admin-nav-link {{ request()->routeIs('admin.faqs.*') ? 'is-active' : '' }}">
+                    <a href="{{ url('/admin-cms/faqs') }}" class="admin-nav-link {{ request()->routeIs('admin.faqs.*') ? 'is-active' : '' }}">
                         <svg class="w-5 h-5 ml-3" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"></path>
                         </svg>
                         الأسئلة الشائعة
                     </a>
 
-                    <a href="{{ route('admin.testimonials.index') }}" class="admin-nav-link {{ request()->routeIs('admin.testimonials.*') ? 'is-active' : '' }}">
+                    <a href="{{ url('/admin-cms/testimonials') }}" class="admin-nav-link {{ request()->routeIs('admin.testimonials.*') ? 'is-active' : '' }}">
                         <svg class="w-5 h-5 ml-3" fill="currentColor" viewBox="0 0 20 20">
                             <path d="M2 5a2 2 0 012-2h7a2 2 0 012 2v4a2 2 0 01-2 2H9l-3 3v-3H4a2 2 0 01-2-2V5z"></path>
                             <path d="M15 7v2a4 4 0 01-4 4H9.828l-1.766 1.767c.28.149.599.233.938.233h2l3 3v-3h2a2 2 0 002-2V9a2 2 0 00-2-2h-1z"></path>
                         </svg>
                         قصص النجاح
-                    </a>
-
-                    <a href="{{ url('/admin-cms') }}" class="admin-nav-link" target="_blank" rel="noopener">
-                        <svg class="w-5 h-5 ml-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                        </svg>
-                        تجربة Filament (لوحة جديدة)
                     </a>
                     @endrole
 
@@ -465,31 +458,31 @@
                     @hasanyrole('admin|coach')
                     <p class="admin-section-label">التدريب والعملاء</p>
 
-                    <a href="{{ route('coach.workspace') }}" class="admin-nav-link {{ request()->routeIs('coach.workspace') ? 'is-active' : '' }}">
+                    <a href="{{ url('/admin-cms/coach-workspace') }}" class="admin-nav-link {{ request()->routeIs('coach.workspace') ? 'is-active' : '' }}">
                         <svg class="w-5 h-5 ml-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
                         </svg>
                         مساحة عمل المدرب
                     </a>
-                    <a href="{{ route('coach.clients.index') }}" class="admin-nav-link {{ request()->routeIs('coach.clients.*') || request()->routeIs('clients.progress.*') || request()->routeIs('progress-check-ins.*') ? 'is-active' : '' }}">
+                    <a href="{{ url('/admin-cms/clients') }}" class="admin-nav-link {{ request()->routeIs('coach.clients.*') || request()->routeIs('clients.progress.*') || request()->routeIs('progress-check-ins.*') ? 'is-active' : '' }}">
                         <svg class="w-5 h-5 ml-3" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
                         </svg>
                         العملاء والمتابعة
                     </a>
-                    <a href="{{ route('coach-availabilities.index') }}" class="admin-nav-link {{ request()->routeIs('coach-availabilities.*') ? 'is-active' : '' }}">
+                    <a href="{{ url('/admin-cms/coach-availabilities') }}" class="admin-nav-link {{ request()->routeIs('coach-availabilities.*') ? 'is-active' : '' }}">
                         <svg class="w-5 h-5 ml-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                         </svg>
                         التوفر الأسبوعي
                     </a>
-                    <a href="{{ route('admin.training-sessions.index') }}" class="admin-nav-link {{ request()->routeIs('admin.training-sessions.*') ? 'is-active' : '' }}">
+                    <a href="{{ url('/admin-cms/training-sessions') }}" class="admin-nav-link {{ request()->routeIs('admin.training-sessions.*') ? 'is-active' : '' }}">
                         <svg class="w-5 h-5 ml-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                         </svg>
                         جلسات التدريب الخاصة
                     </a>
-                    <a href="{{ route('admin.session-bookings.index') }}" class="admin-nav-link {{ request()->routeIs('admin.session-bookings.*') ? 'is-active' : '' }}">
+                    <a href="{{ url('/admin-cms/session-bookings') }}" class="admin-nav-link {{ request()->routeIs('admin.session-bookings.*') ? 'is-active' : '' }}">
                         <svg class="w-5 h-5 ml-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3a4 4 0 118 0v4m-4 8a2 2 0 100-4 2 2 0 000 4zm0 0v4a2 2 0 002 2h6a2 2 0 002-2v-4"></path>
                         </svg>
@@ -501,7 +494,7 @@
                     <p class="admin-section-label">التمارين</p>
 
                     @hasanyrole('admin|coach')
-                    <a href="{{ route('exercises.index') }}" class="admin-nav-link {{ request()->routeIs('exercises.*') ? 'is-active' : '' }}">
+                    <a href="{{ url('/admin-cms/exercises') }}" class="admin-nav-link {{ request()->routeIs('exercises.*') ? 'is-active' : '' }}">
                         <svg class="w-5 h-5 ml-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
                         </svg>
@@ -510,13 +503,13 @@
                     @endhasanyrole
 
                     @hasanyrole('admin|coach|user|client')
-                    <a href="{{ route('workouts.index') }}" class="admin-nav-link {{ request()->routeIs('workouts.*') ? 'is-active' : '' }}">
+                    <a href="{{ url('/admin-cms/workouts') }}" class="admin-nav-link {{ request()->routeIs('workouts.*') ? 'is-active' : '' }}">
                         <svg class="w-5 h-5 ml-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                         </svg>
                         التمارين الرياضية
                     </a>
-                    <a href="{{ route('workout-schedules.index') }}" class="admin-nav-link {{ request()->routeIs('workout-schedules.*') ? 'is-active' : '' }}">
+                    <a href="{{ url('/admin-cms/workout-schedules') }}" class="admin-nav-link {{ request()->routeIs('workout-schedules.*') ? 'is-active' : '' }}">
                         <svg class="w-5 h-5 ml-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3a4 4 0 118 0v4m-4 8a2 2 0 100-4 2 2 0 000 4zm0 0v4a2 2 0 002 2h6a2 2 0 002-2v-4"></path>
                         </svg>
@@ -528,7 +521,7 @@
                     <p class="admin-section-label">التغذية</p>
 
                     @hasanyrole('admin|coach|user|client')
-                    <a href="{{ route('meal-plans.index') }}" class="admin-nav-link {{ request()->routeIs('meal-plans.*') ? 'is-active' : '' }}">
+                    <a href="{{ url('/admin-cms/meal-plans') }}" class="admin-nav-link {{ request()->routeIs('meal-plans.*') ? 'is-active' : '' }}">
                         <svg class="w-5 h-5 ml-3" fill="currentColor" viewBox="0 0 20 20">
                             <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"></path>
                         </svg>
@@ -537,7 +530,7 @@
                     @endhasanyrole
 
                     @hasanyrole('admin|coach')
-                    <a href="{{ route('supplement-plans.index') }}" class="admin-nav-link {{ request()->routeIs('supplement-plans.*') ? 'is-active' : '' }}">
+                    <a href="{{ url('/admin-cms/supplement-plans') }}" class="admin-nav-link {{ request()->routeIs('supplement-plans.*') ? 'is-active' : '' }}">
                         <svg class="w-5 h-5 ml-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path>
                         </svg>
@@ -555,7 +548,7 @@
                     @endhasanyrole
 
                     @role('admin')
-                    <a href="{{ route('nutrition-discounts.index') }}" class="admin-nav-link {{ request()->routeIs('nutrition-discounts.*') ? 'is-active' : '' }}">
+                    <a href="{{ url('/admin-cms/nutrition-discounts') }}" class="admin-nav-link {{ request()->routeIs('nutrition-discounts.*') ? 'is-active' : '' }}">
                         <svg class="w-5 h-5 ml-3" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
                         </svg>
@@ -567,25 +560,25 @@
                     @hasanyrole('admin|coach|user|client')
                     <p class="admin-section-label">التواصل والمتابعة</p>
 
-                    <a href="{{ route('messages.index') }}" class="admin-nav-link {{ request()->routeIs('messages.*') ? 'is-active' : '' }}">
+                    <a href="{{ url('/admin-cms/conversations') }}" class="admin-nav-link {{ request()->routeIs('messages.*') ? 'is-active' : '' }}">
                         <svg class="w-5 h-5 ml-3" fill="currentColor" viewBox="0 0 20 20">
                             <path d="M2 5a2 2 0 012-2h10a2 2 0 012 2v5a2 2 0 01-2 2H8l-4 4v-4H4a2 2 0 01-2-2V5z"></path>
                         </svg>
                         الرسائل
                     </a>
-                    <a href="{{ route('notifications.index') }}" class="admin-nav-link {{ request()->routeIs('notifications.*') ? 'is-active' : '' }}">
+                    <a href="{{ url('/admin-cms/notification-feeds') }}" class="admin-nav-link {{ request()->routeIs('notifications.*') ? 'is-active' : '' }}">
                         <svg class="w-5 h-5 ml-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
                         </svg>
                         الإشعارات
                     </a>
-                    <a href="{{ route('habits.index') }}" class="admin-nav-link {{ request()->routeIs('habits.*') ? 'is-active' : '' }}">
+                    <a href="{{ url('/admin-cms/habits') }}" class="admin-nav-link {{ request()->routeIs('habits.*') ? 'is-active' : '' }}">
                         <svg class="w-5 h-5 ml-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                         </svg>
                         متابعة العادات
                     </a>
-                    <a href="{{ route('community.index') }}" class="admin-nav-link {{ request()->routeIs('community.*') ? 'is-active' : '' }}">
+                    <a href="{{ url('/admin-cms/community-posts') }}" class="admin-nav-link {{ request()->routeIs('community.*') ? 'is-active' : '' }}">
                         <svg class="w-5 h-5 ml-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v10l-4-4H5a2 2 0 01-2-2V10a2 2 0 012-2h2m10 0V6a2 2 0 00-2-2H7a2 2 0 00-2 2v2m12 0H7"></path>
                         </svg>
@@ -597,25 +590,25 @@
                     @role('admin')
                     <p class="admin-section-label">العضويات والفوترة</p>
 
-                    <a href="{{ route('membership-types.index') }}" class="admin-nav-link {{ request()->routeIs('membership-types.*') ? 'is-active' : '' }}">
+                    <a href="{{ url('/admin-cms/membership-types') }}" class="admin-nav-link {{ request()->routeIs('membership-types.*') ? 'is-active' : '' }}">
                         <svg class="w-5 h-5 ml-3" fill="currentColor" viewBox="0 0 20 20">
                             <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"></path>
                         </svg>
                         إدارة العضويات
                     </a>
-                    <a href="{{ route('subscription-plans.index') }}" class="admin-nav-link {{ request()->routeIs('subscription-plans.*') && !request()->routeIs('subscription-plans.public') ? 'is-active' : '' }}">
+                    <a href="{{ url('/admin-cms/subscription-plans') }}" class="admin-nav-link {{ request()->routeIs('subscription-plans.*') && !request()->routeIs('subscription-plans.public') ? 'is-active' : '' }}">
                         <svg class="w-5 h-5 ml-3" fill="currentColor" viewBox="0 0 20 20">
                             <path d="M4 4a2 2 0 012-2h8a2 2 0 012 2v2H4V4zm0 4h12v8a2 2 0 01-2 2H6a2 2 0 01-2-2V8zm3 2a1 1 0 000 2h6a1 1 0 100-2H7z"></path>
                         </svg>
                         خطط الاشتراك
                     </a>
-                    <a href="{{ route('admin.user-memberships.index') }}" class="admin-nav-link {{ request()->routeIs('admin.user-memberships.*') ? 'is-active' : '' }}">
+                    <a href="{{ url('/admin-cms/user-memberships') }}" class="admin-nav-link {{ request()->routeIs('admin.user-memberships.*') ? 'is-active' : '' }}">
                         <svg class="w-5 h-5 ml-3" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
                         </svg>
                         اشتراكات الأعضاء
                     </a>
-                    <a href="{{ route('tenant.billing') }}" class="admin-nav-link {{ request()->routeIs('tenant.billing') ? 'is-active' : '' }}">
+                    <a href="{{ url('/admin-cms/tenant-billing') }}" class="admin-nav-link {{ request()->routeIs('tenant.billing') ? 'is-active' : '' }}">
                         <svg class="w-5 h-5 ml-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h10M5 7h14M6 19h12"></path>
                         </svg>
@@ -625,13 +618,13 @@
                     {{-- 8. Settings (always last) --}}
                     <p class="admin-section-label">الإعدادات</p>
 
-                    <a href="{{ route('admin.permissions.index') }}" class="admin-nav-link {{ request()->routeIs('admin.permissions.*') ? 'is-active' : '' }}">
+                    <a href="{{ url('/admin-cms/roles') }}" class="admin-nav-link {{ request()->routeIs('admin.permissions.*') ? 'is-active' : '' }}">
                         <svg class="w-5 h-5 ml-3" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"></path>
                         </svg>
                         إدارة الصلاحيات
                     </a>
-                    <a href="{{ route('admin.settings.index') }}" class="admin-nav-link {{ request()->routeIs('admin.settings.*') ? 'is-active' : '' }}">
+                    <a href="{{ url('/admin-cms/manage-site-settings') }}" class="admin-nav-link {{ request()->routeIs('admin.settings.*') ? 'is-active' : '' }}">
                         <svg class="w-5 h-5 ml-3" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"></path>
                         </svg>
@@ -688,7 +681,7 @@
                                     <nav class="mt-1.5 hidden sm:flex" aria-label="Breadcrumb">
                                         <ol class="inline-flex items-center space-x-1 md:space-x-3">
                                             <li class="inline-flex items-center">
-                                                <a href="{{ route('dashboard') }}" class="text-sm font-medium text-gray-500 hover:text-gray-800">الرئيسية</a>
+                                                <a href="{{ url('/admin-cms') }}" class="text-sm font-medium text-gray-500 hover:text-gray-800">الرئيسية</a>
                                             </li>
                                             @yield('breadcrumbs')
                                         </ol>
@@ -724,11 +717,11 @@
                             @endphp
                             <div class="flex flex-shrink-0 items-center gap-1.5">
                                 @hasanyrole('admin|coach|user|client')
-                                <a href="{{ route('messages.index') }}" class="admin-icon-btn" title="الرسائل">
+                                <a href="{{ url('/admin-cms/conversations') }}" class="admin-icon-btn" title="الرسائل">
                                     <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
                                 </a>
                                 @endhasanyrole
-                                <a href="{{ route('notifications.index') }}" class="relative admin-icon-btn" title="الإشعارات">
+                                <a href="{{ url('/admin-cms/notification-feeds') }}" class="relative admin-icon-btn" title="الإشعارات">
                                     <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
                                     @if($headerUnreadNotifications->count() > 0)
                                         <span class="absolute top-1 right-1 inline-flex h-[15px] min-w-[15px] items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] text-white">{{ $headerUnreadNotifications->count() }}</span>

@@ -192,10 +192,10 @@
                                         @endif
                                     </x-slot>
                                     <x-slot name="content">
-                                        <a href="{{ route('dashboard') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">لوحة التحكم</a>
+                                        <a href="{{ auth()->user()->hasAnyRole(['admin', 'coach']) ? url('/admin-cms') : route('dashboard') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">لوحة التحكم</a>
                                         <a href="{{ route('profile.show') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">الملف الشخصي</a>
                                         @role('admin')
-                                            <a href="{{ route('admin.settings.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">الإعدادات</a>
+                                            <a href="{{ url('/admin-cms/manage-site-settings') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">الإعدادات</a>
                                         @endrole
                                         <div class="border-t border-gray-100"></div>
                                         <form method="POST" action="{{ route('logout') }}">

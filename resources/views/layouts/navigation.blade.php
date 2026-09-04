@@ -6,48 +6,48 @@
             <div class="flex">
                 <!-- Logo -->
                 <div class="shrink-0 flex items-center">
-                    <a href="{{ route('dashboard') }}">
+                    <a href="{{ auth()->check() && auth()->user()->hasAnyRole(['admin', 'coach']) ? url('/admin-cms') : route('dashboard') }}">
                         <x-application-mark class="block h-9 w-auto" />
                     </a>
                 </div>
 
                 <!-- Navigation Links -->
                 <div class="hidden space-x-8 sm:-my-px sm:mr-10 sm:flex">
-                    <x-nav-link href="{{ route('dashboard') }}" :active="request()->routeIs('dashboard')">
+                    <x-nav-link href="{{ auth()->check() && auth()->user()->hasAnyRole(['admin', 'coach']) ? url('/admin-cms') : route('dashboard') }}" :active="request()->routeIs('dashboard')">
                         {{ __('لوحة التحكم') }}
                     </x-nav-link>
 
                     <!-- Notes Link - Visible to both admin and user roles -->
                     @hasanyrole('admin|user|client')
-                    <x-nav-link href="{{ route('notes.index') }}" :active="request()->routeIs('notes.*')">
+                    <x-nav-link href="{{ auth()->user()->hasAnyRole(['admin', 'coach']) ? url('/admin-cms/notes') : route('notes.index') }}" :active="request()->routeIs('notes.*')">
                         {{ __('الملاحظات') }}
                     </x-nav-link>
                     @endhasanyrole
 
                     <!-- Meal Plans Link - Visible to both admin and user roles -->
                     @hasanyrole('admin|user|client')
-                    <x-nav-link href="{{ route('meal-plans.index') }}" :active="request()->routeIs('meal-plans.*')">
+                    <x-nav-link href="{{ auth()->user()->hasAnyRole(['admin', 'coach']) ? url('/admin-cms/meal-plans') : route('meal-plans.index') }}" :active="request()->routeIs('meal-plans.*')">
                         {{ __('الجداول الغذائية') }}
                     </x-nav-link>
                     @endhasanyrole
 
                     <!-- Articles Link - Visible only to admin role -->
                     @role('admin')
-                    <x-nav-link href="{{ route('articles.index') }}" :active="request()->routeIs('articles.*')">
+                    <x-nav-link href="{{ url('/admin-cms/articles') }}" :active="request()->routeIs('articles.*')">
                         {{ __('المقالات') }}
                     </x-nav-link>
                     @endrole
 
                     <!-- إدارة الصفحات: صلاحية view pages (Spatie) -->
                     @can('view pages')
-                    <x-nav-link href="{{ route('pages.index') }}" :active="request()->routeIs('pages.index', 'pages.create', 'pages.edit')">
+                    <x-nav-link href="{{ auth()->user()->hasAnyRole(['admin', 'coach']) ? url('/admin-cms/pages') : route('pages.index') }}" :active="request()->routeIs('pages.index', 'pages.create', 'pages.edit')">
                         {{ __('إدارة الصفحات') }}
                     </x-nav-link>
                     @endcan
 
                     <!-- Membership Types Link - Visible only to admin role -->
                     @role('admin')
-                    <x-nav-link href="{{ route('membership-types.index') }}" :active="request()->routeIs('membership-types.*')">
+                    <x-nav-link href="{{ url('/admin-cms/membership-types') }}" :active="request()->routeIs('membership-types.*')">
                         {{ __('إدارة العضويات') }}
                     </x-nav-link>
                     @endrole
@@ -205,40 +205,40 @@
     <!-- Responsive Navigation Menu -->
     <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
         <div class="pt-2 pb-3 space-y-1">
-            <x-responsive-nav-link href="{{ route('dashboard') }}" :active="request()->routeIs('dashboard')">
+            <x-responsive-nav-link href="{{ auth()->check() && auth()->user()->hasAnyRole(['admin', 'coach']) ? url('/admin-cms') : route('dashboard') }}" :active="request()->routeIs('dashboard')">
                 {{ __('لوحة التحكم') }}
             </x-responsive-nav-link>
 
             <!-- Responsive Notes Link - Visible to both admin and user roles -->
             @hasanyrole('admin|user|client')
-            <x-responsive-nav-link href="{{ route('notes.index') }}" :active="request()->routeIs('notes.*')">
+            <x-responsive-nav-link href="{{ auth()->user()->hasAnyRole(['admin', 'coach']) ? url('/admin-cms/notes') : route('notes.index') }}" :active="request()->routeIs('notes.*')">
                 {{ __('الملاحظات') }}
             </x-responsive-nav-link>
             @endhasanyrole
 
             <!-- Responsive Meal Plans Link - Visible to both admin and user roles -->
             @hasanyrole('admin|user|client')
-            <x-responsive-nav-link href="{{ route('meal-plans.index') }}" :active="request()->routeIs('meal-plans.*')">
+            <x-responsive-nav-link href="{{ auth()->user()->hasAnyRole(['admin', 'coach']) ? url('/admin-cms/meal-plans') : route('meal-plans.index') }}" :active="request()->routeIs('meal-plans.*')">
                 {{ __('الجداول الغذائية') }}
             </x-responsive-nav-link>
             @endhasanyrole
 
             <!-- Responsive Articles Link - Visible only to admin role -->
             @role('admin')
-            <x-responsive-nav-link href="{{ route('articles.index') }}" :active="request()->routeIs('articles.*')">
+            <x-responsive-nav-link href="{{ url('/admin-cms/articles') }}" :active="request()->routeIs('articles.*')">
                 {{ __('المقالات') }}
             </x-responsive-nav-link>
             @endrole
 
             @can('view pages')
-            <x-responsive-nav-link href="{{ route('pages.index') }}" :active="request()->routeIs('pages.index', 'pages.create', 'pages.edit')">
+            <x-responsive-nav-link href="{{ auth()->user()->hasAnyRole(['admin', 'coach']) ? url('/admin-cms/pages') : route('pages.index') }}" :active="request()->routeIs('pages.index', 'pages.create', 'pages.edit')">
                 {{ __('إدارة الصفحات') }}
             </x-responsive-nav-link>
             @endcan
 
             <!-- Responsive Membership Types Link - Visible only to admin role -->
             @role('admin')
-            <x-responsive-nav-link href="{{ route('membership-types.index') }}" :active="request()->routeIs('membership-types.*')">
+            <x-responsive-nav-link href="{{ url('/admin-cms/membership-types') }}" :active="request()->routeIs('membership-types.*')">
                 {{ __('إدارة العضويات') }}
             </x-responsive-nav-link>
             @endrole
