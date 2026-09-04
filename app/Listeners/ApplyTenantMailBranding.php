@@ -21,16 +21,21 @@ class ApplyTenantMailBranding
 
         $this->forceRtlHtml($event->message);
 
-        if (! $this->branding->isTenantMailContext()) {
-            return;
-        }
-
         $from = config('mail.from.address');
         if (! is_string($from) || $from === '') {
             return;
         }
 
-        $event->message->from(new Address($from, $this->branding->fromName()));
+        // Club audience → From = club/coach name
+        // Platform audience → From = EtosCoach (do not override if already set)
+        if ($this->branding->isClubAudience()) {
+            $event->message->from(new Address($from, $this->branding->fromName()));
+        } elseif ($this->branding->isPlatformAudience()) {
+            $event->message->from(new Address($from, $this->branding->platformName()));
+        }
+
+        // Prevent audience override leaking into later mails in the same process.
+        config(['mail.branding_audience' => null]);
     }
 
     /**

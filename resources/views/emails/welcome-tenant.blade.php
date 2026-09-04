@@ -3,14 +3,14 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>مرحباً بك في {{ $tenantName }}</title>
+    <title>مرحباً بك في {{ $platformName }}</title>
 </head>
 <body style="margin:0;padding:0;background:#fafafa;direction:rtl;text-align:right;font-family:Tahoma,Arial,sans-serif;color:#52525b;">
     <table width="100%" cellpadding="0" cellspacing="0" role="presentation" dir="rtl" style="background:#fafafa;direction:rtl;">
         <tr>
             <td align="center" style="padding:24px 12px;">
                 <p style="margin:0 0 16px;font-size:19px;font-weight:bold;color:#18181b;text-align:center;direction:rtl;font-family:Tahoma,Arial,sans-serif;">
-                    {{ $tenantName }}
+                    {{ $platformName }}
                 </p>
 
                 <table width="570" cellpadding="0" cellspacing="0" role="presentation" dir="rtl" style="max-width:570px;width:100%;background:#ffffff;border:1px solid #e4e4e7;border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.1);direction:rtl;">
@@ -21,7 +21,8 @@
                             </h1>
 
                             <p style="margin:0 0 12px;font-size:16px;line-height:1.6;direction:rtl;text-align:right;">
-                                تم إنشاء منصة <strong>{{ $tenantName }}</strong> بنجاح.
+                                شكراً لاشتراكك في <strong>{{ $platformName }}</strong>.
+                                تم إنشاء منصة ناديك <strong>{{ $tenantName }}</strong> بنجاح.
                             </p>
 
                             <p style="margin:0 0 12px;font-size:16px;line-height:1.6;direction:rtl;text-align:right;">
@@ -66,14 +67,14 @@
 
                             <p style="margin:0;font-size:16px;line-height:1.6;direction:rtl;text-align:right;">
                                 مع التحية،<br>
-                                {{ $tenantName }}
+                                فريق {{ $platformName }}
                             </p>
                         </td>
                     </tr>
                 </table>
 
                 <p style="margin:24px 0 0;font-size:12px;color:#a1a1aa;text-align:center;direction:rtl;">
-                    © {{ date('Y') }} {{ $tenantName }}. جميع الحقوق محفوظة.
+                    © {{ date('Y') }} {{ $platformName }}. جميع الحقوق محفوظة.
                 </p>
             </td>
         </tr>

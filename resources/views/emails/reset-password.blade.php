@@ -21,7 +21,7 @@
                             </h1>
 
                             <p style="margin:0 0 12px;font-size:16px;line-height:1.6;direction:rtl;text-align:right;">
-                                تلقّينا طلباً لإعادة تعيين كلمة المرور لحسابك في {{ $siteName }}.
+                                تلقّينا طلباً لإعادة تعيين كلمة المرور لـ {{ $accountLabel ?? ('حسابك في '.$siteName) }}.
                             </p>
 
                             <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin:24px 0;">
