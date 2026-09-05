@@ -17,7 +17,7 @@ class CreatePermissionTables extends Command
      *
      * @var string
      */
-    protected $signature = 'permissions:create-tables {tenant_domain}';
+    protected $signature = 'permissions:create-tables {tenant : Domain, slug, or db_name of the tenant}';
 
     /**
      * The console command description.
@@ -31,18 +31,22 @@ class CreatePermissionTables extends Command
      */
     public function handle()
     {
-        $tenantDomain = $this->argument('tenant_domain');
+        $tenantKey = $this->argument('tenant');
         
         try {
-            // البحث عن المستأجر
-            $tenant = Tenant::on('system')->where('domain', $tenantDomain)->first();
+            // البحث عن المستأجر (domain أو slug أو db_name)
+            $tenant = Tenant::on('system')
+                ->where('domain', $tenantKey)
+                ->orWhere('slug', $tenantKey)
+                ->orWhere('db_name', $tenantKey)
+                ->first();
             
             if (!$tenant) {
-                $this->error("❌ Tenant with domain '{$tenantDomain}' not found!");
+                $this->error("❌ Tenant '{$tenantKey}' not found!");
                 $this->info("💡 Available tenants:");
-                $tenants = Tenant::on('system')->get(['domain', 'name']);
+                $tenants = Tenant::on('system')->get(['domain', 'slug', 'db_name', 'name']);
                 foreach ($tenants as $t) {
-                    $this->line("   - {$t->domain} ({$t->name})");
+                    $this->line("   - {$t->domain} | {$t->slug} | {$t->db_name} ({$t->name})");
                 }
                 return 1;
             }
@@ -74,6 +78,15 @@ class CreatePermissionTables extends Command
             $this->info("📝 Creating advanced permission tables...");
             Artisan::call('migrate', [
                 '--path' => MigrationScope::tenant('database/migrations/tenants/2025_01_19_create_advanced_permissions_tables.php'),
+                '--database' => 'tenant',
+                '--force' => true,
+            ]);
+            $this->info(Artisan::output());
+
+            // إصلاح الجداول الناقصة للمستأجرين القدامى
+            $this->info("📝 Ensuring advanced permission tables exist...");
+            Artisan::call('migrate', [
+                '--path' => MigrationScope::tenant('database/migrations/tenants/2026_03_05_000001_ensure_advanced_permission_tables.php'),
                 '--database' => 'tenant',
                 '--force' => true,
             ]);

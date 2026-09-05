@@ -18,6 +18,7 @@ use Spatie\Permission\Models\Permission;
 class UserPermissionOverrideResource extends Resource
 {
     use AdminOnlyResource;
+    use Concerns\RequiresDatabaseTable;
 
     protected static ?string $model = UserPermissionOverride::class;
 
@@ -32,6 +33,11 @@ class UserPermissionOverrideResource extends Resource
     protected static ?string $pluralModelLabel = 'تجاوزات الصلاحيات';
 
     protected static ?int $navigationSort = 3;
+
+    public static function canViewAny(): bool
+    {
+        return (auth()->user()?->hasRole('admin') ?? false) && static::tablesReady();
+    }
 
     public static function form(Form $form): Form
     {

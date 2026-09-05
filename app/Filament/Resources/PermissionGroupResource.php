@@ -15,6 +15,7 @@ use Filament\Tables\Table;
 class PermissionGroupResource extends Resource
 {
     use AdminOnlyResource;
+    use Concerns\RequiresDatabaseTable;
 
     protected static ?string $model = PermissionGroup::class;
 
@@ -29,6 +30,11 @@ class PermissionGroupResource extends Resource
     protected static ?string $pluralModelLabel = 'مجموعات الصلاحيات';
 
     protected static ?int $navigationSort = 4;
+
+    public static function canViewAny(): bool
+    {
+        return (auth()->user()?->hasRole('admin') ?? false) && static::tablesReady();
+    }
 
     public static function form(Form $form): Form
     {
