@@ -71,5 +71,91 @@ document.addEventListener('DOMContentLoaded', function () {
       moreBtn.textContent = isHidden ? 'إخفاء الأسئلة' : 'عرض المزيد من الأسئلة';
     });
   }
+
+  // Pricing monthly / yearly toggle — updates all three plans in place
+  const pricingSection = document.querySelector('.pricing-section');
+  const billingToggle = document.querySelector('.pricing-billing-toggle');
+  const billingLabels = document.querySelectorAll('[data-cycle-label]');
+  function formatAmount(value) {
+    const number = Number(value);
+    if (Number.isNaN(number)) return String(value || '');
+    return number.toLocaleString('en-US');
+  }
+  function setBillingCycle(cycle) {
+    const yearly = cycle === 'yearly';
+    pricingSection?.classList.toggle('is-yearly', yearly);
+    billingToggle?.setAttribute('aria-pressed', yearly ? 'true' : 'false');
+    billingLabels.forEach((label) => {
+      const active = label.getAttribute('data-cycle-label') === cycle;
+      label.classList.toggle('is-active', active);
+    });
+    document.querySelectorAll('.pricing-plan[data-monthly-amount]').forEach((card) => {
+      const prefix = yearly ? 'yearly' : 'monthly';
+      const amount = card.getAttribute(`data-${prefix}-amount`);
+      const list = card.getAttribute(`data-${prefix}-list`);
+      const href = card.getAttribute(`data-${prefix}-href`);
+      const note = card.getAttribute(`data-${prefix}-note`);
+      const amountEl = card.querySelector('.pricing-price-amount');
+      const listEl = card.querySelector('.pricing-list-price');
+      const noteEl = card.querySelector('.pricing-bill-note');
+      const btn = card.querySelector('.pricing-btn');
+      if (amountEl && amount) amountEl.textContent = formatAmount(amount);
+      if (listEl && list) listEl.textContent = formatAmount(list) + ' ر.س';
+      if (noteEl && note) noteEl.textContent = note;
+      if (btn && href) btn.setAttribute('href', href);
+    });
+  }
+  billingToggle?.addEventListener('click', () => {
+    const yearly = pricingSection?.classList.contains('is-yearly');
+    setBillingCycle(yearly ? 'monthly' : 'yearly');
+  });
+  billingLabels.forEach((label) => {
+    label.addEventListener('click', () => {
+      setBillingCycle(label.getAttribute('data-cycle-label') || 'monthly');
+    });
+  });
+  setBillingCycle('monthly');
+
+  // Story details modal
+  const storyModal = document.getElementById('story-modal');
+  const storyTitle = document.getElementById('story-modal-title');
+  const storyContent = document.getElementById('story-modal-content');
+  const storyImage = document.getElementById('story-modal-image');
+  function closeStory() {
+    if (!storyModal) return;
+    storyModal.hidden = true;
+    document.body.classList.remove('story-open');
+  }
+  function openStory(card) {
+    if (!storyModal || !storyTitle || !storyContent) return;
+    const key = card.getAttribute('data-story');
+    const template = document.getElementById('story-' + key);
+    const title = card.querySelector('.title')?.textContent || '';
+    const img = card.querySelector('.cover img');
+    if (!template) return;
+    storyTitle.textContent = title;
+    storyContent.innerHTML = template.innerHTML;
+    if (storyImage && img) {
+      storyImage.src = img.getAttribute('src') || '';
+      storyImage.alt = img.getAttribute('alt') || title;
+    }
+    storyModal.hidden = false;
+    document.body.classList.add('story-open');
+  }
+  document.querySelectorAll('[data-story]').forEach((card) => {
+    card.addEventListener('click', () => openStory(card));
+    card.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        openStory(card);
+      }
+    });
+  });
+  document.querySelectorAll('[data-story-close]').forEach((el) => {
+    el.addEventListener('click', closeStory);
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeStory();
+  });
 });
 
