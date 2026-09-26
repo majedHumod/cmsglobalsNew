@@ -2,7 +2,9 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Forms\TenantPaymentSettingsSchema;
 use App\Models\SiteSetting;
+use App\Services\Payments\TenantPaymentSettings;
 use App\Services\TenantCache;
 use Filament\Forms;
 use Filament\Forms\Concerns\InteractsWithForms;
@@ -74,6 +76,7 @@ class ManageSiteSettings extends Page implements HasForms
             'testimonials_enabled' => (bool) SiteSetting::get('testimonials_enabled', true),
             'articles_enabled' => (bool) SiteSetting::get('articles_enabled', true),
             'articles_count' => (int) SiteSetting::get('articles_count', 3),
+            'payments' => app(TenantPaymentSettings::class)->formState(),
         ]);
     }
 
@@ -173,6 +176,7 @@ class ManageSiteSettings extends Page implements HasForms
                                     ])
                                     ->columns(2),
                             ]),
+                        TenantPaymentSettingsSchema::tab(),
                     ])
                     ->columnSpanFull(),
             ])
@@ -182,6 +186,8 @@ class ManageSiteSettings extends Page implements HasForms
     public function save(): void
     {
         $data = $this->form->getState();
+
+        app(TenantPaymentSettings::class)->save(is_array($data['payments'] ?? null) ? $data['payments'] : []);
 
         SiteSetting::set('site_name', $data['site_name'] ?? '', 'general', 'string', 'Site name');
         SiteSetting::set('site_description', $data['site_description'] ?? '', 'general', 'string', 'Site description');

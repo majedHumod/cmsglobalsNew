@@ -90,6 +90,8 @@ Route::get('/training-sessions', function() {
 
 Route::get('/training-sessions/{trainingSession}', [TrainingSessionController::class, 'show'])->name('training-sessions.show');
 Route::get('/subscription-plans', [SubscriptionPlanController::class, 'publicIndex'])->name('subscription-plans.public');
+Route::match(['get', 'post'], '/subscription-memberships/{userMembership}/payment/return', [SubscriptionPlanController::class, 'paymentReturn'])
+    ->name('subscription-plans.payment.return');
 
 // Public Nutrition Discounts Route
 Route::get('/nutrition-discounts', [NutritionDiscountController::class, 'frontend'])->name('nutrition-discounts.frontend');
@@ -109,6 +111,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/training-sessions/booking/{sessionBooking}/cancel', [TrainingSessionController::class, 'cancel'])->name('training-sessions.cancel');
     Route::post('/subscription-plans/{subscriptionPlan}/subscribe', [SubscriptionPlanController::class, 'subscribe'])->name('subscription-plans.subscribe');
     Route::get('/subscription-memberships/{userMembership}/payment', [SubscriptionPlanController::class, 'payment'])->name('subscription-plans.payment');
+    Route::post('/subscription-memberships/{userMembership}/payment', [SubscriptionPlanController::class, 'startPayment'])->name('subscription-plans.payment.start');
+    Route::post('/subscription-memberships/{userMembership}/payment/bank', [SubscriptionPlanController::class, 'submitBankTransfer'])->name('subscription-plans.payment.bank');
     Route::get('/subscription-memberships/{userMembership}/renew', [SubscriptionPlanController::class, 'renew'])->name('subscription-plans.renew');
     Route::get('/subscription-memberships/{userMembership}/success', [SubscriptionPlanController::class, 'success'])->name('subscription-plans.success');
 });

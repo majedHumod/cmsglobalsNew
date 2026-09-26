@@ -5,22 +5,20 @@ namespace App\Http\Controllers;
 use App\Models\MembershipType;
 use App\Models\SubscriptionPlan;
 use App\Models\UserMembership;
-use App\Events\MembershipLifecycleChanged;
 use App\Services\MembershipRenewalService;
+use App\Services\Payments\CoachSubscriptionCheckout;
 use App\Services\TenantCache;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
-use Stripe\PaymentIntent;
-use Stripe\Stripe;
 
 class SubscriptionPlanController extends Controller
 {
     public function __construct()
     {
-        $this->middleware(['auth', 'role:admin'])->except(['publicIndex', 'subscribe', 'payment', 'success', 'renew']);
-        $this->middleware('auth')->only(['subscribe', 'payment', 'success', 'renew']);
+        $this->middleware(['auth', 'role:admin'])->except(['publicIndex', 'subscribe', 'payment', 'startPayment', 'paymentReturn', 'submitBankTransfer', 'success', 'renew']);
+        $this->middleware('auth')->only(['subscribe', 'payment', 'startPayment', 'submitBankTransfer', 'success', 'renew']);
     }
 
     public function index()
@@ -148,69 +146,133 @@ class SubscriptionPlanController extends Controller
         return redirect()->route('subscription-plans.payment', $userMembership);
     }
 
-    public function payment(UserMembership $userMembership)
+    public function payment(UserMembership $userMembership, CoachSubscriptionCheckout $checkout)
     {
         abort_unless($userMembership->user_id === auth()->id(), 403);
         abort_unless($userMembership->subscriptionPlan, 404);
 
-        try {
-            Stripe::setApiKey(env('STRIPE_SECRET_KEY'));
-
-            $paymentIntent = PaymentIntent::create([
-                'amount' => (int) round($userMembership->payment_amount * 100),
-                'currency' => 'sar',
-                'metadata' => [
-                    'membership_id' => $userMembership->id,
-                    'user_id' => $userMembership->user_id,
-                    'subscription_plan_id' => $userMembership->subscription_plan_id,
-                ],
-            ]);
-
-            $userMembership->update([
-                'stripe_payment_intent_id' => $paymentIntent->id,
-            ]);
-
-            return view('subscription-plans.payment', [
-                'membership' => $userMembership->load('subscriptionPlan.membershipType'),
-                'paymentIntent' => $paymentIntent,
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Subscription payment setup failed', ['error' => $e->getMessage()]);
-
-            return back()->with('error', 'تعذر تجهيز عملية الدفع حالياً.');
+        if ($userMembership->payment_status === 'paid' && $userMembership->is_active) {
+            return redirect()->route('subscription-plans.success', $userMembership);
         }
+
+        return view('subscription-plans.payment', [
+            'membership' => $userMembership->load('subscriptionPlan.membershipType'),
+            'methods' => $checkout->methods(),
+        ]);
     }
 
-    public function success(UserMembership $userMembership, MembershipRenewalService $renewalService)
+    public function startPayment(Request $request, UserMembership $userMembership, CoachSubscriptionCheckout $checkout)
+    {
+        abort_unless($userMembership->user_id === auth()->id(), 403);
+        abort_unless($userMembership->subscriptionPlan, 404);
+
+        $validated = $request->validate([
+            'channel' => 'required|string|max:50',
+        ]);
+
+        try {
+            $result = $checkout->start($userMembership, $validated['channel']);
+        } catch (\Throwable $exception) {
+            Log::error('Coach subscription checkout failed', ['error' => $exception->getMessage()]);
+
+            return back()->with('error', $this->checkoutErrorMessage($exception));
+        }
+
+        return $this->checkoutResponse($result, $userMembership);
+    }
+
+    public function submitBankTransfer(Request $request, UserMembership $userMembership, CoachSubscriptionCheckout $checkout)
     {
         abort_unless($userMembership->user_id === auth()->id(), 403);
 
-        if ($userMembership->stripe_payment_intent_id) {
-            try {
-                Stripe::setApiKey(env('STRIPE_SECRET_KEY'));
-                $intent = PaymentIntent::retrieve($userMembership->stripe_payment_intent_id);
-                if ($intent->status !== 'succeeded') {
-                    return redirect()->route('subscription-plans.payment', $userMembership)
-                        ->with('error', 'لم يتم تأكيد الدفع بعد. أكمل عملية الدفع أولاً.');
-                }
-            } catch (\Exception $e) {
-                Log::error('Subscription payment verification failed', ['error' => $e->getMessage()]);
+        $validated = $request->validate([
+            'transfer_reference' => 'required|string|max:100',
+            'transfer_receipt' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:4096',
+        ]);
 
-                return redirect()->route('subscription-plans.payment', $userMembership)
-                    ->with('error', 'تعذر التحقق من الدفع.');
+        $receiptPath = $request->file('transfer_receipt')?->store('payment-receipts', 'public');
+
+        try {
+            $checkout->submitBankTransfer($userMembership, $validated['transfer_reference'], $receiptPath);
+        } catch (\Throwable $exception) {
+            if ($receiptPath) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($receiptPath);
             }
+
+            return back()->with('error', $this->checkoutErrorMessage($exception));
         }
 
-        $isRenewal = $userMembership->starts_at !== null;
-        if ($isRenewal) {
-            $renewalService->renew($userMembership);
-        } else {
-            $renewalService->activate($userMembership, $userMembership->stripe_payment_intent_id);
+        return redirect()
+            ->route('subscription-plans.payment', $userMembership)
+            ->with('success', 'تم تسجيل التحويل. يبقى الاشتراك معلقاً حتى يؤكد النادي استلام المبلغ.');
+    }
+
+    public function paymentReturn(Request $request, UserMembership $userMembership, CoachSubscriptionCheckout $checkout)
+    {
+        try {
+            $paid = $checkout->verifyAndSettle($userMembership, $request);
+        } catch (\Throwable $exception) {
+            Log::error('Coach subscription payment verification failed', ['error' => $exception->getMessage()]);
+
+            return $this->paymentResultRedirect($userMembership, false, 'تعذر التحقق من الدفع.');
+        }
+
+        if (! $paid) {
+            return $this->paymentResultRedirect($userMembership, false, 'لم يكتمل الدفع بعد. إذا اخترت تحويلاً بنكياً فسيبقى الطلب معلقاً حتى التأكيد.');
+        }
+
+        return $this->paymentResultRedirect($userMembership, true, null);
+    }
+
+    public function success(UserMembership $userMembership)
+    {
+        abort_unless($userMembership->user_id === auth()->id(), 403);
+
+        if ($userMembership->payment_status !== 'paid') {
+            return redirect()->route('subscription-plans.payment', $userMembership)
+                ->with('error', 'لم يُفعَّل الاشتراك بعد.');
         }
 
         return view('subscription-plans.success', [
-            'membership' => $userMembership->fresh()->load('subscriptionPlan.membershipType'),
+            'membership' => $userMembership->load('subscriptionPlan.membershipType'),
         ]);
+    }
+
+    /**
+     * @param  array{type: string, url?: string, view?: string, data?: array<string, mixed>, message?: string}  $result
+     */
+    protected function checkoutResponse(array $result, UserMembership $userMembership)
+    {
+        return match ($result['type']) {
+            'redirect' => redirect()->away($result['url']),
+            'view' => view($result['view'], $result['data'] ?? []),
+            'already_paid' => redirect()->route('subscription-plans.success', $userMembership),
+            default => back()->with('error', $result['message'] ?? 'تعذر بدء الدفع.'),
+        };
+    }
+
+    protected function checkoutErrorMessage(\Throwable $exception): string
+    {
+        $message = $exception->getMessage();
+
+        if (str_contains($message, 'تعذر') || str_contains($message, 'لم تُرجع') || str_contains($message, 'قناة') || str_contains($message, 'غير مفع')) {
+            return $message;
+        }
+
+        return 'تعذر بدء الدفع. تأكد من إعدادات قناة الدفع أو حاول لاحقاً.';
+    }
+
+    protected function paymentResultRedirect(UserMembership $userMembership, bool $paid, ?string $error)
+    {
+        if (! auth()->check() || auth()->id() !== $userMembership->user_id) {
+            return redirect()->route('login');
+        }
+
+        if ($paid) {
+            return redirect()->route('subscription-plans.success', $userMembership);
+        }
+
+        return redirect()->route('subscription-plans.payment', $userMembership)->with('error', $error);
     }
 
     protected function validatePlan(Request $request): array

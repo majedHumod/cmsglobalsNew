@@ -20,6 +20,10 @@ class UserMembership extends Model
         'payment_status',
         'payment_amount',
         'payment_reference',
+        'payment_channel',
+        'gateway_reference',
+        'transfer_reference',
+        'transfer_receipt',
         'stripe_payment_intent_id',
         'notes'
     ];
@@ -90,6 +94,12 @@ class UserMembership extends Model
 
     public function getStatusTextAttribute()
     {
+        if ($this->payment_status !== 'paid') {
+            return $this->payment_channel === 'bank_transfer'
+                ? 'بانتظار تأكيد التحويل'
+                : 'في انتظار الدفع';
+        }
+
         if (!$this->is_active) {
             return 'غير نشط';
         }
@@ -98,25 +108,23 @@ class UserMembership extends Model
             return 'منتهي الصلاحية';
         }
         
-        if ($this->payment_status !== 'paid') {
-            return 'في انتظار الدفع';
-        }
-        
         return 'نشط';
     }
 
     public function getStatusBadgeAttribute()
     {
+        if ($this->payment_status !== 'paid') {
+            $label = $this->payment_channel === 'bank_transfer' ? 'بانتظار تأكيد التحويل' : 'في انتظار الدفع';
+
+            return '<span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">'.$label.'</span>';
+        }
+
         if (!$this->is_active) {
             return '<span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">⏸️ غير نشط</span>';
         }
         
         if ($this->is_expired) {
             return '<span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">⏰ منتهي</span>';
-        }
-        
-        if ($this->payment_status !== 'paid') {
-            return '<span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">💳 في انتظار الدفع</span>';
         }
         
         return '<span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">✅ نشط</span>';

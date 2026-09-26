@@ -7,12 +7,17 @@ use App\Filament\Resources\UserMembershipResource\Pages;
 use App\Models\MembershipType;
 use App\Models\SubscriptionPlan;
 use App\Models\UserMembership;
+use App\Services\Payments\CoachSubscriptionCheckout;
+use App\Support\TenantPaymentCatalog;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\HtmlString;
 
 class UserMembershipResource extends Resource
 {
@@ -77,6 +82,25 @@ class UserMembershipResource extends Resource
                             ])
                             ->required()
                             ->native(false),
+                        Forms\Components\Placeholder::make('payment_channel_label')
+                            ->label('وسيلة الدفع')
+                            ->content(fn (?UserMembership $record): string => TenantPaymentCatalog::label($record?->payment_channel)),
+                        Forms\Components\Placeholder::make('transfer_reference_label')
+                            ->label('مرجع التحويل')
+                            ->content(fn (?UserMembership $record): string => $record?->transfer_reference ?: '—')
+                            ->visible(fn (?UserMembership $record): bool => $record?->payment_channel === 'bank_transfer'),
+                        Forms\Components\Placeholder::make('transfer_receipt_link')
+                            ->label('إيصال التحويل')
+                            ->content(function (?UserMembership $record): HtmlString|string {
+                                if (! $record?->transfer_receipt) {
+                                    return '—';
+                                }
+
+                                $url = e(Storage::disk('public')->url($record->transfer_receipt));
+
+                                return new HtmlString('<a href="'.$url.'" target="_blank" rel="noopener">عرض الإيصال</a>');
+                            })
+                            ->visible(fn (?UserMembership $record): bool => filled($record?->transfer_receipt)),
                         Forms\Components\TextInput::make('payment_amount')
                             ->label('مبلغ الدفع')
                             ->numeric()
@@ -120,9 +144,9 @@ class UserMembershipResource extends Resource
                     ->label('الحالة')
                     ->badge()
                     ->color(fn (UserMembership $record): string => match (true) {
+                        $record->payment_status !== 'paid' => 'warning',
                         ! $record->is_active => 'gray',
                         $record->is_expired => 'danger',
-                        $record->payment_status !== 'paid' => 'warning',
                         default => 'success',
                     }),
                 Tables\Columns\TextColumn::make('payment_status')
@@ -134,6 +158,10 @@ class UserMembershipResource extends Resource
                         'refunded' => 'مسترد',
                         default => 'معلق',
                     }),
+                Tables\Columns\TextColumn::make('payment_channel')
+                    ->label('الوسيلة')
+                    ->formatStateUsing(fn (?string $state): string => TenantPaymentCatalog::label($state))
+                    ->toggleable(),
                 Tables\Columns\IconColumn::make('is_active')
                     ->label('نشط')
                     ->boolean(),
@@ -154,6 +182,30 @@ class UserMembershipResource extends Resource
                     ->options(fn () => MembershipType::query()->ordered()->pluck('name', 'id')),
             ])
             ->actions([
+                Tables\Actions\Action::make('confirmBankTransfer')
+                    ->label('تأكيد التحويل')
+                    ->icon('heroicon-o-check-circle')
+                    ->color('success')
+                    ->visible(fn (UserMembership $record): bool => $record->payment_channel === 'bank_transfer' && $record->payment_status === 'pending')
+                    ->requiresConfirmation()
+                    ->modalHeading('تأكيد استلام التحويل')
+                    ->modalDescription('سيُفعَّل اشتراك العضو مباشرة بعد تأكيد استلام المبلغ.')
+                    ->action(function (UserMembership $record): void {
+                        app(CoachSubscriptionCheckout::class)->confirmBankTransfer($record);
+                        Notification::make()->title('تم تفعيل الاشتراك بعد تأكيد التحويل')->success()->send();
+                    }),
+                Tables\Actions\Action::make('rejectBankTransfer')
+                    ->label('رفض التحويل')
+                    ->icon('heroicon-o-x-circle')
+                    ->color('danger')
+                    ->visible(fn (UserMembership $record): bool => $record->payment_channel === 'bank_transfer' && $record->payment_status === 'pending')
+                    ->requiresConfirmation()
+                    ->modalHeading('رفض التحويل')
+                    ->modalDescription('سيبقى الاشتراك غير مفعّل وتُسجَّل العملية كفشل في الدفع.')
+                    ->action(function (UserMembership $record): void {
+                        app(CoachSubscriptionCheckout::class)->rejectBankTransfer($record);
+                        Notification::make()->title('تم رفض التحويل')->success()->send();
+                    }),
                 Tables\Actions\EditAction::make()->label('إدارة'),
             ])
             ->bulkActions([]);

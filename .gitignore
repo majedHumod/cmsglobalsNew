@@ -32,3 +32,7 @@ yarn-error.log
 /docs/communication-api-roadmap.md
 /docs/trainer-capabilities-audit.md
 /docs/tenant-status-report.md
+
+# Local backup archives - never commit these
+/vendor.rar
+/vendor.zip

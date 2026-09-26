@@ -32,6 +32,7 @@ return Application::configure(basePath: dirname(__DIR__))
             ]);
             $middleware->validateCsrfTokens(except: [
                 'webhooks/paylink',
+                'subscription-memberships/*/payment/return',
             ]);
             $middleware->encryptCookies(except: [
                 env('PLATFORM_COOKIE', 'etos_platform'),
