@@ -30,13 +30,13 @@
             @if($membership->payment_channel === 'bank_transfer' && $membership->payment_status === 'pending' && $membership->transfer_reference)
                 <div class="rounded-lg bg-amber-50 border border-amber-200 p-4 text-sm text-amber-900 mb-6">
                     تم استلام بيانات التحويل برقم <strong>{{ $membership->transfer_reference }}</strong>.
-                    الاشتراك معلّق ولن يُفعَّل إلا بعد تأكيد النادي لاستلام المبلغ.
+                    الاشتراك معلق ولن يتم تفعيله إلا بعد تأكيد النادي لاستلام المبلغ.
                 </div>
             @endif
 
             @if($methods === [])
                 <div class="rounded-lg bg-amber-50 border border-amber-200 p-4 text-sm text-amber-800 mb-6">
-                    لم يضبط النادي وسائل الدفع بعد. لا يمكن إتمام الاشتراك حتى تُفعَّل قناة واحدة على الأقل من إعدادات الدفع.
+                    لم يضبط النادي وسائل الدفع بعد. لا يمكن إتمام الاشتراك حتى تُفعَّل قناة واحدة على الأقل من إعدادات الدفع.
                 </div>
             @else
                 <div class="space-y-4">
@@ -44,9 +44,14 @@
                         @if($method['key'] === 'bank_transfer')
                             <form method="POST" action="{{ route('subscription-plans.payment.bank', $membership) }}" enctype="multipart/form-data" class="rounded-lg border border-gray-200 p-4 space-y-3">
                                 @csrf
-                                <div>
-                                    <h2 class="font-semibold text-gray-900">{{ $method['label'] }}</h2>
-                                    <p class="text-sm text-gray-600 mt-1">يبقى الطلب معلقاً حتى يؤكد النادي وصول التحويل. لا يتم التفعيل تلقائياً.</p>
+                                <div class="flex items-center gap-3">
+                                    @if($method['logo_url'])
+                                        <img src="{{ $method['logo_url'] }}" alt="{{ $method['label'] }}" class="h-8 w-auto object-contain">
+                                    @endif
+                                    <div>
+                                        <h2 class="font-semibold text-gray-900">{{ $method['label'] }}</h2>
+                                        <p class="text-sm text-gray-600 mt-1">يبقى الطلب معلقاً حتى يؤكد النادي وصول التحويل. لا يتم التفعيل تلقائياً.</p>
+                                    </div>
                                 </div>
                                 <dl class="text-sm text-gray-700 space-y-1">
                                     <div>البنك: <strong>{{ $method['bank']['bank_name'] }}</strong></div>
@@ -79,9 +84,14 @@
                             <form method="POST" action="{{ route('subscription-plans.payment.start', $membership) }}" class="rounded-lg border border-gray-200 p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                                 @csrf
                                 <input type="hidden" name="channel" value="{{ $method['key'] }}">
-                                <div>
-                                    <h2 class="font-semibold text-gray-900">{{ $method['label'] }}</h2>
-                                    <p class="text-sm text-gray-600 mt-1">دفع مباشر. يُفعَّل الاشتراك فور تأكيد اكتمال العملية.</p>
+                                <div class="flex items-center gap-3">
+                                    @if($method['logo_url'])
+                                        <img src="{{ $method['logo_url'] }}" alt="{{ $method['label'] }}" class="h-8 w-auto object-contain">
+                                    @endif
+                                    <div>
+                                        <h2 class="font-semibold text-gray-900">{{ $method['label'] }}</h2>
+                                        <p class="text-sm text-gray-600 mt-1">دفع مباشر، ويُفعَّل الاشتراك فور تأكيد اكتمال العملية.</p>
+                                    </div>
                                 </div>
                                 <button type="submit" class="rounded-md bg-indigo-600 px-4 py-3 text-white hover:bg-indigo-700">الدفع عبر {{ $method['label'] }}</button>
                             </form>

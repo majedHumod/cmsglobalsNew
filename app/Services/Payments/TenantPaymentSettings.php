@@ -4,6 +4,7 @@ namespace App\Services\Payments;
 
 use App\Models\SiteSetting;
 use App\Support\TenantPaymentCatalog;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 
 class TenantPaymentSettings
@@ -67,6 +68,8 @@ class TenantPaymentSettings
             throw ValidationException::withMessages($errors);
         }
 
+        $this->deleteReplacedLogos($channels, $stored);
+
         SiteSetting::set(
             self::KEY,
             $channels,
@@ -97,12 +100,15 @@ class TenantPaymentSettings
                 continue;
             }
 
+            $logoPath = is_string($channel['logo'] ?? null) ? $channel['logo'] : null;
+
             $method = [
                 'key' => $key,
                 'label' => $definition['label'] ?? $key,
                 'description' => $definition['description'] ?? '',
                 'settlement' => TenantPaymentCatalog::settlement($key),
                 'region' => $definition['region'] ?? 'saudi',
+                'logo_url' => $logoPath ? Storage::disk('public')->url($logoPath) : null,
             ];
 
             if ($key === 'bank_transfer') {
@@ -141,5 +147,21 @@ class TenantPaymentSettings
         $stored = $this->stored()[$channel] ?? [];
 
         return is_array($stored) && TenantPaymentCatalog::hasStoredSecret($stored, $field);
+    }
+
+    /**
+     * @param  array<string, array<string, mixed>>  $channels
+     * @param  array<string, array<string, mixed>>  $stored
+     */
+    private function deleteReplacedLogos(array $channels, array $stored): void
+    {
+        foreach ($channels as $key => $channel) {
+            $oldLogo = is_array($stored[$key] ?? null) ? ($stored[$key]['logo'] ?? null) : null;
+            $newLogo = $channel['logo'] ?? null;
+
+            if (is_string($oldLogo) && $oldLogo !== '' && $oldLogo !== $newLogo) {
+                Storage::disk('public')->delete($oldLogo);
+            }
+        }
     }
 }

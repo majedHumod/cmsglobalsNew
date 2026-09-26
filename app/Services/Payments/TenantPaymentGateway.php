@@ -5,6 +5,7 @@ namespace App\Services\Payments;
 use App\Models\UserMembership;
 use App\Support\TenantPaymentCatalog;
 use Illuminate\Http\Client\Response;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use RuntimeException;
@@ -27,6 +28,7 @@ class TenantPaymentGateway
         $description = 'اشتراك '.($membership->subscriptionPlan?->name ?? '#'.$membership->id);
 
         $result = match ($channel) {
+            'paylink' => $this->startPaylink($membership, $credentials, $amount, $description, $returnUrl, $cancelUrl),
             'moyasar' => $this->startMoyasar($credentials, $halalas, $description, $returnUrl),
             'tap' => $this->startTap($membership, $credentials, $amount, $description, $returnUrl),
             'paytabs' => $this->startPaytabs($membership, $credentials, $amount, $description, $returnUrl),
@@ -56,6 +58,7 @@ class TenantPaymentGateway
     public function isPaid(string $channel, string $reference, array $credentials, int $expectedHalalas): bool
     {
         return match ($channel) {
+            'paylink' => $this->paylinkPaid($credentials, $reference, $expectedHalalas),
             'moyasar' => $this->moyasarPaid($credentials, $reference, $expectedHalalas),
             'tap' => $this->tapPaid($credentials, $reference, $expectedHalalas),
             'paytabs' => $this->paytabsPaid($credentials, $reference, $expectedHalalas),
@@ -64,6 +67,129 @@ class TenantPaymentGateway
             'stripe' => $this->stripePaid($credentials, $reference, $expectedHalalas),
             default => false,
         };
+    }
+
+    /**
+     * @param  array<string, string>  $credentials
+     * @return array{reference: string, redirect_url: string}
+     */
+    private function startPaylink(
+        UserMembership $membership,
+        array $credentials,
+        float $amount,
+        string $description,
+        string $returnUrl,
+        string $cancelUrl
+    ): array {
+        $mobile = trim((string) ($membership->user?->phone ?? ''));
+        if ($mobile === '') {
+            throw new RuntimeException('رقم جوال العميل مطلوب لإتمام الدفع عبر بيلينك. يرجى تحديث رقم الجوال في الملف الشخصي أولاً.');
+        }
+
+        $token = $this->paylinkAuth($credentials);
+        $orderNumber = 'membership-'.$membership->id.'-'.now()->timestamp;
+
+        $response = Http::withToken($token)
+            ->acceptJson()
+            ->asJson()
+            ->timeout(30)
+            ->post($this->paylinkBase($credentials['mode'] ?? 'live').'/api/addInvoice', [
+                'orderNumber' => $orderNumber,
+                'amount' => round($amount, 2),
+                'callBackUrl' => $returnUrl,
+                'cancelUrl' => $cancelUrl,
+                'clientName' => $membership->user?->name ?: 'عميل',
+                'clientEmail' => $membership->user?->email,
+                'clientMobile' => $mobile,
+                'currency' => 'SAR',
+                'products' => [[
+                    'title' => $description,
+                    'price' => round($amount, 2),
+                    'qty' => 1,
+                    'isDigital' => true,
+                ]],
+                'note' => 'Coach subscription membership #'.$membership->id,
+            ]);
+
+        $this->ensurePaylinkOk($response);
+
+        return [
+            'reference' => (string) $response->json('transactionNo'),
+            'redirect_url' => (string) $response->json('url'),
+        ];
+    }
+
+    /**
+     * @param  array<string, string>  $credentials
+     */
+    private function paylinkPaid(array $credentials, string $reference, int $expectedHalalas): bool
+    {
+        $token = $this->paylinkAuth($credentials);
+
+        $response = Http::withToken($token)
+            ->acceptJson()
+            ->timeout(30)
+            ->get($this->paylinkBase($credentials['mode'] ?? 'live').'/api/getInvoice/'.urlencode($reference));
+
+        $this->ensurePaylinkOk($response);
+
+        $status = strtoupper((string) $response->json('orderStatus'));
+
+        return $status === 'PAID'
+            && $this->currencyMatches($response->json('currency'))
+            && $this->amountMatches(TenantPaymentCatalog::halalas((string) $response->json('amount')), $expectedHalalas);
+    }
+
+    /**
+     * @param  array<string, string>  $credentials
+     */
+    private function paylinkAuth(array $credentials): string
+    {
+        $apiId = (string) ($credentials['api_id'] ?? '');
+        $mode = (string) ($credentials['mode'] ?? 'live');
+        $cacheKey = 'tenant_paylink:id_token:'.md5($mode.'|'.$apiId);
+
+        return Cache::remember($cacheKey, 25 * 60, function () use ($credentials, $mode): string {
+            $response = Http::baseUrl($this->paylinkBase($mode))
+                ->acceptJson()
+                ->asJson()
+                ->timeout(20)
+                ->post('/api/auth', [
+                    'apiId' => $credentials['api_id'] ?? '',
+                    'secretKey' => $credentials['secret_key'] ?? '',
+                    'persistToken' => false,
+                ]);
+
+            $this->ensurePaylinkOk($response);
+
+            $token = (string) $response->json('id_token');
+            if ($token === '') {
+                $this->fail('paylink');
+            }
+
+            return $token;
+        });
+    }
+
+    private function paylinkBase(string $mode): string
+    {
+        return $mode === 'test' ? 'https://restpilot.paylink.sa' : 'https://restapi.paylink.sa';
+    }
+
+    private function ensurePaylinkOk(Response $response): void
+    {
+        if ($response->failed()) {
+            $this->fail('paylink', $response->status());
+        }
+
+        if ($response->json('success') === false) {
+            Log::warning('Coach payment gateway request failed', [
+                'channel' => 'paylink',
+                'error' => $response->json('detail') ?? $response->json('paymentErrors'),
+            ]);
+
+            throw new RuntimeException('تعذر إتمام العملية مع بيلينك. راجع بيانات الربط في إعدادات الدفع.');
+        }
     }
 
     /**

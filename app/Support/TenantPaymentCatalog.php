@@ -76,6 +76,7 @@ class TenantPaymentCatalog
     {
         $merged = [
             'enabled' => (bool) ($incoming['enabled'] ?? false),
+            'logo' => self::stringOrNull($incoming['logo'] ?? null) ?? self::stringOrNull($stored['logo'] ?? null),
         ];
 
         foreach (self::get($key)['fields'] ?? [] as $name => $field) {
@@ -94,6 +95,17 @@ class TenantPaymentCatalog
         }
 
         return $merged;
+    }
+
+    private static function stringOrNull(mixed $value): ?string
+    {
+        if (! is_string($value)) {
+            return null;
+        }
+
+        $value = trim($value);
+
+        return $value !== '' ? $value : null;
     }
 
     /**
@@ -129,6 +141,7 @@ class TenantPaymentCatalog
     {
         $state = [
             'enabled' => (bool) ($stored['enabled'] ?? false),
+            'logo' => self::stringOrNull($stored['logo'] ?? null),
         ];
 
         foreach (self::get($key)['fields'] ?? [] as $name => $field) {

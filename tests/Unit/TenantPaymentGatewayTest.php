@@ -58,6 +58,55 @@ class TenantPaymentGatewayTest extends TestCase
         $this->assertFalse($gateway->isPaid('moyasar', 'inv_wrong', ['secret_key' => 'sk_test'], 15000));
     }
 
+    public function test_paylink_start_uses_club_credentials_and_confirms_paid_invoice(): void
+    {
+        Http::fake([
+            'https://restapi.paylink.sa/api/auth' => Http::response([
+                'id_token' => 'club_token_123',
+            ]),
+            'https://restapi.paylink.sa/api/addInvoice' => Http::response([
+                'success' => true,
+                'transactionNo' => 'trx_club_1',
+                'url' => 'https://payment.paylink.sa/pay/trx_club_1',
+            ]),
+            'https://restapi.paylink.sa/api/getInvoice/trx_club_1' => Http::response([
+                'success' => true,
+                'orderStatus' => 'Paid',
+                'amount' => 150,
+                'currency' => 'SAR',
+            ]),
+        ]);
+
+        $gateway = new TenantPaymentGateway;
+        $credentials = ['mode' => 'live', 'api_id' => 'club_api_id', 'secret_key' => 'club_secret'];
+
+        $started = $gateway->start('paylink', $this->membership(), $credentials, 'https://club.test/return', 'https://club.test/cancel');
+
+        $this->assertSame('trx_club_1', $started['reference']);
+        $this->assertSame('https://payment.paylink.sa/pay/trx_club_1', $started['redirect_url']);
+        $this->assertTrue($gateway->isPaid('paylink', 'trx_club_1', $credentials, 15000));
+
+        Http::assertSent(function ($request): bool {
+            return $request->url() === 'https://restapi.paylink.sa/api/auth'
+                && $request['apiId'] === 'club_api_id'
+                && $request['secretKey'] === 'club_secret';
+        });
+    }
+
+    public function test_paylink_requires_client_mobile_number(): void
+    {
+        $membership = $this->membership();
+        $membership->setRelation('user', new User([
+            'name' => 'سالم',
+            'email' => 'salem@example.com',
+            'phone' => '',
+        ]));
+
+        $this->expectException(\RuntimeException::class);
+
+        (new TenantPaymentGateway)->start('paylink', $membership, ['mode' => 'live', 'api_id' => 'x', 'secret_key' => 'y'], 'https://club.test/return', 'https://club.test/cancel');
+    }
+
     public function test_stripe_checkout_uses_the_club_secret_and_confirms_paid_session(): void
     {
         Http::fake([

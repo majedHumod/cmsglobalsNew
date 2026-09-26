@@ -46,6 +46,15 @@ class TenantPaymentSettingsSchema
                     ->label('تفعيل '.$definition['label'])
                     ->live()
                     ->columnSpanFull(),
+                Forms\Components\FileUpload::make('payments.'.$key.'.logo')
+                    ->label('شعار '.$definition['label'])
+                    ->helperText('اختياري. ارفع الشعار الرسمي للمزوّد (من موقعه الرسمي) ليظهر للعميل عند اختيار وسيلة الدفع.')
+                    ->image()
+                    ->directory('payment-logos')
+                    ->disk('public')
+                    ->imageEditor()
+                    ->maxSize(1024)
+                    ->columnSpanFull(),
             ];
 
             foreach ($definition['fields'] ?? [] as $name => $field) {

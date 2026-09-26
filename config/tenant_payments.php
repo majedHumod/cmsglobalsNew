@@ -6,6 +6,23 @@
  */
 return [
     'channels' => [
+        'paylink' => [
+            'label' => 'بيلينك',
+            'region' => 'saudi',
+            'settlement' => 'instant',
+            'description' => 'Paylink بحساب النادي أو المدرب الخاص (منفصل عن Paylink الخاص بالمنصة). مدى، فيزا، ماستركارد، Apple Pay، STC Pay وتمارا. التفعيل فوري بعد تأكيد الدفع.',
+            'fields' => [
+                'mode' => [
+                    'label' => 'البيئة',
+                    'type' => 'select',
+                    'options' => ['live' => 'فعلي', 'test' => 'تجريبي (Sandbox)'],
+                    'default' => 'live',
+                    'required' => true,
+                ],
+                'api_id' => ['label' => 'API ID', 'secret' => false, 'required' => true],
+                'secret_key' => ['label' => 'المفتاح السري (Secret Key)', 'secret' => true, 'required' => true],
+            ],
+        ],
         'moyasar' => [
             'label' => 'ميسر',
             'region' => 'saudi',

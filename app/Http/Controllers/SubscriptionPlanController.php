@@ -253,10 +253,10 @@ class SubscriptionPlanController extends Controller
 
     protected function checkoutErrorMessage(\Throwable $exception): string
     {
-        $message = $exception->getMessage();
-
-        if (str_contains($message, 'تعذر') || str_contains($message, 'لم تُرجع') || str_contains($message, 'قناة') || str_contains($message, 'غير مفع')) {
-            return $message;
+        // These exceptions carry curated Arabic messages meant for the customer
+        // (missing credentials, missing mobile number, gateway rejection, etc.).
+        if ($exception instanceof \RuntimeException || $exception instanceof \Illuminate\Validation\ValidationException) {
+            return $exception->getMessage();
         }
 
         return 'تعذر بدء الدفع. تأكد من إعدادات قناة الدفع أو حاول لاحقاً.';
