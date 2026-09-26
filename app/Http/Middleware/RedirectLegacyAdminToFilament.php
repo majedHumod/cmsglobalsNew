@@ -34,6 +34,12 @@ class RedirectLegacyAdminToFilament
             return $next($request);
         }
 
+        // Admin/coach accounts live in the tenant database. Platform routes such as
+        // /subscribe stay on the system connection, which has no `users` table.
+        if (! $request->attributes->get('tenant')) {
+            return $next($request);
+        }
+
         $user = $request->user();
         if (! $user || ! $user->hasAnyRole(['admin', 'coach'])) {
             return $next($request);
