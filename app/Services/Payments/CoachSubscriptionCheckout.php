@@ -82,7 +82,7 @@ class CoachSubscriptionCheckout
         ];
     }
 
-    public function submitBankTransfer(UserMembership $membership, string $reference, ?string $receiptPath): void
+    public function submitBankTransfer(UserMembership $membership, string $reference, ?string $receiptPath, ?string $accountLabel = null): void
     {
         if ($membership->payment_status === 'paid' && $membership->is_active) {
             throw new RuntimeException('الاشتراك مدفوع بالفعل.');
@@ -102,8 +102,19 @@ class CoachSubscriptionCheckout
             'payment_status' => 'pending',
             'transfer_reference' => $reference,
             'transfer_receipt' => $receiptPath ?: $membership->transfer_receipt,
+            'transfer_account' => $accountLabel ?: $membership->transfer_account,
             'payment_reference' => $reference,
         ]);
+    }
+
+    /**
+     * الحساب البنكي الذي اختاره العميل من قائمة حسابات النادي المتعددة، حسب موضعه في القائمة.
+     *
+     * @return array<string, string>|null
+     */
+    public function bankAccount(int $index): ?array
+    {
+        return $this->settings->bankAccount($index);
     }
 
     public function verifyAndSettle(UserMembership $membership, Request $request): bool

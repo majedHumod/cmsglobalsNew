@@ -24,6 +24,7 @@ class UserMembership extends Model
         'gateway_reference',
         'transfer_reference',
         'transfer_receipt',
+        'transfer_account',
         'stripe_payment_intent_id',
         'notes'
     ];

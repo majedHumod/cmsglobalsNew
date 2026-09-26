@@ -5,6 +5,7 @@ namespace App\Filament\Forms;
 use App\Services\Payments\TenantPaymentSettings;
 use App\Support\TenantPaymentCatalog;
 use Filament\Forms;
+use Illuminate\Support\HtmlString;
 
 class TenantPaymentSettingsSchema
 {
@@ -15,7 +16,7 @@ class TenantPaymentSettingsSchema
             ->schema([
                 Forms\Components\Placeholder::make('payment_scope_note')
                     ->label('نطاق هذه الإعدادات')
-                    ->content('هذه القنوات خاصة بمدفوعات المدرب أو النادي: اشتراكات العملاء داخل هذا الموقع. دفع اشتراك المنصة الرئيسية منفصل ولا يُدار من هنا.')
+                    ->content('هذه القنوات خاصة بمدفوعات المدرب أو النادي: اشتراكات العملاء داخل هذا الموقع. دفع اشتراك المنصة الرئيسية منفصل ولا يُدار من هنا. شعارات المزوّدين أدناه مُجهّزة تلقائياً وتظهر للعميل دون الحاجة لرفعها.')
                     ->columnSpanFull(),
                 Forms\Components\Section::make('قنوات الدفع داخل السعودية')
                     ->description('فعّل القنوات التي يريد النادي الربط معها، وأدخل بيانات كل قناة. الدفع المباشر يُفعّل الاشتراك فور تأكيد البوابة.')
@@ -24,7 +25,7 @@ class TenantPaymentSettingsSchema
                     ->description('سترايب للعملاء الذين يدفعون دولياً. التفعيل يتم مباشرة بعد اكتمال الدفع.')
                     ->schema(self::channelSections('global')),
                 Forms\Components\Section::make('تحويل بنكي')
-                    ->description('إذا اختار العميل التحويل البنكي يبقى الطلب معلقاً ولا يُفعَّل الاشتراك حتى يؤكد النادي استلام المبلغ من اشتراكات الأعضاء.')
+                    ->description('يمكن إضافة أكثر من حساب بنكي، ويختار العميل الحساب الذي حوّل له. يبقى الطلب معلقاً ولا يُفعَّل الاشتراك حتى يؤكد النادي استلام المبلغ.')
                     ->schema(self::channelSections('manual')),
             ]);
     }
@@ -42,27 +43,23 @@ class TenantPaymentSettingsSchema
             }
 
             $fields = [
+                self::logoPlaceholder($key, $definition),
                 Forms\Components\Toggle::make('payments.'.$key.'.enabled')
                     ->label('تفعيل '.$definition['label'])
                     ->live()
                     ->columnSpanFull(),
-                Forms\Components\FileUpload::make('payments.'.$key.'.logo')
-                    ->label('شعار '.$definition['label'])
-                    ->helperText('اختياري. ارفع الشعار الرسمي للمزوّد (من موقعه الرسمي) ليظهر للعميل عند اختيار وسيلة الدفع.')
-                    ->image()
-                    ->directory('payment-logos')
-                    ->disk('public')
-                    ->imageEditor()
-                    ->maxSize(1024)
-                    ->columnSpanFull(),
             ];
 
-            foreach ($definition['fields'] ?? [] as $name => $field) {
-                if (! is_array($field)) {
-                    continue;
-                }
+            if (TenantPaymentCatalog::isRepeatable($key)) {
+                $fields[] = self::repeater($key, $definition);
+            } else {
+                foreach ($definition['fields'] ?? [] as $name => $field) {
+                    if (! is_array($field)) {
+                        continue;
+                    }
 
-                $fields[] = self::field($key, (string) $name, $field);
+                    $fields[] = self::field($key, (string) $name, $field);
+                }
             }
 
             $sections[] = Forms\Components\Section::make($definition['label'])
@@ -72,6 +69,72 @@ class TenantPaymentSettingsSchema
         }
 
         return $sections;
+    }
+
+    /**
+     * شعار المزوّد جاهز مسبقاً مع التطبيق (لا يُرفع من المدرب/النادي).
+     *
+     * @param  array<string, mixed>  $definition
+     */
+    private static function logoPlaceholder(string $key, array $definition): Forms\Components\Component
+    {
+        return Forms\Components\Placeholder::make('payments.'.$key.'.logo_preview')
+            ->label('الشعار')
+            ->content(function () use ($key, $definition): HtmlString {
+                $url = TenantPaymentCatalog::logoUrl($key);
+
+                if ($url === null) {
+                    return new HtmlString('—');
+                }
+
+                $label = e((string) ($definition['label'] ?? $key));
+
+                return new HtmlString(
+                    '<img src="'.e($url).'" alt="'.$label.'" style="height:32px;max-width:180px;object-fit:contain;">'
+                );
+            })
+            ->columnSpanFull();
+    }
+
+    /**
+     * حقول الحسابات البنكية المتعددة لقناة التحويل البنكي.
+     *
+     * @param  array<string, mixed>  $definition
+     */
+    private static function repeater(string $key, array $definition): Forms\Components\Component
+    {
+        $repeaterKey = TenantPaymentCatalog::repeaterKey($key) ?? 'accounts';
+        $schema = [];
+
+        foreach ($definition['fields'] ?? [] as $name => $field) {
+            if (! is_array($field)) {
+                continue;
+            }
+
+            $type = $field['type'] ?? 'text';
+
+            $component = match ($type) {
+                'textarea' => Forms\Components\Textarea::make((string) $name)->rows(2)->columnSpanFull(),
+                default => Forms\Components\TextInput::make((string) $name)->maxLength(255),
+            };
+
+            $schema[] = $component->label((string) ($field['label'] ?? $name));
+        }
+
+        return Forms\Components\Repeater::make('payments.'.$key.'.'.$repeaterKey)
+            ->label('الحسابات البنكية')
+            ->addActionLabel('إضافة حساب بنكي')
+            ->schema($schema)
+            ->columns(2)
+            ->itemLabel(fn (array $state): ?string => trim((string) ($state['bank_name'] ?? '')) !== ''
+                ? (string) $state['bank_name']
+                : 'حساب بنكي جديد')
+            ->collapsible()
+            ->reorderable(true)
+            ->defaultItems(0)
+            ->columnSpanFull()
+            ->helperText('أضف حساباً بنكياً واحداً على الأقل عند تفعيل هذه القناة. يختار العميل الحساب الذي حوّل له عند الدفع.')
+            ->visible(fn (Forms\Get $get): bool => (bool) $get('payments.'.$key.'.enabled'));
     }
 
     /**

@@ -188,12 +188,23 @@ class SubscriptionPlanController extends Controller
         $validated = $request->validate([
             'transfer_reference' => 'required|string|max:100',
             'transfer_receipt' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:4096',
+            'bank_account_index' => 'required|integer|min:0',
+        ], [
+            'bank_account_index.required' => 'الرجاء اختيار الحساب البنكي الذي حوّلت له.',
         ]);
+
+        $account = $checkout->bankAccount((int) $validated['bank_account_index']);
+
+        if ($account === null) {
+            return back()->with('error', 'الحساب البنكي المختار غير متاح، الرجاء إعادة المحاولة.');
+        }
+
+        $accountLabel = trim($account['bank_name'].' — '.$account['account_name'].' — '.$account['iban']);
 
         $receiptPath = $request->file('transfer_receipt')?->store('payment-receipts', 'public');
 
         try {
-            $checkout->submitBankTransfer($userMembership, $validated['transfer_reference'], $receiptPath);
+            $checkout->submitBankTransfer($userMembership, $validated['transfer_reference'], $receiptPath, $accountLabel);
         } catch (\Throwable $exception) {
             if ($receiptPath) {
                 \Illuminate\Support\Facades\Storage::disk('public')->delete($receiptPath);

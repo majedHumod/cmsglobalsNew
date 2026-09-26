@@ -68,14 +68,81 @@ class TenantPaymentCatalogTest extends TestCase
 
     public function test_form_state_hides_stored_secrets(): void
     {
-        $state = TenantPaymentCatalog::formChannel('bank_transfer', [
+        $state = TenantPaymentCatalog::formChannel('stripe', [
             'enabled' => true,
-            'bank_name' => 'الراجحي',
-            'account_name' => 'النادي',
-            'iban' => 'SA000',
+            'secret_key' => 'sk_live_saved',
+            'publishable_key' => 'pk_live_saved',
         ]);
 
-        $this->assertSame('الراجحي', $state['bank_name']);
+        $this->assertSame('', $state['secret_key']);
+        $this->assertSame('pk_live_saved', $state['publishable_key']);
         $this->assertTrue($state['enabled']);
+    }
+
+    public function test_bank_transfer_is_repeatable_with_multiple_accounts(): void
+    {
+        $this->assertTrue(TenantPaymentCatalog::isRepeatable('bank_transfer'));
+        $this->assertSame('accounts', TenantPaymentCatalog::repeaterKey('bank_transfer'));
+        $this->assertFalse(TenantPaymentCatalog::isRepeatable('stripe'));
+    }
+
+    public function test_bank_transfer_merges_multiple_accounts_and_drops_empty_rows(): void
+    {
+        $merged = TenantPaymentCatalog::mergeChannel('bank_transfer', [
+            'enabled' => true,
+            'accounts' => [
+                ['bank_name' => 'الراجحي', 'account_name' => 'النادي', 'iban' => 'SA0001'],
+                ['bank_name' => 'الأهلي', 'account_name' => 'النادي', 'iban' => 'SA0002', 'account_number' => '123'],
+                ['bank_name' => '', 'account_name' => '', 'iban' => ''],
+            ],
+        ], []);
+
+        $this->assertTrue($merged['enabled']);
+        $this->assertCount(2, $merged['accounts']);
+        $this->assertSame('الراجحي', $merged['accounts'][0]['bank_name']);
+        $this->assertSame('الأهلي', $merged['accounts'][1]['bank_name']);
+    }
+
+    public function test_bank_transfer_requires_at_least_one_valid_account_when_enabled(): void
+    {
+        $this->assertSame(['accounts'], TenantPaymentCatalog::missingRequired('bank_transfer', [
+            'enabled' => true,
+            'accounts' => [],
+        ]));
+
+        $this->assertSame(['accounts'], TenantPaymentCatalog::missingRequired('bank_transfer', [
+            'enabled' => true,
+            'accounts' => [
+                ['bank_name' => 'الراجحي', 'account_name' => '', 'iban' => 'SA0001'],
+            ],
+        ]));
+
+        $this->assertSame([], TenantPaymentCatalog::missingRequired('bank_transfer', [
+            'enabled' => true,
+            'accounts' => [
+                ['bank_name' => 'الراجحي', 'account_name' => 'النادي', 'iban' => 'SA0001'],
+            ],
+        ]));
+    }
+
+    public function test_form_channel_exposes_stored_accounts_list(): void
+    {
+        $state = TenantPaymentCatalog::formChannel('bank_transfer', [
+            'enabled' => true,
+            'accounts' => [
+                ['bank_name' => 'الراجحي', 'account_name' => 'النادي', 'iban' => 'SA0001'],
+            ],
+        ]);
+
+        $this->assertTrue($state['enabled']);
+        $this->assertCount(1, $state['accounts']);
+        $this->assertSame('الراجحي', $state['accounts'][0]['bank_name']);
+    }
+
+    public function test_every_channel_has_a_bundled_logo_path(): void
+    {
+        foreach (array_keys(TenantPaymentCatalog::channels()) as $key) {
+            $this->assertNotNull(TenantPaymentCatalog::logoPath($key), "Channel {$key} is missing a bundled logo.");
+        }
     }
 }

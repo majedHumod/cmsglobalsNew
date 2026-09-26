@@ -53,17 +53,32 @@
                                         <p class="text-sm text-gray-600 mt-1">يبقى الطلب معلقاً حتى يؤكد النادي وصول التحويل. لا يتم التفعيل تلقائياً.</p>
                                     </div>
                                 </div>
-                                <dl class="text-sm text-gray-700 space-y-1">
-                                    <div>البنك: <strong>{{ $method['bank']['bank_name'] }}</strong></div>
-                                    <div>صاحب الحساب: <strong>{{ $method['bank']['account_name'] }}</strong></div>
-                                    <div>الآيبان: <strong dir="ltr">{{ $method['bank']['iban'] }}</strong></div>
-                                    @if($method['bank']['account_number'] !== '')
-                                        <div>رقم الحساب: <strong dir="ltr">{{ $method['bank']['account_number'] }}</strong></div>
-                                    @endif
-                                </dl>
-                                @if($method['bank']['instructions'] !== '')
-                                    <p class="text-sm text-gray-600">{{ $method['bank']['instructions'] }}</p>
-                                @endif
+
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">اختر الحساب البنكي الذي حوّلت له</label>
+                                    <div class="space-y-2">
+                                        @foreach($method['accounts'] as $account)
+                                            <label class="flex items-start gap-3 rounded-md border border-gray-200 p-3 cursor-pointer hover:border-indigo-400">
+                                                <input type="radio" name="bank_account_index" value="{{ $account['index'] }}" @checked((int) old('bank_account_index', 0) === $account['index']) required class="mt-1">
+                                                <span class="text-sm text-gray-700">
+                                                    <span class="block font-semibold text-gray-900">{{ $account['bank_name'] }}</span>
+                                                    <span class="block">صاحب الحساب: {{ $account['account_name'] }}</span>
+                                                    <span class="block" dir="ltr">IBAN: {{ $account['iban'] }}</span>
+                                                    @if($account['account_number'] !== '')
+                                                        <span class="block" dir="ltr">رقم الحساب: {{ $account['account_number'] }}</span>
+                                                    @endif
+                                                    @if($account['instructions'] !== '')
+                                                        <span class="block text-gray-500 mt-1">{{ $account['instructions'] }}</span>
+                                                    @endif
+                                                </span>
+                                            </label>
+                                        @endforeach
+                                    </div>
+                                    @error('bank_account_index')
+                                        <p class="mt-1 text-sm text-rose-600">{{ $message }}</p>
+                                    @enderror
+                                </div>
+
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1" for="transfer_reference">رقم الحوالة</label>
                                     <input id="transfer_reference" name="transfer_reference" value="{{ old('transfer_reference', $membership->transfer_reference) }}" required maxlength="100" class="w-full rounded-md border border-gray-300 px-3 py-2">

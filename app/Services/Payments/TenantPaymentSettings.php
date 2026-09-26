@@ -4,7 +4,6 @@ namespace App\Services\Payments;
 
 use App\Models\SiteSetting;
 use App\Support\TenantPaymentCatalog;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 
 class TenantPaymentSettings
@@ -56,9 +55,16 @@ class TenantPaymentSettings
                 is_array($previous) ? $previous : []
             );
 
-            foreach (TenantPaymentCatalog::missingRequired($key, $merged) as $field) {
-                $label = TenantPaymentCatalog::get($key)['fields'][$field]['label'] ?? $field;
-                $errors['payments.'.$key.'.'.$field] = 'حقل '.$label.' مطلوب عند تفعيل القناة.';
+            if (TenantPaymentCatalog::missingRequired($key, $merged) !== []) {
+                if (TenantPaymentCatalog::isRepeatable($key)) {
+                    $repeaterKey = TenantPaymentCatalog::repeaterKey($key);
+                    $errors['payments.'.$key.'.'.$repeaterKey] = 'أضف حساباً بنكياً واحداً على الأقل مع تعبئة اسم البنك واسم صاحب الحساب والآيبان لكل حساب، عند تفعيل هذه القناة.';
+                } else {
+                    foreach (TenantPaymentCatalog::missingRequired($key, $merged) as $field) {
+                        $label = TenantPaymentCatalog::get($key)['fields'][$field]['label'] ?? $field;
+                        $errors['payments.'.$key.'.'.$field] = 'حقل '.$label.' مطلوب عند تفعيل القناة.';
+                    }
+                }
             }
 
             $channels[$key] = $merged;
@@ -67,8 +73,6 @@ class TenantPaymentSettings
         if ($errors !== []) {
             throw ValidationException::withMessages($errors);
         }
-
-        $this->deleteReplacedLogos($channels, $stored);
 
         SiteSetting::set(
             self::KEY,
@@ -100,25 +104,29 @@ class TenantPaymentSettings
                 continue;
             }
 
-            $logoPath = is_string($channel['logo'] ?? null) ? $channel['logo'] : null;
-
             $method = [
                 'key' => $key,
                 'label' => $definition['label'] ?? $key,
                 'description' => $definition['description'] ?? '',
                 'settlement' => TenantPaymentCatalog::settlement($key),
                 'region' => $definition['region'] ?? 'saudi',
-                'logo_url' => $logoPath ? Storage::disk('public')->url($logoPath) : null,
+                'logo_url' => TenantPaymentCatalog::logoUrl($key),
             ];
 
             if ($key === 'bank_transfer') {
-                $method['bank'] = [
-                    'bank_name' => (string) ($channel['bank_name'] ?? ''),
-                    'account_name' => (string) ($channel['account_name'] ?? ''),
-                    'iban' => (string) ($channel['iban'] ?? ''),
-                    'account_number' => (string) ($channel['account_number'] ?? ''),
-                    'instructions' => (string) ($channel['instructions'] ?? ''),
-                ];
+                $accounts = is_array($channel['accounts'] ?? null) ? $channel['accounts'] : [];
+                $method['accounts'] = array_values(array_map(
+                    static fn (array $account, int $index): array => [
+                        'index' => $index,
+                        'bank_name' => (string) ($account['bank_name'] ?? ''),
+                        'account_name' => (string) ($account['account_name'] ?? ''),
+                        'iban' => (string) ($account['iban'] ?? ''),
+                        'account_number' => (string) ($account['account_number'] ?? ''),
+                        'instructions' => (string) ($account['instructions'] ?? ''),
+                    ],
+                    $accounts,
+                    array_keys($accounts)
+                ));
             }
 
             $methods[] = $method;
@@ -150,18 +158,24 @@ class TenantPaymentSettings
     }
 
     /**
-     * @param  array<string, array<string, mixed>>  $channels
-     * @param  array<string, array<string, mixed>>  $stored
+     * حساب بنكي محدد من قائمة حسابات قناة التحويل البنكي حسب موضعه (index) المعروض للعميل.
+     *
+     * @return array<string, string>|null
      */
-    private function deleteReplacedLogos(array $channels, array $stored): void
+    public function bankAccount(int $index): ?array
     {
-        foreach ($channels as $key => $channel) {
-            $oldLogo = is_array($stored[$key] ?? null) ? ($stored[$key]['logo'] ?? null) : null;
-            $newLogo = $channel['logo'] ?? null;
+        foreach ($this->checkoutMethods() as $method) {
+            if (($method['key'] ?? null) !== 'bank_transfer') {
+                continue;
+            }
 
-            if (is_string($oldLogo) && $oldLogo !== '' && $oldLogo !== $newLogo) {
-                Storage::disk('public')->delete($oldLogo);
+            foreach ($method['accounts'] ?? [] as $account) {
+                if ((int) ($account['index'] ?? -1) === $index) {
+                    return $account;
+                }
             }
         }
+
+        return null;
     }
 }

@@ -89,6 +89,10 @@ class UserMembershipResource extends Resource
                             ->label('مرجع التحويل')
                             ->content(fn (?UserMembership $record): string => $record?->transfer_reference ?: '—')
                             ->visible(fn (?UserMembership $record): bool => $record?->payment_channel === 'bank_transfer'),
+                        Forms\Components\Placeholder::make('transfer_account_label')
+                            ->label('الحساب البنكي المحوَّل له')
+                            ->content(fn (?UserMembership $record): string => $record?->transfer_account ?: '—')
+                            ->visible(fn (?UserMembership $record): bool => $record?->payment_channel === 'bank_transfer'),
                         Forms\Components\Placeholder::make('transfer_receipt_link')
                             ->label('إيصال التحويل')
                             ->content(function (?UserMembership $record): HtmlString|string {
@@ -162,6 +166,10 @@ class UserMembershipResource extends Resource
                     ->label('الوسيلة')
                     ->formatStateUsing(fn (?string $state): string => TenantPaymentCatalog::label($state))
                     ->toggleable(),
+                Tables\Columns\TextColumn::make('transfer_account')
+                    ->label('الحساب البنكي')
+                    ->limit(30)
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\IconColumn::make('is_active')
                     ->label('نشط')
                     ->boolean(),

@@ -62,6 +62,38 @@ class TenantPaymentCatalog
         return is_string($label) && $label !== '' ? $label : $key;
     }
 
+    /**
+     * الشعار الرسمي المُجهّز مسبقاً مع التطبيق لهذه القناة (لا يتم رفعه من المدرب/النادي).
+     */
+    public static function logoPath(string $key): ?string
+    {
+        $logo = self::channels()[$key]['logo'] ?? null;
+
+        return is_string($logo) && $logo !== '' ? $logo : null;
+    }
+
+    public static function logoUrl(string $key): ?string
+    {
+        $path = self::logoPath($key);
+
+        return $path !== null ? asset(ltrim($path, '/')) : null;
+    }
+
+    /**
+     * هل هذه القناة تخزن قائمة عناصر متكررة (كحسابات بنكية متعددة) بدل حقول ثابتة؟
+     */
+    public static function isRepeatable(string $key): bool
+    {
+        return is_string(self::get($key)['repeatable'] ?? null) && (self::get($key)['repeatable'] ?? '') !== '';
+    }
+
+    public static function repeaterKey(string $key): ?string
+    {
+        $repeaterKey = self::get($key)['repeatable'] ?? null;
+
+        return is_string($repeaterKey) && $repeaterKey !== '' ? $repeaterKey : null;
+    }
+
     public static function halalas(float|int|string|null $amount): int
     {
         return (int) round(((float) $amount) * 100);
@@ -76,8 +108,15 @@ class TenantPaymentCatalog
     {
         $merged = [
             'enabled' => (bool) ($incoming['enabled'] ?? false),
-            'logo' => self::stringOrNull($incoming['logo'] ?? null) ?? self::stringOrNull($stored['logo'] ?? null),
         ];
+
+        if (self::isRepeatable($key)) {
+            $repeaterKey = self::repeaterKey($key);
+            $items = is_array($incoming[$repeaterKey] ?? null) ? $incoming[$repeaterKey] : [];
+            $merged[$repeaterKey] = self::mergeRepeaterItems($key, $items);
+
+            return $merged;
+        }
 
         foreach (self::get($key)['fields'] ?? [] as $name => $field) {
             if (! is_array($field)) {
@@ -97,15 +136,43 @@ class TenantPaymentCatalog
         return $merged;
     }
 
-    private static function stringOrNull(mixed $value): ?string
+    /**
+     * @param  array<int|string, mixed>  $items
+     * @return array<int, array<string, string>>
+     */
+    private static function mergeRepeaterItems(string $key, array $items): array
     {
-        if (! is_string($value)) {
-            return null;
+        $schema = self::get($key)['fields'] ?? [];
+        $clean = [];
+
+        foreach ($items as $item) {
+            if (! is_array($item)) {
+                continue;
+            }
+
+            $row = [];
+            $hasAnyValue = false;
+
+            foreach ($schema as $name => $field) {
+                if (! is_array($field)) {
+                    continue;
+                }
+
+                $value = trim((string) ($item[$name] ?? ''));
+                $row[$name] = $value;
+
+                if ($value !== '') {
+                    $hasAnyValue = true;
+                }
+            }
+
+            // تجاهل الصفوف الفارغة تماماً (مثل صف تمت إضافته ثم إلغاؤه).
+            if ($hasAnyValue) {
+                $clean[] = $row;
+            }
         }
 
-        $value = trim($value);
-
-        return $value !== '' ? $value : null;
+        return $clean;
     }
 
     /**
@@ -115,6 +182,35 @@ class TenantPaymentCatalog
     public static function missingRequired(string $key, array $values): array
     {
         if (! ($values['enabled'] ?? false)) {
+            return [];
+        }
+
+        if (self::isRepeatable($key)) {
+            $repeaterKey = self::repeaterKey($key);
+            $items = is_array($values[$repeaterKey] ?? null) ? $values[$repeaterKey] : [];
+
+            if ($items === []) {
+                return [$repeaterKey];
+            }
+
+            $schema = self::get($key)['fields'] ?? [];
+
+            foreach ($items as $item) {
+                if (! is_array($item)) {
+                    return [$repeaterKey];
+                }
+
+                foreach ($schema as $name => $field) {
+                    if (! is_array($field) || ! ($field['required'] ?? false)) {
+                        continue;
+                    }
+
+                    if (trim((string) ($item[$name] ?? '')) === '') {
+                        return [$repeaterKey];
+                    }
+                }
+            }
+
             return [];
         }
 
@@ -141,8 +237,15 @@ class TenantPaymentCatalog
     {
         $state = [
             'enabled' => (bool) ($stored['enabled'] ?? false),
-            'logo' => self::stringOrNull($stored['logo'] ?? null),
         ];
+
+        if (self::isRepeatable($key)) {
+            $repeaterKey = self::repeaterKey($key);
+            $items = is_array($stored[$repeaterKey] ?? null) ? $stored[$repeaterKey] : [];
+            $state[$repeaterKey] = array_values($items);
+
+            return $state;
+        }
 
         foreach (self::get($key)['fields'] ?? [] as $name => $field) {
             if (! is_array($field)) {
