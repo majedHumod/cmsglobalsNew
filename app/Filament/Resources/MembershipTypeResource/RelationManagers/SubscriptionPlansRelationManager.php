@@ -35,6 +35,7 @@ class SubscriptionPlansRelationManager extends RelationManager
             ->headerActions([
                 Tables\Actions\Action::make('createPlan')
                     ->label('إضافة خطة')
+                    ->visible(fn (): bool => ! $this->getOwnerRecord()->is_protected)
                     ->url(fn (): string => SubscriptionPlanResource::getUrl('create', [
                         'membership_type_id' => $this->getOwnerRecord()->id,
                     ])),

@@ -44,11 +44,12 @@ class SubscriptionPlanResource extends Resource
                     ->schema([
                         Forms\Components\Select::make('membership_type_id')
                             ->label('مسار العضوية')
-                            ->options(fn () => MembershipType::query()->active()->ordered()->pluck('name', 'id'))
+                            ->options(fn () => MembershipType::query()->subscribable()->ordered()->pluck('name', 'id'))
                             ->required()
                             ->searchable()
                             ->native(false)
-                            ->default(fn () => request()->integer('membership_type_id') ?: null),
+                            ->default(fn () => request()->integer('membership_type_id') ?: null)
+                            ->helperText('مسار مدير النظام محمي ولا يظهر هنا لأنه ليس عضوية يمكن الاشتراك بها.'),
                         Forms\Components\TextInput::make('name')
                             ->label('اسم الخطة')
                             ->required()
@@ -217,6 +218,13 @@ class SubscriptionPlanResource extends Resource
 
         $data['is_active'] = (bool) ($data['is_active'] ?? false);
         $data['sort_order'] = (int) ($data['sort_order'] ?? 0);
+
+        $membershipType = MembershipType::query()->find((int) ($data['membership_type_id'] ?? 0));
+        if (! $membershipType || $membershipType->is_protected) {
+            throw ValidationException::withMessages([
+                'membership_type_id' => 'مسار مدير النظام محمي ولا يمكن ربط خطة اشتراك به.',
+            ]);
+        }
 
         $name = (string) ($data['name'] ?? '');
         if (! $record || $record->name !== $name) {

@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class SubscriptionPlanController extends Controller
 {
@@ -30,7 +31,7 @@ class SubscriptionPlanController extends Controller
 
     public function create(Request $request)
     {
-        $membershipTypes = MembershipType::active()->ordered()->get();
+        $membershipTypes = MembershipType::subscribable()->ordered()->get();
         $selectedMembershipTypeId = $request->integer('membership_type_id') ?: null;
 
         return view('subscription-plans.create', compact('membershipTypes', 'selectedMembershipTypeId'));
@@ -53,7 +54,7 @@ class SubscriptionPlanController extends Controller
 
     public function edit(SubscriptionPlan $subscriptionPlan)
     {
-        $membershipTypes = MembershipType::active()->ordered()->get();
+        $membershipTypes = MembershipType::subscribable()->ordered()->get();
 
         return view('subscription-plans.edit', compact('subscriptionPlan', 'membershipTypes'));
     }
@@ -92,7 +93,7 @@ class SubscriptionPlanController extends Controller
     public function publicIndex()
     {
         $plans = SubscriptionPlan::query()
-            ->active()
+            ->sellable()
             ->with('membershipType')
             ->ordered()
             ->get();
@@ -102,7 +103,7 @@ class SubscriptionPlanController extends Controller
 
     public function subscribe(Request $request, SubscriptionPlan $subscriptionPlan)
     {
-        abort_unless($subscriptionPlan->is_active, 404);
+        abort_unless($subscriptionPlan->isSellable(), 404);
 
         $membership = UserMembership::create([
             'user_id' => auth()->id(),
@@ -130,6 +131,7 @@ class SubscriptionPlanController extends Controller
     {
         abort_unless($userMembership->user_id === auth()->id(), 403);
         abort_unless($userMembership->subscriptionPlan, 404);
+        abort_unless($userMembership->subscriptionPlan->isSellable(), 404);
 
         if ((float) $userMembership->subscriptionPlan->price === 0.0) {
             app(MembershipRenewalService::class)->renew($userMembership);
@@ -150,6 +152,7 @@ class SubscriptionPlanController extends Controller
     {
         abort_unless($userMembership->user_id === auth()->id(), 403);
         abort_unless($userMembership->subscriptionPlan, 404);
+        abort_unless($userMembership->subscriptionPlan->isSellable(), 404);
 
         if ($userMembership->payment_status === 'paid' && $userMembership->is_active) {
             return redirect()->route('subscription-plans.success', $userMembership);
@@ -165,6 +168,7 @@ class SubscriptionPlanController extends Controller
     {
         abort_unless($userMembership->user_id === auth()->id(), 403);
         abort_unless($userMembership->subscriptionPlan, 404);
+        abort_unless($userMembership->subscriptionPlan->isSellable(), 404);
 
         $validated = $request->validate([
             'channel' => 'required|string|max:50',
@@ -289,7 +293,10 @@ class SubscriptionPlanController extends Controller
     protected function validatePlan(Request $request): array
     {
         $validated = $request->validate([
-            'membership_type_id' => 'required|exists:membership_types,id',
+            'membership_type_id' => [
+                'required',
+                Rule::exists('membership_types', 'id')->where(fn ($query) => $query->where('is_protected', false)),
+            ],
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'duration_days' => 'required|integer|min:1|max:100000',
@@ -301,7 +308,7 @@ class SubscriptionPlanController extends Controller
             'sort_order' => 'nullable|integer|min:0',
         ], [
             'duration_days.max' => 'مدة الاشتراك كبيرة جداً.',
-            'membership_type_id.exists' => 'مسار العضوية المحدد غير موجود.',
+            'membership_type_id.exists' => 'مسار العضوية المحدد غير متاح للاشتراك.',
             'compare_at_price.min' => 'السعر قبل الخصم يجب أن يكون صفراً أو أكبر.',
         ]);
 

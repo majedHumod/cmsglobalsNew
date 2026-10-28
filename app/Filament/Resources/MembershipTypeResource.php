@@ -106,6 +106,7 @@ class MembershipTypeResource extends Resource
                     }),
                 Tables\Actions\Action::make('addPlan')
                     ->label('إضافة خطة')
+                    ->visible(fn (MembershipType $record): bool => ! $record->is_protected)
                     ->url(fn (MembershipType $record): string => SubscriptionPlanResource::getUrl('create', [
                         'membership_type_id' => $record->id,
                     ])),

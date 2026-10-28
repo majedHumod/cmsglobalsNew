@@ -53,13 +53,16 @@ class UserMembershipResource extends Resource
                             ->content(fn (?UserMembership $record): string => $record?->user?->name ?? '—'),
                         Forms\Components\Select::make('membership_type_id')
                             ->label('مسار العضوية')
-                            ->options(fn () => MembershipType::query()->ordered()->pluck('name', 'id'))
+                            ->options(fn () => MembershipType::query()->notProtected()->ordered()->pluck('name', 'id'))
                             ->searchable()
                             ->native(false)
                             ->required(),
                         Forms\Components\Select::make('subscription_plan_id')
                             ->label('خطة الاشتراك')
-                            ->options(fn () => SubscriptionPlan::query()->orderBy('name')->pluck('name', 'id'))
+                            ->options(fn () => SubscriptionPlan::query()
+                                ->whereHas('membershipType', fn ($query) => $query->notProtected())
+                                ->orderBy('name')
+                                ->pluck('name', 'id'))
                             ->searchable()
                             ->native(false),
                         Forms\Components\DateTimePicker::make('starts_at')

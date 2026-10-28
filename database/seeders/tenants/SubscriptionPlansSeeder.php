@@ -15,16 +15,6 @@ class SubscriptionPlansSeeder extends Seeder
     public function run(): void
     {
         $catalog = [
-            'admin' => [
-                [
-                    'slug_suffix' => 'default',
-                    'name' => 'خطة الإدارة',
-                    'duration_days' => 36500,
-                    'price' => 0,
-                    'gender_scope' => 'all',
-                    'features' => ['وصول إداري كامل'],
-                ],
-            ],
             'free' => [
                 [
                     'slug_suffix' => 'default',
@@ -87,6 +77,10 @@ class SubscriptionPlansSeeder extends Seeder
             ->orderBy('sort_order')
             ->get()
             ->each(function (MembershipType $membershipType) use ($catalog) {
+                if ($membershipType->is_protected) {
+                    return;
+                }
+
                 $offers = $catalog[$membershipType->slug] ?? [[
                     'slug_suffix' => 'default',
                     'name' => $membershipType->name.' - عرض افتراضي',

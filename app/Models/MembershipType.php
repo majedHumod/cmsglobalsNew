@@ -93,6 +93,19 @@ class MembershipType extends Model
         return $query->where('is_protected', false);
     }
 
+    /**
+     * مسارات يمكن بيعها للعملاء (ليست مسارات إدارية محمية).
+     */
+    public function scopeSubscribable($query)
+    {
+        return $query->active()->notProtected();
+    }
+
+    public function isSubscribable(): bool
+    {
+        return $this->is_active && ! $this->is_protected;
+    }
+
     // Accessors
     public function getFormattedPriceAttribute()
     {

@@ -35,11 +35,7 @@ class LandingPageController extends Controller
         $subscriptionPlans = Cache::remember(TenantCache::key('homepage_subscription_plans'), 1800, function () {
             try {
                 return SubscriptionPlan::query()
-                    ->active()
-                    ->whereHas('membershipType', function ($query) {
-                        $query->where('is_active', true)
-                            ->where('is_protected', false);
-                    })
+                    ->sellable()
                     ->with('membershipType')
                     ->ordered()
                     ->get();

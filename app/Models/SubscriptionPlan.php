@@ -53,6 +53,29 @@ class SubscriptionPlan extends Model
     }
 
     /**
+     * الخطط المعروضة للعملاء: مفعّلة ومرتبطة بمسار عضوية غير محمي.
+     */
+    public function scopeSellable($query)
+    {
+        return $query
+            ->active()
+            ->whereHas('membershipType', function ($membershipType) {
+                $membershipType->subscribable();
+            });
+    }
+
+    public function isSellable(): bool
+    {
+        if (! $this->is_active) {
+            return false;
+        }
+
+        $this->loadMissing('membershipType');
+
+        return (bool) $this->membershipType?->isSubscribable();
+    }
+
+    /**
      * True when a higher list price is set to communicate savings.
      */
     public function hasDiscount(): bool
