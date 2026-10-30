@@ -11,6 +11,7 @@ use App\Models\Tenant;
 use App\Models\TenantDatabasePool;
 use App\Support\MigrationScope;
 use App\Services\TenantService;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -41,7 +42,14 @@ class TenantProvisioner
         $domainRoot = config('app.domain', 'yourdomain.com');
         $domain = "{$slug}.{$domainRoot}";
         [$tenant, $dbName, $shouldPrepareDatabase] = DB::connection('system')->transaction(function () use ($domain, $slug, $contactEmail, $contactName) {
-            $tenant = Tenant::on('system')->where('domain', $domain)->lockForUpdate()->first();
+            $tenant = Tenant::on('system')
+                ->where(function ($query) use ($domain, $slug) {
+                    $query->where('domain', $domain)
+                        ->orWhere('slug', $slug)
+                        ->orWhere('subdomain', $slug);
+                })
+                ->lockForUpdate()
+                ->first();
 
             if ($tenant && $tenant->db_name) {
                 TenantDatabasePool::on('system')
@@ -76,7 +84,7 @@ class TenantProvisioner
                 $tenant->setConnection('system');
             }
 
-            $tenant->name = $tenant->name ?: $this->resolveTenantDisplayName($contactName, $slug);
+            $tenant->name = $this->uniqueTenantName($tenant->name ?: $contactName, $slug, $tenant->id);
             $tenant->slug = $slug;
             $tenant->domain = $domain;
             $tenant->subdomain = $slug;
@@ -84,7 +92,7 @@ class TenantProvisioner
             $tenant->status = 'active';
             $tenant->access_status = 'active';
             $tenant->db_name = $poolDb->db_name;
-            $tenant->save();
+            $this->saveTenantAvoidingDuplicateName($tenant, $contactName, $slug);
 
             $poolDb->status = TenantDatabasePool::STATUS_ALLOCATED;
             $poolDb->tenant_id = $tenant->id;
@@ -268,23 +276,45 @@ class TenantProvisioner
             : now()->addMonth();
     }
 
-    private function resolveTenantDisplayName(?string $contactName, string $slug): string
+    private function uniqueTenantName(?string $preferred, string $slug, ?int $ignoreId = null): string
     {
-        $base = trim((string) ($contactName ?: Str::title(str_replace('-', ' ', $slug))));
+        $base = trim((string) ($preferred ?: Str::title(str_replace(['-', '_'], ' ', $slug))));
         if ($base === '') {
-            $base = Str::title(str_replace('-', ' ', $slug));
+            $base = Str::title(str_replace(['-', '_'], ' ', $slug));
         }
 
-        if (! Tenant::on('system')->where('name', $base)->exists()) {
-            return $base;
+        $candidates = [
+            $base,
+            $base.' ('.$slug.')',
+            $base.' ('.$slug.') #'.Str::lower(Str::random(4)),
+        ];
+
+        foreach ($candidates as $candidate) {
+            $taken = Tenant::on('system')
+                ->where('name', $candidate)
+                ->when($ignoreId, fn ($query) => $query->where('id', '!=', $ignoreId))
+                ->exists();
+
+            if (! $taken) {
+                return $candidate;
+            }
         }
 
-        $withSlug = $base.' ('.$slug.')';
-        if (! Tenant::on('system')->where('name', $withSlug)->exists()) {
-            return $withSlug;
-        }
+        return $base.' ('.$slug.') #'.Str::lower(Str::random(6));
+    }
 
-        return $withSlug.' #'.Str::lower(Str::random(4));
+    private function saveTenantAvoidingDuplicateName(Tenant $tenant, ?string $contactName, string $slug): void
+    {
+        try {
+            $tenant->save();
+        } catch (UniqueConstraintViolationException $e) {
+            if (! str_contains($e->getMessage(), 'tenants_name_unique')) {
+                throw $e;
+            }
+
+            $tenant->name = $this->uniqueTenantName($tenant->name ?: $contactName, $slug, $tenant->id);
+            $tenant->save();
+        }
     }
 
     private function tenantHasRoles(): bool
