@@ -77,7 +77,7 @@ class WhatsAppOtpService
             'phone' => $this->maskPhone($normalized),
         ];
 
-        if (config('services.whatsapp.otp_debug')) {
+        if ($this->shouldExposeDebugCode()) {
             $payload['debug_code'] = $code;
         }
 
@@ -146,6 +146,11 @@ class WhatsAppOtpService
         ]);
 
         return false;
+    }
+
+    public function shouldExposeDebugCode(): bool
+    {
+        return (bool) config('services.whatsapp.otp_debug') && ! app()->isProduction();
     }
 
     protected function maskPhone(string $phone): string

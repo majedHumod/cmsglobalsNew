@@ -34,4 +34,13 @@ class PhaseFourHardeningTest extends TestCase
         $this->assertNotNull($command);
         $this->assertTrue($command->getDefinition()->hasOption('skip-preflight'));
     }
+
+    public function test_legacy_sms_test_route_is_not_registered(): void
+    {
+        $this->assertNull(collect(Route::getRoutes())->first(
+            fn ($route) => $route->uri() === 'send-sms'
+        ));
+
+        $this->get('/send-sms')->assertNotFound();
+    }
 }

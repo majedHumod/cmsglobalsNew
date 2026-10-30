@@ -64,8 +64,8 @@ return [
         'from' => env('TWILIO_WHATSAPP_FROM', 'whatsapp:+14155238886'),
         'otp_ttl' => (int) env('WHATSAPP_OTP_TTL', 300),
         'otp_resend_seconds' => (int) env('WHATSAPP_OTP_RESEND_SECONDS', 60),
-        // When true, API returns debug_code in response (local testing only).
-        'otp_debug' => (bool) env('WHATSAPP_OTP_DEBUG', false),
+        // Local only. Forced off when APP_ENV=production even if the env flag is true.
+        'otp_debug' => (bool) env('WHATSAPP_OTP_DEBUG', false) && env('APP_ENV') !== 'production',
     ],
 
 ];

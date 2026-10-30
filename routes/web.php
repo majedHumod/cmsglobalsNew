@@ -18,7 +18,6 @@ use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Session;
 use App\Http\Controllers\NoteController;
 use App\Http\Controllers\ArticleController;
-use App\Http\Controllers\SmsController;
 use App\Http\Controllers\MealPlanController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\MembershipTypeController;
@@ -370,7 +369,6 @@ Route::middleware([
 // Public page view route (accessible to everyone)
 Route::get('/page/{slug}', [PageController::class, 'show'])->name('pages.show');
 
-Route::get('/send-sms', [SmsController::class, 'sendTestSms']);
 Route::view('/offline', 'offline')->name('offline');
 
 Route::get('/lang/{locale}', function ($locale) {
