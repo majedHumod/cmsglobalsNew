@@ -7,13 +7,16 @@ use App\Models\Billing\Event;
 use App\Models\Billing\Invoice;
 use App\Models\Billing\Payment;
 use App\Models\Billing\Plan;
+use App\Models\Billing\SignupReservation;
 use App\Models\Tenant;
+use App\Services\Platform\OpsAlert;
 use App\Services\Platform\TenantAccessService;
 
 class PaylinkActivationService
 {
     public function __construct(
         private readonly TenantAccessService $access,
+        private readonly SignupReservationService $reservations,
     ) {
     }
 
@@ -59,6 +62,23 @@ class PaylinkActivationService
                 ->orWhere('domain', $domain)
                 ->first();
 
+        // New signups hold their subdomain + email in a reservation while the buyer pays.
+        $reservation = null;
+        if (! $isRenewal) {
+            // A reservation that ran out of time counts as released even if nobody has touched it since.
+            try {
+                $this->reservations->releaseExpired();
+            } catch (\Throwable $e) {
+                report($e);
+            }
+            $reservation = $this->reservations->findByOrder($invoice->number);
+        }
+
+        if ($reservation && $reservation->status === SignupReservation::CONFLICT) {
+            // Already flagged for manual handling (refund / reassign). Never provision automatically.
+            return ['status' => 'signup_conflict', 'invoice' => $invoice];
+        }
+
         $eventId = $source.':paylink:'.$transactionNo.':paid';
         if (Event::query()->where('provider_event_id', $eventId)->exists()) {
             if (! $isRenewal && ! $tenant) {
@@ -66,6 +86,16 @@ class PaylinkActivationService
             }
 
             return ['status' => 'duplicate', 'invoice' => $invoice, 'tenant' => $tenant];
+        }
+
+        // The reservation was released (expired / superseded) before the customer paid.
+        // Re-claim it if nobody took the name or email meanwhile; otherwise this payment needs manual handling.
+        $conflict = false;
+        if ($reservation && $reservation->status === SignupReservation::RELEASED) {
+            if ($tenant || ! $this->reservations->reclaim($reservation)) {
+                $conflict = true;
+                $tenant = null;
+            }
         }
 
         $invoice->status = 'paid';
@@ -101,6 +131,25 @@ class PaylinkActivationService
             'processed_at' => now(),
         ]);
 
+        if ($conflict && $reservation) {
+            $this->reservations->markConflict($reservation);
+
+            OpsAlert::critical(
+                'دفعة اشتراك تحتاج معالجة يدوية (تعارض في الاسم/البريد)',
+                "تم استلام دفعة لطلب {$invoice->number} (Paylink {$transactionNo}) لكن السب-دومين «{$reservation->slug}» أو البريد {$reservation->email} "
+                ."لم يعد متاحاً (انتهى الحجز وأخذه عميل آخر). لم يتم تجهيز أي نادٍ تلقائياً.\n"
+                .'الإجراء: استرجع المبلغ للعميل أو اربط الطلب باسم جديد يدوياً.',
+                'signup-conflict:'.$invoice->number,
+                60 * 24
+            );
+
+            return ['status' => 'signup_conflict', 'invoice' => $invoice];
+        }
+
+        if ($reservation) {
+            $this->reservations->markPaid($reservation);
+        }
+
         if ($isRenewal && $tenant) {
             $plan = Plan::where('code', $signup['plan_code'])->first();
             if ($plan) {
@@ -130,7 +179,8 @@ class PaylinkActivationService
             $signup['name'] ?? null,
             'paylink',
             $transactionNo,
-            $invoice->number
+            $invoice->number,
+            $signup['mobile_e164'] ?? ($signup['mobile'] ?? null)
         );
 
         return ['status' => $status, 'invoice' => $invoice];

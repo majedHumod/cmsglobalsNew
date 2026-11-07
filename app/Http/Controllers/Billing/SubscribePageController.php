@@ -10,6 +10,7 @@ use App\Models\Tenant;
 use App\Services\Platform\PlatformAccountCookie;
 use App\Services\Platform\PlatformHandoffService;
 use App\Services\Platform\TenantAccessService;
+use App\Services\Platform\TurnstileVerifier;
 use Illuminate\Http\Request;
 
 class SubscribePageController extends Controller
@@ -107,6 +108,8 @@ class SubscribePageController extends Controller
             'subscriptionEndsAt' => $tenant?->subscription_ends_at,
             'accessMessage' => $tenant ? $this->access->message($tenant) : '',
             'domain' => config('app.domain', 'etoscoach.com'),
+            'verifyEmail' => (bool) config('platform.signup.verify_email'),
+            'turnstileSiteKey' => app(TurnstileVerifier::class)->siteKey(),
         ]);
     }
 }

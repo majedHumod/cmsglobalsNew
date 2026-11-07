@@ -2,6 +2,9 @@
 
 namespace App\Providers;
 
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Session;
@@ -49,6 +52,18 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Public /subscribe endpoints create real Paylink invoices and send emails: keep them from being abused.
+        RateLimiter::for('signup-checkout', fn (Request $request) => [
+            Limit::perMinute(10)->by('checkout-ip:'.$request->ip()),
+            Limit::perHour(40)->by('checkout-ip-h:'.$request->ip()),
+            Limit::perHour(10)->by('checkout-email:'.strtolower(trim((string) $request->input('email')))),
+        ]);
+        RateLimiter::for('signup-email', fn (Request $request) => [
+            Limit::perMinute(3)->by('email-code-ip:'.$request->ip()),
+            Limit::perHour(15)->by('email-code-ip-h:'.$request->ip()),
+            Limit::perHour(5)->by('email-code-addr:'.strtolower(trim((string) $request->input('email')))),
+        ]);
+
         Event::listen(BookingLifecycleChanged::class, SendBookingLifecycleNotifications::class);
         Event::listen(CheckInSubmitted::class, SendCheckInNotifications::class);
         Event::listen(CheckInSubmitted::class, AwardCheckInGamification::class);

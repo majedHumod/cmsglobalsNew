@@ -36,12 +36,13 @@ class TenantProvisioner
         ?string $contactName = null,
         ?string $provider = null,
         ?string $providerInvoiceId = null,
-        ?string $providerOrderNumber = null
+        ?string $providerOrderNumber = null,
+        ?string $contactPhone = null
     ): Tenant
     {
         $domainRoot = config('app.domain', 'yourdomain.com');
         $domain = "{$slug}.{$domainRoot}";
-        [$tenant, $dbName, $shouldPrepareDatabase] = DB::connection('system')->transaction(function () use ($domain, $slug, $contactEmail, $contactName) {
+        [$tenant, $dbName, $shouldPrepareDatabase] = DB::connection('system')->transaction(function () use ($domain, $slug, $contactEmail, $contactName, $contactPhone) {
             $tenant = Tenant::on('system')
                 ->where(function ($query) use ($domain, $slug) {
                     $query->where('domain', $domain)
@@ -89,6 +90,9 @@ class TenantProvisioner
             $tenant->domain = $domain;
             $tenant->subdomain = $slug;
             $tenant->email = $contactEmail;
+            if ($contactPhone) {
+                $tenant->phone = $contactPhone;
+            }
             $tenant->status = 'active';
             $tenant->access_status = 'active';
             $tenant->db_name = $poolDb->db_name;
@@ -101,6 +105,13 @@ class TenantProvisioner
 
             return [$tenant, $poolDb->db_name, !$poolDb->is_ready];
         });
+
+        // The name + email held for this checkout now belong to a real tenant.
+        try {
+            app(\App\Services\Billing\SignupReservationService::class)->markProvisioned($providerOrderNumber, (int) $tenant->id);
+        } catch (\Throwable $e) {
+            report($e);
+        }
 
         // Clear any stale domain-level cache before reading tenant content.
         Cache::forget("{$domain}:{$dbName}:active_landing_page");
@@ -167,6 +178,15 @@ class TenantProvisioner
             $tenantUrl = $tenantBase;
         } catch (\Throwable $e) {
             // If something fails during tenant user creation, fallback to default connection and continue
+            report($e);
+            \App\Services\Platform\OpsAlert::critical(
+                'تم تجهيز نادٍ لكن تعذر إنشاء مستخدم المدير',
+                "النادي «{$slug}» ({$domain}) أُنشئ لكن فشل إنشاء المستخدم أو الأدوار داخل قاعدته، فلن يصل العميل رابط تعيين كلمة المرور.\n"
+                ."البريد: {$contactEmail}\nالسبب: ".$e->getMessage()."\n"
+                ."الإجراء: راجع storage/logs/laravel.log، أصلح السبب (اتصال/صلاحيات قاعدة النادي)، ثم نفّذ:\nphp artisan tenants:resend-welcome {$slug}",
+                'tenant-admin-failed:'.$slug,
+                60 * 12
+            );
             $resetUrl = null;
             $tenantUrl = ($this->guessScheme()) . $tenant->domain . ($this->isLocal() ? ':8000' : '');
         } finally {
@@ -175,7 +195,11 @@ class TenantProvisioner
 
         // 5) Create subscription record on system
         $plan = Plan::where('code', $planCode)->first();
-        if ($plan) {
+        $subscriptionExists = $plan && $providerOrderNumber && Subscription::query()
+            ->where('tenant_id', $tenant->id)
+            ->where('provider_subscription_id', $providerOrderNumber)
+            ->exists();
+        if ($plan && ! $subscriptionExists) {
             Subscription::create([
                 'tenant_id' => $tenant->id,
                 'plan_id' => $plan->id,
@@ -241,7 +265,12 @@ class TenantProvisioner
             }
         }
 
-        // 7) Send welcome email with password reset link
+        // 7) Send welcome email with password reset link (once per order, even if the job is retried)
+        $welcomeKey = 'tenant-welcome-mail:'.$tenant->id.':'.($providerOrderNumber ?: 'manual');
+        if (! Cache::add($welcomeKey, 1, now()->addDay())) {
+            return $tenant;
+        }
+
         try {
             $planArr = $plan ? $plan->only(['code','name','price','interval','currency']) : null;
             Mail::to($contactEmail)->send(new WelcomeTenantMail(
@@ -253,6 +282,7 @@ class TenantProvisioner
                 contactName: $contactName,
             ));
         } catch (\Throwable $e) {
+            Cache::forget($welcomeKey);
             report($e);
         }
 

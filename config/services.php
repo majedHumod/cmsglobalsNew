@@ -52,6 +52,12 @@ return [
         'supported_card_brands' => array_values(array_filter(array_map('trim', explode(',', (string) env('PAYLINK_SUPPORTED_CARD_BRANDS', 'mada,visaMastercard,stcpay'))))),
     ],
 
+    // Cloudflare Turnstile (optional CAPTCHA for /subscribe). Leave keys empty to disable.
+    'turnstile' => [
+        'site_key' => env('TURNSTILE_SITE_KEY', ''),
+        'secret_key' => env('TURNSTILE_SECRET_KEY', ''),
+    ],
+
     'twilio' => [
         'sid' => env('TWILIO_SID'),
         'token' => env('TWILIO_AUTH_TOKEN'),

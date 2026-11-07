@@ -6,6 +6,7 @@ use App\Models\Billing\Invoice;
 use App\Models\Billing\Payment;
 use App\Services\Billing\PaylinkActivationService;
 use App\Services\Billing\PaylinkService;
+use App\Services\Billing\SignupReservationService;
 use Illuminate\Console\Command;
 
 class ReconcilePaylinkInvoices extends Command
@@ -67,6 +68,8 @@ class ReconcilePaylinkInvoices extends Command
                 ->where('provider_payment_intent_id', $transactionNo)
                 ->update(['status' => 'failed']);
 
+            app(SignupReservationService::class)->release($invoice->number);
+
             $this->line("Canceled: {$invoice->number}");
             return;
         }
@@ -101,6 +104,11 @@ class ReconcilePaylinkInvoices extends Command
 
         if (in_array($status, ['already_provisioned', 'duplicate'], true)) {
             $this->line("Already handled: {$invoice->number}");
+            return;
+        }
+
+        if ($status === 'signup_conflict') {
+            $this->error("Conflict (needs manual handling): {$invoice->number}");
             return;
         }
 

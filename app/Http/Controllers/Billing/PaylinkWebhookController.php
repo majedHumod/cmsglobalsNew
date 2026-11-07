@@ -8,6 +8,8 @@ use App\Models\Billing\Invoice;
 use App\Models\Billing\Payment;
 use App\Services\Billing\PaylinkActivationService;
 use App\Services\Billing\PaylinkService;
+use App\Services\Billing\SignupReservationService;
+use App\Services\Platform\OpsAlert;
 use Illuminate\Http\Request;
 
 class PaylinkWebhookController extends Controller
@@ -92,6 +94,11 @@ class PaylinkWebhookController extends Controller
             $invoice->status = $verifiedStatus === 'CANCELED' ? 'void' : 'open';
             $invoice->save();
 
+            if ($verifiedStatus === 'CANCELED') {
+                // Payment was abandoned/expired: free the subdomain + email held for this checkout.
+                app(SignupReservationService::class)->release($invoice->number);
+            }
+
             Payment::query()
                 ->where('provider_payment_intent_id', $transactionNo)
                 ->update([
@@ -125,6 +132,19 @@ class PaylinkWebhookController extends Controller
         $secret = (string) config('services.paylink.webhook_secret');
 
         if ($secret === '') {
+            // Every webhook is re-verified against the Paylink API (status + amount) before anything is activated,
+            // so a forged request cannot mark an invoice as paid. The secret only keeps strangers from
+            // making us call the API. Refusing here would silently break payments if Paylink does not send it,
+            // so in production we accept but complain loudly until PAYLINK_WEBHOOK_SECRET is set.
+            if (app()->isProduction()) {
+                OpsAlert::critical(
+                    'PAYLINK_WEBHOOK_SECRET غير مضبوط في الإنتاج',
+                    'مسار /webhooks/paylink يقبل أي طلب لأن PAYLINK_WEBHOOK_SECRET فارغ. اضبطه في .env وفي لوحة Paylink.',
+                    'paylink-webhook-secret-missing',
+                    60 * 24
+                );
+            }
+
             return true;
         }
 

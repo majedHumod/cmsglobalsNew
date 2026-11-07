@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Services\Platform\OpsAlert;
 use Illuminate\Console\Command;
 
 class SecurityCheckCommand extends Command
@@ -27,6 +28,24 @@ class SecurityCheckCommand extends Command
 
         if (app()->isProduction() && trim((string) config('services.communication_webhook.secret', '')) === '') {
             $missing[] = 'COMMUNICATION_WEBHOOK_SECRET (required in production only)';
+        }
+
+        if (app()->isProduction()) {
+            if (trim((string) config('services.paylink.webhook_secret', '')) === '') {
+                $missing[] = 'PAYLINK_WEBHOOK_SECRET (required in production only)';
+            }
+            if (trim((string) config('services.paylink.api_id', '')) === '' || trim((string) config('services.paylink.secret_key', '')) === '') {
+                $missing[] = 'PAYLINK_API_ID / PAYLINK_SECRET_KEY (required in production only)';
+            }
+            if ((bool) config('app.debug')) {
+                $missing[] = 'APP_DEBUG must be false in production';
+            }
+            if (OpsAlert::recipients() === []) {
+                $missing[] = 'PLATFORM_ALERT_EMAILS or PLATFORM_OWNER_EMAILS (needed to receive ops alerts)';
+            }
+            if (trim((string) config('services.turnstile.secret_key', '')) === '' && ! config('platform.signup.verify_email')) {
+                $missing[] = 'TURNSTILE_SECRET_KEY (or enable PLATFORM_SIGNUP_VERIFY_EMAIL) to protect /subscribe from bots';
+            }
         }
 
         if ($missing === []) {

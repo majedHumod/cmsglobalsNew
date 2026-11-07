@@ -6,6 +6,7 @@ use App\Http\Controllers\Billing\PaylinkWebhookController;
 use App\Http\Controllers\Billing\StripeWebhookController;
 use App\Http\Controllers\Billing\PlanController;
 use App\Http\Controllers\Billing\SubdomainCheckController;
+use App\Http\Controllers\Billing\SignupEmailVerificationController;
 use App\Http\Controllers\Billing\SubscribePageController;
 use App\Http\Controllers\Platform\AccountController;
 use App\Http\Controllers\Platform\CustomerDirectoryController;
@@ -387,16 +388,18 @@ Route::get('/lang/{locale}', function ($locale) {
 
 // Public endpoints to read plans and start checkout (initial stub)
 Route::get('/plans', [PlanController::class, 'index'])->name('billing.plans');
-Route::post('/checkout/session', [CheckoutController::class, 'create'])->name('billing.checkout.session');
+Route::post('/checkout/session', [CheckoutController::class, 'create'])->middleware('throttle:signup-checkout')->name('billing.checkout.session');
 
 // Paylink payment callbacks
-Route::get('/billing/paylink/callback', PaylinkCallbackController::class)->name('billing.paylink.callback');
-Route::post('/webhooks/paylink', PaylinkWebhookController::class)->name('billing.webhooks.paylink');
+Route::get('/billing/paylink/callback', PaylinkCallbackController::class)->middleware('throttle:60,1')->name('billing.paylink.callback');
+Route::post('/webhooks/paylink', PaylinkWebhookController::class)->middleware('throttle:120,1')->name('billing.webhooks.paylink');
 Route::post('/webhooks/stripe', StripeWebhookController::class)->middleware('tenants')->name('billing.webhooks.stripe');
 
 // Subscribe landing/form (coach/club purchase — not trainee register)
 Route::get('/subscribe', [SubscribePageController::class, 'index'])->name('subscribe');
-Route::get('/subscribe/check-subdomain', SubdomainCheckController::class)->name('subscribe.check-subdomain');
+Route::get('/subscribe/check-subdomain', SubdomainCheckController::class)->middleware('throttle:60,1')->name('subscribe.check-subdomain');
+Route::post('/subscribe/email-code', [SignupEmailVerificationController::class, 'send'])->middleware('throttle:signup-email')->name('subscribe.email-code');
+Route::post('/subscribe/email-verify', [SignupEmailVerificationController::class, 'verify'])->middleware('throttle:10,1')->name('subscribe.email-verify');
 
 Route::prefix('account')->name('platform.account.')->group(function () {
     Route::get('/login', [AccountController::class, 'loginForm'])->name('login');
