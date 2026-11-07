@@ -80,8 +80,8 @@ class PaylinkCallbackController extends Controller
                 ->first();
         }
 
+        $signup = $invoice ? (array) data_get($invoice->line_items, 'signup', []) : [];
         if (! $isRenewal && $invoice) {
-            $signup = data_get($invoice->line_items, 'signup', []);
             $isRenewal = ! empty($signup['renew']);
         }
 
@@ -93,6 +93,9 @@ class PaylinkCallbackController extends Controller
             'marketingUrl' => $marketingUrl,
             'handoffUrl' => $handoffUrl,
             'activationStatus' => $activationStatus,
+            'signupEmail' => $isRenewal ? '' : (string) ($signup['email'] ?? ''),
+            'signupSlug' => $isRenewal ? '' : (string) ($signup['slug'] ?? ''),
+            'domain' => config('app.domain', 'etoscoach.com'),
         ]);
     }
 }

@@ -97,6 +97,13 @@
                 <div class="cf-turnstile" data-sitekey="{{ $turnstileSiteKey }}" style="margin-top:14px"></div>
             @endif
 
+            @if(! $renewal)
+                <p class="note" style="margin-top:14px">
+                    بعد إتمام الدفع سنجهّز نادياً خاصاً بك تلقائياً، وسيصلك <strong>بريد إلكتروني ترحيبي</strong>
+                    فيه رابط ناديك ورابط تعيين كلمة المرور وتفاصيل خطتك.
+                </p>
+            @endif
+
             <div class="subscribe-errors alert error hidden" role="alert"></div>
             <div class="subscribe-success alert success hidden" role="status"></div>
 

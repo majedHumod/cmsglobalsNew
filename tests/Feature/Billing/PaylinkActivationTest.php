@@ -93,6 +93,19 @@ class PaylinkActivationTest extends BillingTestCase
         $this->assertSame(SignupReservation::PAID, SignupReservation::where('order_number', $order)->value('status'));
     }
 
+    public function test_callback_page_tells_a_new_customer_what_happens_next(): void
+    {
+        $order = $this->startCheckout();
+
+        $this->get('/billing/paylink/callback?transactionNo='.$this->transactions[$order].'&orderNumber='.$order)
+            ->assertOk()
+            ->assertSee('أهلاً بك في EtosCoach')
+            ->assertSee('سيصلك بريد إلكتروني')
+            ->assertSee('mjd-club.etoscoach.com')
+            ->assertSee('owner@example.com')
+            ->assertSee('تعيين كلمة المرور');
+    }
+
     public function test_amount_mismatch_is_ignored_and_never_provisions(): void
     {
         $order = $this->startCheckout();
